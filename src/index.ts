@@ -145,7 +145,7 @@ const gerarLista = async () => {
         const disabled = await page.$('.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled');
 
         // Se houver, incrementar o número da página e continuar o loop
-        if (!disabled && imoveis.length > 0 && pagina < 3) {
+        if (!disabled && imoveis.length > 0) {
           pagina++;
           console.info(`Carregando dados da página ${pagina}`);
         } else {
@@ -168,10 +168,6 @@ const gerarLista = async () => {
   // Retornar a lista
   return lista;
 };
-
-// Chamar a função e mostrar o resultado no console
-
-
 
 // Importar o módulo http do nodejs
 import http from "http";
