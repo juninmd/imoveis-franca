@@ -1,0 +1,37 @@
+{
+	"name": "imoveis-baratos-franca",
+	"version": "0.0.0",
+	"description": "Minimalistic boilerplate to quick-start Node.js development in TypeScript.",
+	"engines": {
+		"node": ">= 20.9 < 21"
+	},
+	"dependencies": {
+		"axios": "^1.6.7",
+		"cheerio": "1.0.0-rc.12",
+		"puppeteer": "^22.0.0",
+		"puppeteer-extra": "^3.3.6",
+		"puppeteer-extra-plugin-stealth": "^2.11.2",
+		"qs": "^6.11.2",
+		"tslib": "^2.6.2"
+	},
+	"devDependencies": {
+		"@types/node": "~20",
+		"@typescript-eslint/eslint-plugin": "~6.15",
+		"@typescript-eslint/parser": "~6.15",
+		"eslint": "~8.56",
+		"eslint-config-prettier": "~9.1",
+		"eslint-plugin-jest": "~27.6",
+		"rimraf": "~5.0",
+		"ts-node": "~10.9.2",
+		"typescript": "~5.3"
+	},
+	"scripts": {
+		"start": "node dist/src/index.js",
+		"clean": "rimraf coverage build tmp",
+		"prebuild": "npm run lint",
+		"build": "tsc -p tsconfig.json",
+		"build:watch": "tsc -w -p tsconfig.json",
+		"build:release": "npm run clean && tsc -p tsconfig.release.json",
+		"lint": "eslint . --ext .ts --ext .mts"
+	}
+}
