@@ -32,6 +32,8 @@ const sites = [
     adapter: (html: string) => {
       // Extrair as informações dos imóveis a partir do HTML
       const $ = cheerio.load(html);
+      const qtd = $('#result').text().trim();
+      console.log(qtd);
       const imoveis = $('.card-resultado').map((_i, el) => {
         const titulo = $(el).find('.titulo-resultado-busca').text().trim();
         const endereco = $(el).find('.endereco-resultado-busca').text().trim();
@@ -46,7 +48,7 @@ const sites = [
         const precoPorMetro = Number(valor) / Number(area);
         return {
           titulo,
-          //  imagens,
+          imagens,
           endereco,
           valor: Number(valor),
           area: Number(area),
@@ -143,7 +145,7 @@ const gerarLista = async () => {
         const disabled = await page.$('.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled');
 
         // Se houver, incrementar o número da página e continuar o loop
-        if (!disabled) {
+        if (!disabled && imoveis.length > 0 && pagina < 3) {
           pagina++;
           console.info(`Carregando dados da página ${pagina}`);
         } else {
@@ -168,13 +170,118 @@ const gerarLista = async () => {
 };
 
 // Chamar a função e mostrar o resultado no console
-gerarLista()
-  .then((lista) => {
-    console.log(
-      'Lista das melhores oportunidades de compra de imóveis em Franca, São Paulo:'
-    );
-    console.table(lista);
-  })
-  .catch((error) => {
-    console.error(`Erro ao gerar a lista: ${error.message} `);
-  });
+
+
+
+// Importar o módulo http do nodejs
+import http from "http";
+
+// Criar um servidor http
+const server = http.createServer(async (_req, res) => {
+  // Definir o conteúdo da resposta como html
+  res.setHeader("Content-Type", "text/html charset=utf-8");
+
+  const lista = await gerarLista();
+  console.log(
+    'Lista das melhores oportunidades de compra de imóveis em Franca, São Paulo:'
+  );
+
+  // Definir o estilo css da tabela
+  const style = `
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th, td {
+        border: 1px solid black;
+        padding: 10px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #4CAF50;
+        color: white;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      a {
+        color: blue;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: red;
+        text-decoration: underline;
+      }
+
+      img {
+        max-width: 300px;
+        max-height: 300px;
+      }
+    </style>
+  `;
+
+  // Definir o cabeçalho da tabela com os nomes das colunas
+  const header = `
+    <tr>
+      <th>Imagem</th>
+      <th>Título</th>
+      <th>Endereço</th>
+      <th>Valor (R$)</th>
+      <th>Área (m²)</th>
+      <th>Quartos</th>
+      <th>Banheiros</th>
+      <th>Vagas</th>
+      <th>Preço por metro (R$)</th>
+      <th>Link</th>
+    </tr>
+  `;
+
+  // Definir o corpo da tabela com os dados do payload
+  let body = "";
+  for (let item of lista) {
+    body += `
+      <tr>
+        <td><img src="${item.imagens[0]}" /></td>
+        <td>${item.titulo}</td>
+        <td>${item.endereco}</td>
+        <td>${item.valor.toLocaleString("pt-BR")}</td>
+        <td>${item.area}</td>
+        <td>${item.quartos}</td>
+        <td>${item.banheiros}</td>
+        <td>${item.vagas}</td>
+        <td>${item.precoPorMetro.toLocaleString("pt-BR")}</td>
+        <td><a href="${item.link}" target="_blank">Ver mais</a></td>
+      </tr>
+    `;
+  }
+
+  // Definir o html da tabela com o estilo, o cabeçalho e o corpo
+  const table = `
+    <meta charset="UTF-8"/>
+    <table>
+      ${style}
+      ${header}
+      ${body}
+    </table>
+  `;
+
+  // Escrever o html da tabela na resposta
+  res.write(table);
+
+  // Encerrar a resposta
+  res.end();
+});
+
+// Definir a porta do servidor
+const port = 3000;
+
+// Iniciar o servidor na porta definida
+server.listen(port, () => {
+  console.log(`Servidor rodando http://localhost:${port}`);
+});
