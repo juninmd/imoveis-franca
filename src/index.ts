@@ -6,7 +6,7 @@ import qs from 'qs';
 
 import cheerio from 'cheerio';
 
-console.log('aa');
+console.log('Carregando sites');
 // Definir os parâmetros de busca
 const valorMinimo = 100000; // em reais
 const valorMaximo = 500000; // em reais
@@ -40,10 +40,13 @@ const sites = [
         const quartos = $(el).find('.comodidades-resultado-busca > div:nth-child(2)').text().replace('Quartos', '').trim();
         const banheiros = $(el).find('.comodidades-resultado-busca > div:nth-child(3)').text().replace('Banheiros', '').trim();
         const vagas = $(el).find('.comodidades-resultado-busca > div:nth-child(4)').text().replace('Vagas', '').trim();
+        const imagens: string[] = [];
+        $(el).find('.imagem-resultado').find('.carousel-inner >.carousel-item > img[src]').each((q, i) => imagens.push(i.attribs['src']));
         const link = $(el).find('.link-resultado').attr('href');
         const precoPorMetro = Number(valor) / Number(area);
         return {
           titulo,
+          //  imagens,
           endereco,
           valor: Number(valor),
           area: Number(area),
@@ -87,6 +90,23 @@ const gerarLista = async () => {
       // Criar uma nova página
       const page = await browser.newPage();
 
+      page.setRequestInterception(true);
+
+      page.on('request', interceptedRequest => {
+        if (
+          !interceptedRequest.method().includes('GET') ||
+          interceptedRequest.url().endsWith('.png') ||
+          interceptedRequest.url().endsWith('.js') ||
+          interceptedRequest.url().endsWith('.css') ||
+          interceptedRequest.url().endsWith('.gif') ||
+          interceptedRequest.url().endsWith('.jpeg') ||
+          interceptedRequest.url().endsWith('.jpg')
+        ) {
+          interceptedRequest.abort();
+        }
+        else interceptedRequest.continue();
+      });
+
       // Definir uma variável para controlar o número da página
       let pagina = 1;
 
@@ -99,7 +119,7 @@ const gerarLista = async () => {
           site.params.pagina = pagina;
         }
         // Construir a url com os parâmetros de busca e o número da página
-        const url = `${site.url}?${qs.stringify(site.params)}`;
+        const url = `${site.url}?${qs.stringify(site.params)} `;
 
         // Navegar para a url
         await page.goto(url);
@@ -125,6 +145,7 @@ const gerarLista = async () => {
         // Se houver, incrementar o número da página e continuar o loop
         if (!disabled) {
           pagina++;
+          console.info(`Carregando dados da página ${pagina}`);
         } else {
           // Se não houver, encerrar o loop
           temMais = false;
@@ -132,7 +153,7 @@ const gerarLista = async () => {
       }
     } catch (error) {
       // Em caso de erro, mostrar uma mensagem no console
-      console.error(`Erro ao consultar o site ${site.nome}: ${error.message}`);
+      console.error(`Erro ao consultar o site ${site.nome}: ${error.message} `);
     }
   }
 
@@ -155,5 +176,5 @@ gerarLista()
     console.table(lista);
   })
   .catch((error) => {
-    console.error(`Erro ao gerar a lista: ${error.message}`);
+    console.error(`Erro ao gerar a lista: ${error.message} `);
   });
