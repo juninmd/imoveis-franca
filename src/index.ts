@@ -3,19 +3,36 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin())
 import qs from 'qs';
-
+// Importar o módulo http do nodejs
+import http from "http";
+import axios from 'axios';
 import cheerio from 'cheerio';
 
 console.log('Carregando sites');
 // Definir os parâmetros de busca
 const valorMinimo = 100000; // em reais
-const valorMaximo = 500000; // em reais
-const quartos = 3; // número mínimo de quartos
+const valorMaximo = 10000000; // em reais
+const quartos = 2; // número mínimo de quartos
 const areaMinima = 50; // em metros quadrados
-const areaMaxima = 200; // em metros quadrados
+const areaMaxima = 2000; // em metros quadrados
 
+interface Imoveis {
+  titulo: string,
+  imagens: string[],
+  endereco: string,
+  valor: number,
+  area: number,
+  areaTotal: number,
+  quartos: number,
+  link: string,
+  banheiros: number,
+  vagas: number,
+  precoPorMetro: number,
+};
+
+interface Sites { enabled: boolean, waitFor: string, disableQuery: string, nome: string, url: string, params: any, adapter: (html: string) => Promise<Imoveis[]> }
 // Definir os sites de imóveis que serão consultados
-const sites: { enabled: boolean, waitFor: string, disableQuery: string, nome: string, url: string, params: any, adapter: (html: string) => any }[] = [
+const sites: Sites[] = [
   {
     nome: 'Franca',
     enabled: false,
@@ -30,7 +47,7 @@ const sites: { enabled: boolean, waitFor: string, disableQuery: string, nome: st
       'precoMin': 1,
       'filtro': 1
     },
-    adapter: (html: string) => {
+    adapter: async (html: string) => {
       const $ = cheerio.load(html);
       const qtd = $('#result').text().trim();
       console.log(qtd);
@@ -76,20 +93,21 @@ const sites: { enabled: boolean, waitFor: string, disableQuery: string, nome: st
       tipo: 1,
       cidade: 1,
       ordem: 'preco',
+      numpagina: 1,
     },
     disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
-    async adapter(html) {
+    async adapter(html): Promise<Imoveis[]> {
       const $ = cheerio.load(html);
       const qtd = $('ul>span.proerty-price.pull-right>h4').text().trim();
       console.log(qtd);
 
-      const imoveis: any[] = [];
+      const imoveis: Imoveis[] = [];
 
       for (const el of $('div.col-sm-6.col-md-4.p0')) {
         const link = `https://www.aacosta.com.br/${$(el).find('a').attr('href')}`;
         const titulo = $(el).find('h5>a').text().trim();
         const endereco = $(el).find('div.item-entry>span>b').text().trim();
-        const valor = $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
+        const valor = $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0].indexOf('Consulte') > 0 ? 0 : $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
         const infos = $('div.item-entry>.property-icon').text().replace(/\n/g, '').replace(/ /g, '').replace(/\W/g, ' ').trim().split(' ');
         const quartos = infos[0];
         const vagas = infos[2];
@@ -124,7 +142,7 @@ const sites: { enabled: boolean, waitFor: string, disableQuery: string, nome: st
 ];
 
 // Definir uma função que filtra os imóveis de acordo com os parâmetros
-const filtrarImoveis = (imoveis: any[]) => {
+const filtrarImoveis = (imoveis: Imoveis[]) => {
   return imoveis.filter(imovel => {
     return imovel.valor >= valorMinimo && imovel.valor <= valorMaximo
       && imovel.areaTotal >= areaMinima && imovel.areaTotal <= areaMaxima
@@ -140,7 +158,7 @@ const ordenarImoveis = (imoveis: any[]) => {
 // Definir uma função que gera uma lista das melhores oportunidades de compra
 const gerarLista = async () => {
   // Criar um array vazio para armazenar os imóveis encontrados
-  let lista: any[] = [];
+  let lista: Imoveis[] = [];
 
   // Iniciar o navegador puppeteer
   const browser = await puppeteer.launch();
@@ -178,13 +196,17 @@ const gerarLista = async () => {
       while (temMais) {
         if (site.params.pagina) {
           site.params.pagina = pagina;
+        }
+        if (site.params.numpagina) {
           site.params.numpagina = pagina;
         }
+
         // Construir a url com os parâmetros de busca e o número da página
         const url = `${site.url}?${qs.stringify(site.params)} `;
 
         // Navegar para a url
         await page.goto(url);
+        console.info(url);
 
         // Esperar o carregamento do conteúdo
         await page.waitForSelector('.row');
@@ -229,10 +251,6 @@ const gerarLista = async () => {
   // Retornar a lista
   return lista;
 };
-
-// Importar o módulo http do nodejs
-import http from "http";
-import axios from 'axios';
 
 // Criar um servidor http
 const server = http.createServer(async (_req, res) => {
