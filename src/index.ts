@@ -15,9 +15,10 @@ const areaMinima = 50; // em metros quadrados
 const areaMaxima = 200; // em metros quadrados
 
 // Definir os sites de imóveis que serão consultados
-const sites = [
+const sites: { enabled: boolean, waitFor: string, disableQuery: string, nome: string, url: string, params: any, adapter: (html: string) => any }[] = [
   {
     nome: 'Franca',
+    enabled: false,
     url: 'https://imoveisfranca.com.br/comprar/comprar',
     params: {
       'pagina': 1,
@@ -30,7 +31,6 @@ const sites = [
       'filtro': 1
     },
     adapter: (html: string) => {
-      // Extrair as informações dos imóveis a partir do HTML
       const $ = cheerio.load(html);
       const qtd = $('#result').text().trim();
       console.log(qtd);
@@ -39,19 +39,21 @@ const sites = [
         const endereco = $(el).find('.endereco-resultado-busca').text().trim();
         const valor = $(el).find('.valores-resultado-busca').text().indexOf('Para detalhes') > 0 ? 0 : $(el).find('.valores-resultado-busca > h3').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
         const area = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || 0;
+        const areaTotal = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || 0;
         const quartos = $(el).find('.comodidades-resultado-busca > div:nth-child(2)').text().replace('Quartos', '').trim();
         const banheiros = $(el).find('.comodidades-resultado-busca > div:nth-child(3)').text().replace('Banheiros', '').trim();
         const vagas = $(el).find('.comodidades-resultado-busca > div:nth-child(4)').text().replace('Vagas', '').trim();
         const imagens: string[] = [];
-        $(el).find('.imagem-resultado').find('.carousel-inner >.carousel-item > img[src]').each((q, i) => imagens.push(i.attribs['src']));
+        $(el).find('.imagem-resultado').find('.carousel-inner >.carousel-item > img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
         const link = $(el).find('.link-resultado').attr('href');
-        const precoPorMetro = Number(valor) / Number(area);
+        const precoPorMetro = Number(valor) / Number(areaTotal);
         return {
           titulo,
           imagens,
           endereco,
           valor: Number(valor),
           area: Number(area),
+          areaTotal: Number(areaTotal),
           quartos: Number(quartos),
           link,
           banheiros: Number(banheiros),
@@ -61,14 +63,71 @@ const sites = [
       }).get();
       return imoveis;
     },
+    disableQuery: '.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled',
+    waitFor: '.row'
+  },
+  {
+    enabled: true,
+    waitFor: '#list-type',
+    url: 'https://www.aacosta.com.br/listagem.jsp',
+    nome: 'aacosta',
+    params: {
+      negociacao: 2,
+      tipo: 1,
+      cidade: 1,
+      ordem: 'preco',
+    },
+    disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
+    async adapter(html) {
+      const $ = cheerio.load(html);
+      const qtd = $('ul>span.proerty-price.pull-right>h4').text().trim();
+      console.log(qtd);
+
+      const imoveis: any[] = [];
+
+      for (const el of $('div.col-sm-6.col-md-4.p0')) {
+        const link = `https://www.aacosta.com.br/${$(el).find('a').attr('href')}`;
+        const titulo = $(el).find('h5>a').text().trim();
+        const endereco = $(el).find('div.item-entry>span>b').text().trim();
+        const valor = $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
+        const infos = $('div.item-entry>.property-icon').text().replace(/\n/g, '').replace(/ /g, '').replace(/\W/g, ' ').trim().split(' ');
+        const quartos = infos[0];
+        const vagas = infos[2];
+
+        const imagens: any[] = [$(el).find('a>img[src]').attr('src')];
+
+        const { data: details } = await axios.get('https://www.aacosta.com.br/Imovel.jsp?codimovel=3199');
+        const $$ = cheerio.load(details);
+
+        const areaTotal = $$('.property-meta.entry-meta.clearfix>div:nth-child(2)').text().replace('.00 m�', '').replace(/\D/g, '');
+        const area = $$('.property-meta.entry-meta.clearfix>div:nth-child(3)').text().replace('.00 m�', '').replace(/\D/g, '');
+        const banheiros = $$('div.s-property-content>p').text().trim().match(/banheiro/g)?.length || 1;
+        const precoPorMetro = Number(valor) / Number(areaTotal);
+        imoveis.push({
+          titulo,
+          imagens,
+          endereco,
+          areaTotal: Number(areaTotal),
+          valor: Number(valor),
+          area: Number(area),
+          quartos: Number(quartos),
+          link,
+          banheiros: Number(banheiros),
+          vagas: Number(vagas),
+          precoPorMetro,
+        });
+      }
+      return imoveis;
+    },
   }
+
 ];
 
 // Definir uma função que filtra os imóveis de acordo com os parâmetros
 const filtrarImoveis = (imoveis: any[]) => {
   return imoveis.filter(imovel => {
     return imovel.valor >= valorMinimo && imovel.valor <= valorMaximo
-      && imovel.area >= areaMinima && imovel.area <= areaMaxima
+      && imovel.areaTotal >= areaMinima && imovel.areaTotal <= areaMaxima
       && imovel.quartos >= quartos;
   });
 };
@@ -87,7 +146,7 @@ const gerarLista = async () => {
   const browser = await puppeteer.launch();
 
   // Percorrer os sites de imóveis
-  for (const site of sites) {
+  for (const site of sites.filter(q => q.enabled)) {
     try {
       // Criar uma nova página
       const page = await browser.newPage();
@@ -119,6 +178,7 @@ const gerarLista = async () => {
       while (temMais) {
         if (site.params.pagina) {
           site.params.pagina = pagina;
+          site.params.numpagina = pagina;
         }
         // Construir a url com os parâmetros de busca e o número da página
         const url = `${site.url}?${qs.stringify(site.params)} `;
@@ -133,7 +193,8 @@ const gerarLista = async () => {
         const html = await page.content();
 
         // Usar o adapter do site para extrair os imóveis do HTML
-        const imoveis = site.adapter(html);
+        const imoveis: any[] = (await site.adapter(html));
+        imoveis.forEach(q => q.url = url);
 
         // Filtrar os imóveis de acordo com os parâmetros
         const imoveisFiltrados = filtrarImoveis(imoveis);
@@ -142,7 +203,7 @@ const gerarLista = async () => {
         lista = lista.concat(imoveisFiltrados);
 
         // Verificar se há um botão de próxima página
-        const disabled = await page.$('.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled');
+        const disabled = await page.$(site.disableQuery);
 
         // Se houver, incrementar o número da página e continuar o loop
         if (!disabled && imoveis.length > 0) {
@@ -171,6 +232,7 @@ const gerarLista = async () => {
 
 // Importar o módulo http do nodejs
 import http from "http";
+import axios from 'axios';
 
 // Criar um servidor http
 const server = http.createServer(async (_req, res) => {
