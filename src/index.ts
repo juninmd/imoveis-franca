@@ -114,7 +114,7 @@ const sites: Sites[] = [
 
         const imagens: any[] = [$(el).find('a>img[src]').attr('src')];
 
-        const { data: details } = await axios.get('https://www.aacosta.com.br/Imovel.jsp?codimovel=3199');
+        const { data: details } = await axios.get(link);
         const $$ = cheerio.load(details);
 
         const areaTotal = $$('.property-meta.entry-meta.clearfix>div:nth-child(2)').text().replace('.00 m�', '').replace(/\D/g, '');
@@ -328,6 +328,7 @@ const server = http.createServer(async (_req, res) => {
         <td>${item.endereco}</td>
         <td>${item.valor.toLocaleString("pt-BR")}</td>
         <td>${item.area}</td>
+        <td>${item.areaTotal}</td>
         <td>${item.quartos}</td>
         <td>${item.banheiros}</td>
         <td>${item.vagas}</td>
