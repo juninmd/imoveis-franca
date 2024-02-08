@@ -310,6 +310,7 @@ const server = http.createServer(async (_req, res) => {
       <th>Endereço</th>
       <th>Valor (R$)</th>
       <th>Área (m²)</th>
+      <th>Área Terreno (m²)</th>
       <th>Quartos</th>
       <th>Banheiros</th>
       <th>Vagas</th>
