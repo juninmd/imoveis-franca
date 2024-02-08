@@ -35,7 +35,7 @@ interface Sites { enabled: boolean, waitFor: string, disableQuery: string, nome:
 const sites: Sites[] = [
   {
     nome: 'Franca',
-    enabled: false,
+    enabled: true,
     url: 'https://imoveisfranca.com.br/comprar/comprar',
     params: {
       'pagina': 1,
