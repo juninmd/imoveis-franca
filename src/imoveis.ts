@@ -7,7 +7,6 @@ import qs from 'qs';
 import axios from 'axios';
 import cheerio from 'cheerio';
 
-console.log('Carregando sites');
 // Definir os parâmetros de busca
 const valorMinimo = 100000; // em reais
 const valorMaximo = 5000000; // em reais
