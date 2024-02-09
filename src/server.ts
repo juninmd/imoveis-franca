@@ -107,7 +107,7 @@ const server = http.createServer(async (_req, res) => {
         <td>${item.quartos}</td>
         <td>${item.banheiros}</td>
         <td>${item.vagas}</td>
-        <td>${item.precoPorMetro.toLocaleString("pt-BR")}</td>
+        <td>${item.precoPorMetro}</td>
         <td><a href="${item.link}" target="_blank">Ver mais</a></td>
       </tr>
     `;
