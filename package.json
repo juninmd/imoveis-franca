@@ -8,6 +8,7 @@
 	"dependencies": {
 		"axios": "^1.6.7",
 		"cheerio": "1.0.0-rc.12",
+		"puppeteer": "^22.0.0",
 		"puppeteer-extra": "^3.3.6",
 		"puppeteer-extra-plugin-stealth": "^2.11.2",
 		"qs": "^6.11.2",
@@ -19,7 +20,6 @@
 		"@typescript-eslint/parser": "~6.15",
 		"eslint": "~8.56",
 		"eslint-config-prettier": "~9.1",
-		"eslint-plugin-jest": "~27.6",
 		"rimraf": "~5.0",
 		"ts-node": "~10.9.2",
 		"typescript": "~5.3"
@@ -31,6 +31,7 @@
 		"build": "tsc -p tsconfig.json",
 		"build:watch": "tsc -w -p tsconfig.json",
 		"build:release": "npm run clean && tsc -p tsconfig.release.json",
-		"lint": "eslint . --ext .ts --ext .mts"
+		"lint": "eslint . --ext .ts --ext .mts",
+		"lint:fix": "eslint . --ext .ts --ext .mts --fix"
 	}
 }
