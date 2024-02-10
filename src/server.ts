@@ -80,14 +80,14 @@ const server = http.createServer(async (_req, res) => {
       <tr>
         <th>Imagem</th>
         <th>Título</th>
-        <th>Endereço</th>
-        <th>Valor (R$)</th>
-        <th>Área (m²)</th>
-        <th>Área Terreno (m²)</th>
-        <th>Quartos</th>
-        <th>Banheiros</th>
-        <th>Vagas</th>
-        <th>Preço por metro (R$)</th>
+        <th class="filter">Endereço</th>
+        <th class="filter">Valor (R$)</th>
+        <th class="filter">Área (m²)</th>
+        <th class="filter">Área Terreno (m²)</th>
+        <th class="filter">Quartos</th>
+        <th class="filter">Banheiros</th>
+        <th class="filter">Vagas</th>
+        <th class="filter">Preço por metro (R$)</th>
         <th>Link</th>
       </tr>
     </thead>
@@ -100,14 +100,14 @@ const server = http.createServer(async (_req, res) => {
       <tr>
        <td><a href="#" onclick="showImage('${item.imagens[0]}')"><img src="${item.imagens[0]}" /></a></td>
         <td>${item.titulo}</td>
-        <td>${item.endereco}</td>
-        <td>${item.valor.toLocaleString("pt-BR")}</td>
-        <td>${item.area}</td>
-        <td>${item.areaTotal}</td>
-        <td>${item.quartos}</td>
-        <td>${item.banheiros}</td>
-        <td>${item.vagas}</td>
-        <td>${item.precoPorMetro}</td>
+        <td class="filter">${item.endereco}</td>
+        <td class="filter">${item.valor.toLocaleString("pt-BR")}</td>
+        <td class="filter">${item.area}</td>
+        <td class="filter">${item.areaTotal}</td>
+        <td class="filter">${item.quartos}</td>
+        <td class="filter">${item.banheiros}</td>
+        <td class="filter">${item.vagas}</td>
+        <td class="filter">${item.precoPorMetro}</td>
         <td><a href="${item.link}" target="_blank">Ver mais</a></td>
       </tr>
     `;
@@ -133,7 +133,41 @@ const server = http.createServer(async (_req, res) => {
       }
 
       $(document).ready(function() {
-        $('table').DataTable();
+      new DataTable('table', {
+         pageLength: 5,
+         fixedHeader: true,
+          initComplete: function () {
+                this.api()
+                    .columns('.filter')
+                    .every(function () {
+                        let column = this;
+
+                        // Create select element
+                        let select = document.createElement('select');
+                        select.add(new Option(''));
+                        column.footer().replaceChildren(select);
+
+                        // Apply listener for user change in value
+                        select.addEventListener('change', function () {
+                            var val = DataTable.util.escapeRegex(select.value);
+
+                            column
+                                .search(val ? '^' + val + '$' : '', true, false)
+                                .draw();
+                        });
+
+                        // Add list of options
+                        column
+                            .data()
+                            .unique()
+                            .sort()
+                            .each(function (d, j) {
+                                select.add(new Option(d));
+                            });
+                    });
+            }
+        });
+
       });
        $(document).mouseup(function(e) {
         var container = $('.lightbox');
@@ -143,10 +177,25 @@ const server = http.createServer(async (_req, res) => {
       });
     </script>
     <html class="dark">
-      <table>
+      <table class="table">
         ${style}
         ${header}
         ${body}
+        <tfoot>
+            <tr>
+                <th>Título</th>
+                <th>Casa</th>
+                <th>Endereço</th>
+                <th>Valor (R$)</th>
+                <th>Área (m²)</th>
+                <th>Área Terreno (m²)</th>
+                <th>Quartos</th>
+                <th>Banheiros</th>
+                <th>Vagas</th>
+                <th>Preço por metro (R$)</th>
+                <th>Link</th>
+            </tr>
+        </tfoot>
       </table>
        <div class="lightbox" onClick="hideImage()"></div>
     </html>
