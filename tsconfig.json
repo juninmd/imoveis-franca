@@ -1,5 +1,14 @@
 {
+  "ts-node": {
+    "files": true
+  },
+  "types": [
+    "node",
+  ],
   "compilerOptions": {
+    "typeRoots": [
+      "../node_modules/@types"
+    ],
     "target": "es2022",
     "module": "NodeNext",
     "lib": [
@@ -21,9 +30,6 @@
     "noImplicitThis": false,
     "strictNullChecks": false
   },
-  "types": [
-    "node"
-  ],
   "include": [
     "src/**/*",
   ]

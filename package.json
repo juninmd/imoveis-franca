@@ -15,7 +15,7 @@
 		"tslib": "^2.6.2"
 	},
 	"devDependencies": {
-		"@types/node": "~20",
+		"@types/node": "~20.11.16",
 		"@typescript-eslint/eslint-plugin": "~6.15",
 		"@typescript-eslint/parser": "~6.15",
 		"eslint": "~8.56",
