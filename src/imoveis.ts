@@ -12,7 +12,7 @@ const queryParams = {
   quartos: 2,
   minArea: 50,
   maxArea: 2000,
-  maxPage: 1,
+  maxPage: null,
   currentPage: 1,
 }
 
