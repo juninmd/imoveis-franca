@@ -22,7 +22,7 @@ export const sites: Sites[] = [
     nome: 'Franca',
     enabled: true,
     url: 'https://imoveisfranca.com.br/comprar/comprar',
-    driver: 'axios',
+    driver: 'puppet',
     params: {
       'pagina': 1,
       'tipo': 'comprar',

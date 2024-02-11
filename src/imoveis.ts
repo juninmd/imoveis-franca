@@ -12,7 +12,7 @@ const queryParams = {
   quartos: 2,
   minArea: 50,
   maxArea: 2000,
-  maxPage: null,
+  maxPage: undefined,
   currentPage: 1,
 }
 
@@ -63,9 +63,10 @@ export const gerarLista = async () => {
         imoveis.forEach(q => q.url = url);
         const imoveisFiltrados = filtrarImoveis(imoveis);
         lista = lista.concat(imoveisFiltrados);
+
         const disabled = await page.$(site.disableQuery);
         // Se houver, incrementar o número da página e continuar o loop
-        if (!disabled && imoveis.length > 0 && (queryParams.maxPage === undefined || queryParams.currentPage <= queryParams.maxPage)) {
+        if (!disabled && (queryParams.maxPage === undefined || queryParams.maxPage !== undefined && queryParams.currentPage <= queryParams.maxPage)) {
           queryParams.currentPage++;
           console.info(`Carregando dados da página ${queryParams.currentPage}`);
         } else {
