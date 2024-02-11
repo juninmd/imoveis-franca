@@ -66,7 +66,7 @@ export const gerarLista = async () => {
 
         const disabled = await page.$(site.disableQuery);
         // Se houver, incrementar o número da página e continuar o loop
-        if (!disabled && (queryParams.maxPage === undefined || queryParams.maxPage !== undefined && queryParams.currentPage <= queryParams.maxPage)) {
+        if (!disabled && imoveis.length > 0 && (queryParams.maxPage === undefined || queryParams.maxPage !== undefined && queryParams.currentPage <= queryParams.maxPage)) {
           queryParams.currentPage++;
           console.info(`Carregando dados da página ${queryParams.currentPage}`);
         } else {
