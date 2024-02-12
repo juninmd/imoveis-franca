@@ -1,23 +1,11 @@
 // Importar as bibliotecas necessárias
 import qs from 'qs';
 import axios from 'axios';
-import { puppetAdapter } from './puppeter';
-import { exec } from 'child_process';
+import { getNewPage, puppetAdapter } from './puppeter';
 import { Imoveis, Sites, sites } from './sites';
+import { Browser } from 'puppeteer';
 
-// Definir os parâmetros de busca
-const queryParams = {
-  minPrice: 100000,
-  maxPrice: 5000000,
-  quartos: 2,
-  minArea: 50,
-  maxArea: 2000,
-  maxPage: undefined,
-  currentPage: 1,
-}
-
-// Definir uma função que filtra os imóveis de acordo com os parâmetros
-const filtrarImoveis = (imoveis: Imoveis[]) => {
+const filtrarImoveis = (imoveis: Imoveis[], queryParams) => {
   const { maxPrice, minPrice, quartos, minArea, maxArea } = queryParams;
   return imoveis.filter(imovel => {
     return imovel.valor >= minPrice && imovel.valor <= maxPrice
@@ -26,75 +14,107 @@ const filtrarImoveis = (imoveis: Imoveis[]) => {
   });
 };
 
-// Definir uma função que ordena os imóveis por precoPorMetro
 const ordenarImoveis = (imoveis: any[]) => {
   return imoveis.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
 };
 
-// Definir uma função que gera uma lista das melhores oportunidades de compra
 export const gerarLista = async () => {
-  // Criar um array vazio para armazenar os imóveis encontrados
+  // Definir os parâmetros de busca
+  const queryParams = {
+    minPrice: 100000,
+    maxPrice: 150000,
+    quartos: 2,
+    minArea: 50,
+    maxArea: 130,
+    maxPage: undefined,
+  }
+
   let lista: Imoveis[] = [];
 
-  // Iniciar o navegador puppeteer
-  const { page, browser } = await puppetAdapter();
-
+  const browser = await puppetAdapter();
   for (const site of sites.filter(q => q.enabled)) {
     try {
-      // Definir uma variável para controlar o número da página
-      queryParams.currentPage = 1;
+      let page = 1;
+      const { imoveis, qtd } = await getImoveis(site, browser, queryParams, page);
 
-      // Definir uma variável para indicar se há mais páginas para buscar
-      let temMais = true;
+      const pages = Math.ceil(qtd / site.itemsPerPage);
+      console.info(`------- ${site.name} possuí ${pages} páginas`);
+      lista = lista.concat(imoveis);
 
-      // Enquanto houver mais páginas para buscar
-      while (temMais) {
-
-        Object.keys(site.translateParams).forEach((param => {
-          const paramName = site.translateParams[param];
-          if (paramName) {
-            site.params[paramName] = queryParams[param];
-          }
-        }));
-
-        const url = `${site.url}?${qs.stringify(site.params)} `;
-        const html = await retrieveHtml(page, url, site);
-        const imoveis: any[] = (await site.adapter(html));
-        imoveis.forEach(q => q.url = url);
-        const imoveisFiltrados = filtrarImoveis(imoveis);
-        lista = lista.concat(imoveisFiltrados);
-
-        const disabled = await page.$(site.disableQuery);
-        // Se houver, incrementar o número da página e continuar o loop
-        if (!disabled && imoveis.length > 0 && (queryParams.maxPage === undefined || queryParams.maxPage !== undefined && queryParams.currentPage <= queryParams.maxPage)) {
-          queryParams.currentPage++;
-          console.info(`Carregando dados da página ${queryParams.currentPage}`);
-        } else {
-          // Se não houver, encerrar o loop
-          temMais = false;
-        }
+      if (pages === 1) {
+        continue;
       }
+
+      for (let currentPage = 2; currentPage <= pages; currentPage++) {
+        const { imoveis, page } = await getImoveis(site, browser, queryParams, currentPage);
+        console.info(`------- ${site.name} página ${page} de ${pages}`);
+        lista.push(...imoveis);
+      }
+
     } catch (error) {
-      // Em caso de erro, mostrar uma mensagem no console
-      console.error(`Erro ao consultar o site ${site.nome}: ${error.message} `);
+      console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
     }
   }
 
   await browser.close();
+  lista = filtrarImoveis(lista, queryParams);
   lista = ordenarImoveis(lista);
   return lista;
 };
 
-async function retrieveHtml(page, url: string, site: Sites) {
-  console.info(url);
+const cache = {};
+
+async function getImoveis(site: Sites, browser: Browser, queryParams, page: number) {
+  try {
+    const cacheKey = `${site.url}-${page}-${JSON.stringify(queryParams)}`;
+
+    // Verificar se a resposta já está em cache
+    if (cache[cacheKey]) {
+      console.log('Retornando resultado do cache para:', cacheKey);
+      return cache[cacheKey];
+    }
+
+    Object.keys(site.translateParams).forEach((param => {
+      const paramName = site.translateParams[param];
+      if (paramName) {
+        site.params[paramName] = queryParams[param];
+      }
+    }));
+
+    // Change Page
+    const paramName = site.translateParams['currentPage'];
+    if (paramName) {
+      site.params[paramName] = page;
+    }
+
+    const link = `${site.url}?${qs.stringify(site.params)} `;
+    const html = await retrieveHtml(browser, link, site);
+    console.info(link, site.driver);
+
+    const { imoveis, qtd } = (await site.adapter(html));
+    imoveis.forEach(q => q.link = link);
+
+    // Armazenar a resposta em cache
+    cache[cacheKey] = { imoveis, qtd, page };
+    return { imoveis, qtd, page };
+  } catch (error) {
+    console.error(`Retry ${site.url}`, error);
+    throw error;
+  }
+}
+
+async function retrieveHtml(browser: Browser, url: string, site: Sites) {
   if (site.driver === 'puppet') {
-    await page.goto(url.trim());
+    const page = await getNewPage(browser);
+
+    await page.goto(url.trim(), { timeout: 20000, waitUntil: 'domcontentloaded' });
 
     if (site.waitFor) {
       await page.waitForSelector(site.waitFor);
     }
 
     const html = await page.content();
+    await page.close();
     return html;
   }
 
@@ -104,5 +124,3 @@ async function retrieveHtml(page, url: string, site: Sites) {
   }
   throw new Error(`Html content not found`);
 }
-
-exec('open http://localhost:3000');

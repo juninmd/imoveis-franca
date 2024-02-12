@@ -15,14 +15,15 @@ export interface Imoveis {
   precoPorMetro: number,
 };
 
-export interface Sites { driver: 'axios' | 'puppet', enabled: boolean, waitFor: string | undefined, disableQuery: string, nome: string, url: string, translateParams: { currentPage: string; maxPrice: string; minPrice: string }, params: any, adapter: (html: string) => Promise<Imoveis[]> }
+export interface Sites { driver: 'axios' | 'puppet', enabled: boolean, waitFor: string | undefined, disableQuery: string, name: string, url: string, link?: string, translateParams: { currentPage: string; maxPrice: string; minPrice: string }, params: any, itemsPerPage: number, adapter: (html: string) => Promise<{ imoveis: Imoveis[], qtd: number }> }
 // Definir os sites de imóveis que serão consultados
 export const sites: Sites[] = [
   {
-    nome: 'Franca',
-    enabled: true,
+    name: 'Franca',
+    enabled: false,
     url: 'https://imoveisfranca.com.br/comprar/comprar',
     driver: 'puppet',
+    itemsPerPage: 10,
     params: {
       'pagina': 1,
       'tipo': 'comprar',
@@ -39,8 +40,7 @@ export const sites: Sites[] = [
     },
     adapter: async (html: string) => {
       const $ = cheerio.load(html);
-      const qtd = $('#result').text().trim();
-      console.log(qtd);
+      const qtd = Number($('#result').text().replace(/\D/g, ''));
       const imoveis = $('.card-resultado').map((_i, el) => {
         const titulo = $(el).find('.titulo-resultado-busca').text().trim();
         const endereco = $(el).find('.endereco-resultado-busca').text().trim();
@@ -68,7 +68,7 @@ export const sites: Sites[] = [
           precoPorMetro,
         };
       }).get();
-      return imoveis;
+      return { imoveis, qtd };
     },
     disableQuery: '.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled',
     waitFor: undefined
@@ -78,7 +78,8 @@ export const sites: Sites[] = [
     enabled: true,
     waitFor: undefined,
     url: 'https://www.aacosta.com.br/listagem.jsp',
-    nome: 'aacosta',
+    name: 'aacosta',
+    itemsPerPage: 10,
     params: {
       negociacao: 2,
       tipo: 1,
@@ -91,13 +92,10 @@ export const sites: Sites[] = [
       minPrice: undefined,
     },
     disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
-    async adapter(html): Promise<Imoveis[]> {
+    async adapter(html): Promise<{ imoveis: Imoveis[], qtd: number }> {
       const $ = cheerio.load(html);
-      const qtd = $('ul>span.proerty-price.pull-right>h4').text().trim();
-      console.log(qtd);
-
+      const qtd = Number($('ul>span.proerty-price.pull-right>h4').text().replace(/\D/g, ''));
       const imoveis: Imoveis[] = [];
-
       for (const el of $('div.col-sm-6.col-md-4.p0')) {
         const link = `https://www.aacosta.com.br/${$(el).find('a').attr('href')}`;
         const titulo = $(el).find('h5>a').text().trim();
@@ -109,7 +107,11 @@ export const sites: Sites[] = [
 
         const imagens: any[] = [$(el).find('a>img[src]').attr('src')];
 
-        const { data: details } = await axios.get(link, { responseEncoding: 'utf8' });
+        const { data: details } = await axios.get(link, {
+          headers: {
+            'Accept-Encoding': 'identity'
+          }
+        });
         const $$ = cheerio.load(details);
 
         const areaTotal = $$('.property-meta.entry-meta.clearfix>div:nth-child(2)').text().replace('.00 m�', '').replace(/\D/g, '');
@@ -130,7 +132,7 @@ export const sites: Sites[] = [
           precoPorMetro,
         });
       }
-      return imoveis;
+      return { imoveis, qtd };
     },
   }
 ];

@@ -1,9 +1,14 @@
+import { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin())
 
 export async function puppetAdapter() {
   const browser = await puppeteer.launch();
+  return browser;
+}
+
+export async function getNewPage(browser: Browser) {
   const page = await browser.newPage();
 
   page.setRequestInterception(true);
@@ -20,6 +25,5 @@ export async function puppetAdapter() {
     }
     else interceptedRequest.continue();
   });
-  return { page, browser };
+  return page;
 }
-
