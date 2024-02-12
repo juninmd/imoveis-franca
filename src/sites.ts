@@ -2,6 +2,7 @@ import cheerio from 'cheerio';
 import axios from 'axios';
 
 export interface Imoveis {
+  site: string,
   titulo: string,
   imagens: string[],
   endereco: string,
@@ -15,12 +16,12 @@ export interface Imoveis {
   precoPorMetro: number,
 };
 
-export interface Sites { driver: 'axios' | 'puppet', enabled: boolean, waitFor: string | undefined, disableQuery: string, name: string, url: string, link?: string, translateParams: { currentPage: string; maxPrice: string; minPrice: string }, params: any, itemsPerPage: number, adapter: (html: string) => Promise<{ imoveis: Imoveis[], qtd: number }> }
+export interface Site { driver: 'axios' | 'puppet', enabled: boolean, waitFor: string | undefined, disableQuery: string, name: string, url: string, link?: string, translateParams: { currentPage: string; maxPrice: string; minPrice: string }, params: any, itemsPerPage: number, adapter: (html: string) => Promise<{ imoveis: Imoveis[], qtd: number }> }
 // Definir os sites de imóveis que serão consultados
-export const sites: Sites[] = [
+export const sites: Site[] = [
   {
     name: 'Franca',
-    enabled: false,
+    enabled: true,
     url: 'https://imoveisfranca.com.br/comprar/comprar',
     driver: 'puppet',
     itemsPerPage: 10,
@@ -43,7 +44,7 @@ export const sites: Sites[] = [
       const qtd = Number($('#result').text().replace(/\D/g, ''));
       const imoveis = $('.card-resultado').map((_i, el) => {
         const titulo = $(el).find('.titulo-resultado-busca').text().trim();
-        const endereco = $(el).find('.endereco-resultado-busca').text().trim();
+        const endereco = $(el).find('.endereco-resultado-busca').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");;
         const valor = $(el).find('.valores-resultado-busca').text().indexOf('Para detalhes') > 0 ? 0 : $(el).find('.valores-resultado-busca > h3').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
         const area = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || 0;
         const areaTotal = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || 0;
@@ -66,6 +67,7 @@ export const sites: Sites[] = [
           banheiros: Number(banheiros),
           vagas: Number(vagas),
           precoPorMetro,
+          site: 'imoveisfranca.com.br',
         };
       }).get();
       return { imoveis, qtd };
@@ -99,13 +101,12 @@ export const sites: Sites[] = [
       for (const el of $('div.col-sm-6.col-md-4.p0')) {
         const link = `https://www.aacosta.com.br/${$(el).find('a').attr('href')}`;
         const titulo = $(el).find('h5>a').text().trim();
-        const endereco = $(el).find('div.item-entry>span>b').text().trim();
+        const endereco = $(el).find('div.item-entry>span>b').text().trim().replace(' Referência:', '').replace('JD.', 'Jardim').replace('RES.', 'Residencial').replace('PQ.', 'Parque').replace('VL.', 'Residencial').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
         const valor = $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0].indexOf('Consulte') > 0 ? 0 : $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
         const infos = $('div.item-entry>.property-icon').text().replace(/\n/g, '').replace(/ /g, '').replace(/\W/g, ' ').trim().split(' ');
         const quartos = infos[0];
         const vagas = infos[2];
 
-        const imagens: any[] = [$(el).find('a>img[src]').attr('src')];
 
         const { data: details } = await axios.get(link, {
           headers: {
@@ -113,6 +114,9 @@ export const sites: Sites[] = [
           }
         });
         const $$ = cheerio.load(details);
+
+        const imagens: string[] = [];
+        $$('#lightgallery').find('a>img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
 
         const areaTotal = $$('.property-meta.entry-meta.clearfix>div:nth-child(2)').text().replace('.00 m�', '').replace(/\D/g, '');
         const area = $$('.property-meta.entry-meta.clearfix>div:nth-child(3)').text().replace('.00 m�', '').replace(/\D/g, '');
@@ -130,6 +134,7 @@ export const sites: Sites[] = [
           banheiros: Number(banheiros),
           vagas: Number(vagas),
           precoPorMetro,
+          site: 'aacosta.com.br',
         });
       }
       return { imoveis, qtd };

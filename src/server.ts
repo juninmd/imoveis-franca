@@ -19,6 +19,12 @@ const server = http.createServer(async (_req, res) => {
       table {
         border-collapse: collapse;
         width: 100%;
+        table-layout: fixed;
+      }
+
+      td {
+        max-width: 67%;
+        max-height: 35px !important;
       }
 
       th, td {
@@ -28,7 +34,7 @@ const server = http.createServer(async (_req, res) => {
       }
 
       th {
-        background-color: #4CAF50;
+        background-color: #67cdff;
         color: white;
       }
 
@@ -44,11 +50,6 @@ const server = http.createServer(async (_req, res) => {
       a:hover {
         color: red;
         text-decoration: underline;
-      }
-
-      img {
-        max-width: 300px;
-        max-height: 110px;
       }
 
       .lightbox {
@@ -78,8 +79,9 @@ const server = http.createServer(async (_req, res) => {
   const header = `
     <thead>
       <tr>
+        <th class="filter">Site</th>
         <th>Imagem</th>
-        <th>Título</th>
+        <th class="filter">Título</th>
         <th class="filter">Endereço</th>
         <th class="filter">Valor (R$)</th>
         <th class="filter">Área (m²)</th>
@@ -98,7 +100,8 @@ const server = http.createServer(async (_req, res) => {
   for (let item of lista) {
     body += `
       <tr>
-       <td><a href="#" onclick="showImage('${item.imagens[0]}')"><img src="${item.imagens[0]}" /></a></td>
+        <td class="filter">${item.site}</td>
+        <td><a href="#" onclick="showImagesModal('${item.imagens}')"><img src="${item.imagens[0]}" /></a></td>
         <td>${item.titulo}</td>
         <td class="filter">${item.endereco}</td>
         <td class="filter">${item.valor.toLocaleString("pt-BR")}</td>
@@ -124,9 +127,15 @@ const server = http.createServer(async (_req, res) => {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/v/bm/jq-3.7.0/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.js"></script>
     <script>
-     function showImage(imageUrl) {
-        $('.lightbox').html('<img src="' + imageUrl + '">').fadeIn();
-      }
+     function showImagesModal(images) {
+      let modalBody = document.getElementById('modal-body');
+      modalBody.innerHTML = '';
+      const myImages = images.split(',')
+      myImages.forEach(imageUrl => {
+        modalBody.innerHTML += '<img src="' + imageUrl + '">';
+      });
+      $('.lightbox').fadeIn();
+    }
 
       function hideImage() {
         $('.lightbox').fadeOut();
@@ -135,6 +144,7 @@ const server = http.createServer(async (_req, res) => {
       $(document).ready(function() {
       new DataTable('table', {
          pageLength: 5,
+        lengthMenu: [ 5, 10, 25, 50, 75, 100 ],
          fixedHeader: true,
           initComplete: function () {
                 this.api()
@@ -182,22 +192,28 @@ const server = http.createServer(async (_req, res) => {
         ${header}
         ${body}
         <tfoot>
-            <tr>
-                <th>Título</th>
-                <th>Casa</th>
-                <th>Endereço</th>
-                <th>Valor (R$)</th>
-                <th>Área (m²)</th>
-                <th>Área Terreno (m²)</th>
-                <th>Quartos</th>
-                <th>Banheiros</th>
-                <th>Vagas</th>
-                <th>Preço por metro (R$)</th>
-                <th>Link</th>
-            </tr>
+          <tr>
+            <th>Site</th>
+            <th>Imagem</th>
+            <th>Título</th>
+            <th>Endereço</th>
+            <th>Valor (R$)</th>
+            <th>Área (m²)</th>
+            <th>Área Terreno (m²)</th>
+            <th>Quartos</th>
+            <th>Banheiros</th>
+            <th>Vagas</th>
+            <th>Preço por metro (R$)</th>
+            <th>Link</th>
+          </tr>
         </tfoot>
       </table>
-       <div class="lightbox" onClick="hideImage()"></div>
+      <div class="lightbox" onClick="hideImage()">
+       <div class="modal-content" style="width: 60%;">
+          <span class="close" onClick="hideImage()">&times;</span>
+          <div id="modal-body"></div>
+        </div>
+       </div>
     </html>
   `;
 
