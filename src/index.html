@@ -45,7 +45,6 @@
             data: 'imagens',
             title: 'Imagem',
             render: function (data, type, row) {
-              console.log(data);
               return `<img onClick="showImagesModal('${data}')" src="${data[0]}">`;
             }
           },
@@ -95,13 +94,28 @@
                     .draw();
                 });
 
-              column
-                .data()
-                .unique()
-                .sort()
-                .each(function (d, j) {
-                  select.append('<option value="' + d + '">' + d + '</option>');
-                });
+              // Verificar se a coluna é do tipo valor monetário
+              if ($(column.header()).hasClass('monetary-filter')) {
+                // Ordenar os valores de forma numérica
+                column
+                  .data()
+                  .unique()
+                  .sort(function (a, b) {
+                    return parseFloat(a || '0'.replace(/[^\d.-]/g, '')) - parseFloat(b || '0'.replace(/[^\d.-]/g, ''));
+                  })
+                  .each(function (d, j) {
+                    select.append('<option value="' + d + '">' + d + '</option>');
+                  });
+              } else {
+                // Caso não seja do tipo valor monetário, manter a ordenação padrão
+                column
+                  .data()
+                  .unique()
+                  .sort()
+                  .each(function (d, j) {
+                    select.append('<option value="' + d + '">' + d + '</option>');
+                  });
+              }
             });
         }
       });
@@ -125,13 +139,13 @@
         <th>Imagem</th>
         <th class="filter">Título</th>
         <th class="filter">Endereço</th>
-        <th class="filter">Valor (R$)</th>
+        <th class="filter monetary-filter">Valor (R$)</th>
         <th class="filter">Área (m²)</th>
         <th class="filter">Área Terreno (m²)</th>
         <th class="filter">Quartos</th>
         <th class="filter">Banheiros</th>
         <th class="filter">Vagas</th>
-        <th class="filter">Preço por metro (R$)</th>
+        <th class="filter monetary-filter">Preço por metro (R$)</th>
         <th>Link</th>
       </tr>
     </thead>
