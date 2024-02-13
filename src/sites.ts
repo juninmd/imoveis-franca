@@ -16,19 +16,19 @@ export interface Imoveis {
   precoPorMetro: number,
 };
 
-export interface Site { driver: 'axios' | 'puppet', enabled: boolean, waitFor: string | undefined, disableQuery: string, name: string, url: string, link?: string, translateParams: { currentPage: string; maxPrice: string; minPrice: string }, params: any, itemsPerPage: number, adapter: (html: string) => Promise<{ imoveis: Imoveis[], qtd: number }> }
+export interface Site { name: string, driver: 'axios' | 'puppet', enabled: boolean, waitFor: string | undefined, disableQuery: string, url: string, link?: string, translateParams: { currentPage: string; maxPrice: string; minPrice: string }, params: any, itemsPerPage: number, adapter: (html: string) => Promise<{ imoveis: Imoveis[], qtd: number }> }
 // Definir os sites de imóveis que serão consultados
 export const sites: Site[] = [
   {
-    name: 'Franca',
     enabled: true,
     url: 'https://imoveisfranca.com.br/comprar/comprar',
+    name: 'imoveisfranca.com.br',
     driver: 'puppet',
     itemsPerPage: 10,
     params: {
       'pagina': 1,
       'tipo': 'comprar',
-      'TipoCompra': '11',
+      'TipoCompra': '11',  // casa
       'localizacao': 'franca',
       'banheiros': '2',
       'vagas': '2',
@@ -79,12 +79,12 @@ export const sites: Site[] = [
     driver: 'puppet',
     enabled: true,
     waitFor: undefined,
+    name: 'aacosta.com.br',
     url: 'https://www.aacosta.com.br/listagem.jsp',
-    name: 'aacosta',
     itemsPerPage: 10,
     params: {
       negociacao: 2,
-      tipo: 1,
+      tipo: 1, // casa
       cidade: 1,
       ordem: 'preco'
     },

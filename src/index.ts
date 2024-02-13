@@ -1,8 +1,12 @@
 import './server';
-// import axios from 'axios'
 
-// async function x() {
-//   const { data } = await axios.get('https://www.aacosta.com.br/Imovel.jsp?codimovel=27200');
-//   console.info(data);
-// }
-// x();
+import { generateList } from './imoveis';
+
+async function init() {
+  try {
+    await generateList();
+  } catch (error) {
+    console.error(`Falha ao iniciar Cache`);
+  }
+}
+init();

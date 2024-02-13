@@ -1,17 +1,23 @@
-// Importar as bibliotecas necessárias
 import qs from 'qs';
 import axios from 'axios';
 import { getNewPage, puppetAdapter } from './puppeter';
 import { Imoveis, Site, sites } from './sites';
 import { Browser } from 'puppeteer';
-import { retrieImoveisSite } from './generate-imoveis';
+import RedisConnection from './redis';
 
-export const filterImoveis = (imoveis: Imoveis[], queryParams) => {
+export const filterImoveis = (imoveis: Imoveis[], queryParams: { maxPrice?: any; minPrice?: any; quartos?: any; minArea?: any; maxArea?: any; }) => {
   const { maxPrice, minPrice, quartos, minArea, maxArea } = queryParams;
+
   return imoveis.filter(imovel => {
-    return imovel.valor >= minPrice && imovel.valor <= maxPrice
-      && imovel.areaTotal >= minArea && imovel.areaTotal <= maxArea
-      && imovel.quartos >= quartos;
+    // Verificar se os parâmetros estão definidos antes de aplicar os filtros
+    const passMaxPrice = maxPrice === undefined || imovel.valor <= maxPrice;
+    const passMinPrice = minPrice === undefined || imovel.valor >= minPrice;
+    const passMinArea = minArea === undefined || imovel.areaTotal >= minArea;
+    const passMaxArea = maxArea === undefined || imovel.areaTotal <= maxArea;
+    const passQuartos = quartos === undefined || imovel.quartos >= quartos;
+
+    // Verificar se todos os filtros foram satisfeitos
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passQuartos;
   });
 };
 
@@ -19,11 +25,10 @@ export const sortImoveis = (imoveis: any[]) => {
   return imoveis.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
 };
 
-export const gerarLista = async () => {
-  // Definir os parâmetros de busca
-  const queryParams = {
-    minPrice: 100000,
-    maxPrice: 300000,
+export const generateList = async () => {
+  const baseQueryParams = {
+    minPrice: 1,
+    maxPrice: 500000,
     quartos: 2,
     minArea: 50,
     maxArea: 250,
@@ -34,31 +39,32 @@ export const gerarLista = async () => {
 
   const browser = await puppetAdapter();
   const promsies: any[] = [];
+
   for (const site of sites.filter(q => q.enabled)) {
-    promsies.push(retrieImoveisSite(site, browser, queryParams));
+    const cacheKey: Imoveis[] = await RedisConnection.getKey(site.name);
+    if (cacheKey) {
+      lista = lista.concat(cacheKey);
+      continue;
+    }
+    promsies.push(retrieImoveisSite(site, browser, baseQueryParams));
   }
 
   const promisesResolved: Imoveis[][] = await Promise.all(promsies);
+
+  for (const promise of promisesResolved) {
+    await RedisConnection.setKey(promise[0].site, promise);
+  }
+
   lista = lista.concat(...promisesResolved);
 
   await browser.close();
-  // lista = filterImoveis(lista, queryParams);
+
   lista = sortImoveis(lista);
   return lista;
 };
 
-const cache = {};
-
 export async function getImoveis(site: Site, browser: Browser, queryParams, page: number) {
   try {
-    const cacheKey = `${site.url}-${page}-${JSON.stringify(queryParams)}`;
-
-    // Verificar se a resposta já está em cache
-    if (cache[cacheKey]) {
-      console.log('Retornando resultado do cache para:', cacheKey);
-      return cache[cacheKey];
-    }
-
     Object.keys(site.translateParams).forEach((param => {
       const paramName = site.translateParams[param];
       if (paramName) {
@@ -78,8 +84,6 @@ export async function getImoveis(site: Site, browser: Browser, queryParams, page
 
     const { imoveis, qtd } = (await site.adapter(html));
 
-    // Armazenar a resposta em cache
-    cache[cacheKey] = { imoveis, qtd, page };
     return { imoveis, qtd, page };
   } catch (error) {
     console.error(`Retry ${site.url}`, error);
@@ -107,4 +111,34 @@ async function retrieveHtml(browser: Browser, url: string, site: Site) {
     return html;
   }
   throw new Error(`Html content not found`);
+}
+
+export const retrieImoveisSite = async (site: Site, browser, queryParams) => {
+  let lista: any[] = [];
+  try {
+    let page = 1;
+    const { imoveis, qtd } = await getImoveis(site, browser, queryParams, page);
+
+    const pages = Math.ceil(qtd / site.itemsPerPage);
+    console.info(`------- ${site.name} possuí ${pages} páginas`);
+    lista = lista.concat(imoveis);
+
+    if (pages === 1 || (queryParams.maxPages && page >= queryParams.maxPages)) {
+      return lista;
+    }
+
+    for (let currentPage = 2; currentPage <= pages; currentPage++) {
+      const { imoveis, page } = await getImoveis(site, browser, queryParams, currentPage);
+      console.info(`------- ${site.name} página ${page} de ${pages}`);
+      lista.push(...imoveis);
+      if (queryParams.maxPages && page >= queryParams.maxPages) {
+        return lista;
+      }
+    }
+    return lista;
+
+  } catch (error) {
+    console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
+    return lista;
+  }
 }

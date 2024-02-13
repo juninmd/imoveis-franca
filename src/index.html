@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Imóveis</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.2/css/bulma.min.css" rel="stylesheet">
+  <link
+    href="https://cdn.datatables.net/v/bm/jq-3.7.0/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.css"
+    rel="stylesheet">
+  <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+  <script
+    src="https://cdn.datatables.net/v/bm/jq-3.7.0/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.js"></script>
+  <script>
+    function showImagesModal(images) {
+      let modalBody = document.getElementById('modal-body');
+      modalBody.innerHTML = '';
+      const myImages = images.split(',');
+      myImages.forEach(imageUrl => {
+        modalBody.innerHTML += '<img src="' + imageUrl + '">';
+      });
+      $('.lightbox').fadeIn();
+    }
+
+    function hideImage() {
+      $('.lightbox').fadeOut();
+    }
+
+    $(document).ready(function () {
+      $('#imoveis-table').DataTable({
+        pageLength: 5,
+        lengthMenu: [5, 10, 25, 50, 75, 100],
+        fixedHeader: true,
+        serverSide: false,
+        ajax: {
+          url: '/api/imoveis', // Rota da API que retorna os dados dos imóveis
+          type: 'GET'
+        },
+        columns: [
+          { data: 'site', title: 'Site' },
+          {
+            data: 'imagens',
+            title: 'Imagem',
+            render: function (data, type, row) {
+              console.log(data);
+              return `<img onClick="showImagesModal('${data}')" src="${data[0]}">`;
+            }
+          },
+          { data: 'titulo', title: 'Título' },
+          { data: 'endereco', title: 'Endereço' },
+          {
+            data: 'valor',
+            title: 'Valor (R$)',
+            render: function (data, type, row) {
+              return (data || 0);
+            }
+          },
+          { data: 'area', title: 'Área (m²)' },
+          { data: 'areaTotal', title: 'Área Terreno (m²)' },
+          { data: 'quartos', title: 'Quartos' },
+          { data: 'banheiros', title: 'Banheiros' },
+          { data: 'vagas', title: 'Vagas' },
+          {
+            data: 'precoPorMetro',
+            title: 'Preço por metro (R$)',
+            render: function (data, type, row) {
+              return (data || 0);
+            }
+          },
+          {
+            data: 'link',
+            title: 'Link',
+            render: function (data, type, row) {
+              return '<a href="' + data + '" target="_blank">Ver mais</a>';
+            }
+          }
+        ],
+        initComplete: function () {
+          this.api()
+            .columns('.filter')
+            .every(function () {
+              let column = this;
+              var select = $('<select><option value=""></option></select>')
+                .appendTo($(column.header()).empty())
+                .on('change', function () {
+                  var val = $.fn.dataTable.util.escapeRegex(
+                    $(this).val()
+                  );
+
+                  column
+                    .search(val ? '^' + val + '$' : '', true, false)
+                    .draw();
+                });
+
+              column
+                .data()
+                .unique()
+                .sort()
+                .each(function (d, j) {
+                  select.append('<option value="' + d + '">' + d + '</option>');
+                });
+            });
+        }
+      });
+    });
+
+    $(document).mouseup(function (e) {
+      var container = $('.lightbox');
+      if (!container.is(e.target) && container.has(e.target).length === 0) {
+        container.fadeOut();
+      }
+    });
+  </script>
+
+</head>
+
+<body>
+  <table id="imoveis-table" class="table">
+    <thead>
+      <tr>
+        <th class="filter">Site</th>
+        <th>Imagem</th>
+        <th class="filter">Título</th>
+        <th class="filter">Endereço</th>
+        <th class="filter">Valor (R$)</th>
+        <th class="filter">Área (m²)</th>
+        <th class="filter">Área Terreno (m²)</th>
+        <th class="filter">Quartos</th>
+        <th class="filter">Banheiros</th>
+        <th class="filter">Vagas</th>
+        <th class="filter">Preço por metro (R$)</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody id="imoveis-table-body">
+    </tbody>
+    <tfoot>
+      <tr>
+        <th>Site</th>
+        <th>Imagem</th>
+        <th>Título</th>
+        <th>Endereço</th>
+        <th>Valor (R$)</th>
+        <th>Área (m²)</th>
+        <th>Área Terreno (m²)</th>
+        <th>Quartos</th>
+        <th>Banheiros</th>
+        <th>Vagas</th>
+        <th>Preço por metro (R$)</th>
+        <th>Link</th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="lightbox" onClick="hideImage()">
+    <div class="modal-content" style="width: 60%;">
+      <span class="close" onClick="hideImage()">&times;</span>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    td {
+      max-width: 67%;
+      max-height: 35px !important;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #67cdff;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    a {
+      color: blue;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: red;
+      text-decoration: underline;
+    }
+
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      width: auto;
+      height: auto;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      margin: auto;
+      background: rgba(0, 0, 0, 0.8);
+      text-align: center;
+    }
+
+    .lightbox img {
+      max-width: 80%;
+      max-height: 80%;
+      margin-top: 5%;
+    }
+  </style>
+
+  <script>
+    // Faça a requisição para a rota da API
+
+  </script>
+</body>
+
+</html>
