@@ -35,11 +35,11 @@
       myImages.forEach(imageUrl => {
         modalBody.innerHTML += '<img src="' + imageUrl + '">';
       });
-      $('.lightbox').fadeIn();
+      $('.lightbox').addClass('is-active');
     }
 
     function hideImage() {
-      $('.lightbox').fadeOut();
+      $('.lightbox').removeClass('is-active');
     }
 
     $(document).ready(function () {
@@ -50,8 +50,8 @@
         serverSide: false,
         rowCallback: function (row, data, index) {
           var precoPorMetro = data.precoPorMetro;
-          if (precoPorMetro < 1000) {
-            $(row).css('background-color', '#7483bd');
+          if (precoPorMetro <= 1000) {
+            // $(row).addClass('is-selected');
             $(row).attr('title', 'Preço abaixo da média');
           }
         },
@@ -68,7 +68,14 @@
             data: 'imagens',
             title: 'Imagem',
             render: function (data, type, row) {
-              return `<img onClick="showImagesModal('${data}')" src="${data[0]}">`;
+              return `
+              <div class="card">
+  <div class="card-image">
+    <figure class="image is-4by3">
+              <img onClick="showImagesModal('${data}')" src="${data[0]}">
+ </figure>
+  </div>
+              `;
             }
           },
           { data: 'titulo', title: 'Título' },
@@ -103,7 +110,7 @@
             data: 'link',
             title: 'Link',
             render: function (data, type, row) {
-              return '<a href="' + data + '" target="_blank">Ver mais</a>';
+              return '<a class="button is-link" href="' + data + '" target="_blank">Ver mais</a>';
             }
           }
         ],
@@ -159,46 +166,49 @@
 </head>
 
 <body>
-  <table id="imoveis-table" class="table">
-    <thead>
-      <tr>
-        <th class="filter">Site</th>
-        <th>Imagem</th>
-        <th class="filter">Título</th>
-        <th class="filter">Endereço</th>
-        <th class="filter monetary-filter">Valor (R$)</th>
-        <th class="filter">Área (m²)</th>
-        <th class="filter">Área Terreno (m²)</th>
-        <th class="filter">Quartos</th>
-        <th class="filter">Banheiros</th>
-        <th class="filter">Vagas</th>
-        <th class="filter monetary-filter" title="Valor / Área Terreno">Preço por metro (R$)</th>
-        <th class="filter monetary-filter" title="Valor * 0.20%">Entrada (R$)</th>
-        <th>Link</th>
-      </tr>
-    </thead>
-    <tbody id="imoveis-table-body">
-    </tbody>
-    <tfoot>
-      <tr>
-        <th>Site</th>
-        <th>Imagem</th>
-        <th>Título</th>
-        <th>Endereço</th>
-        <th>Valor (R$)</th>
-        <th>Área (m²)</th>
-        <th>Área Terreno (m²)</th>
-        <th>Quartos</th>
-        <th>Banheiros</th>
-        <th>Vagas</th>
-        <th>Preço por metro (R$)</th>
-        <th>Entrada (R$)</th>
-        <th>Link</th>
-      </tr>
-    </tfoot>
-  </table>
+  <div class="box">
+    <table id="imoveis-table" class="table is-fullwidth">
+      <thead>
+        <tr>
+          <th class="filter">Site</th>
+          <th>Imagem</th>
+          <th class="filter">Título</th>
+          <th class="filter">Endereço</th>
+          <th class="filter monetary-filter">Valor (R$)</th>
+          <th class="filter">Área (m²)</th>
+          <th class="filter">Área Terreno (m²)</th>
+          <th class="filter">Quartos</th>
+          <th class="filter">Banheiros</th>
+          <th class="filter">Vagas</th>
+          <th class="filter monetary-filter" title="Valor / Área Terreno">Preço por metro (R$)</th>
+          <th class="filter monetary-filter" title="Valor * 0.20%">Entrada (R$)</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody id="imoveis-table-body">
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Site</th>
+          <th>Imagem</th>
+          <th>Título</th>
+          <th>Endereço</th>
+          <th>Valor (R$)</th>
+          <th>Área (m²)</th>
+          <th>Área Terreno (m²)</th>
+          <th>Quartos</th>
+          <th>Banheiros</th>
+          <th>Vagas</th>
+          <th>Preço por metro (R$)</th>
+          <th>Entrada (R$)</th>
+          <th>Link</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
 
-  <div class="lightbox" onClick="hideImage()">
+  <div class="modal lightbox">
+    <div class="modal-background" onClick="hideImage()"></div>
     <div class="modal-content" style="width: 60%;">
       <span class="close" onClick="hideImage()">&times;</span>
       <div id="modal-body"></div>
