@@ -55,7 +55,7 @@
             title: 'Valor (R$)',
             render: function (data, type, row) {
               try {
-                return (data ? data : 0 || 0).toFixed(2).toLocaleString('pt-BR');
+                return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
               } catch (error) {
                 console.error(data, 'dataaaaaaaaaaaa', error);
                 return 9999;
@@ -72,7 +72,7 @@
             title: 'Preço por metro (R$)',
             render: function (data, type, row) {
               try {
-                return (data ? data : 0 || 0).toFixed(2).toLocaleString('pt-BR');
+                return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
               } catch (error) {
                 console.error(data, 'dataaaaaaaaaaaa', error);
                 return 9999;
@@ -112,14 +112,14 @@
                   .unique()
                   .sort(function (a, b) {
                     // Remover caracteres não numéricos e converter para float, considerando valores nulos como 0
-                    var aValue = parseFloat((a?.toString() || '0').replace(/[^\d.-]/g, ''));
-                    var bValue = parseFloat((b?.toString() || '0').replace(/[^\d.-]/g, ''));
+                    var aValue = parseFloat((a?.toString())?.replace(/[^\d.-]/g, ''));
+                    var bValue = parseFloat((b?.toString())?.replace(/[^\d.-]/g, ''));
 
                     // Comparar os valores
                     return aValue - bValue;
                   })
                   .each(function (d, j) {
-                    select.add(new Option((d ? d : 0 || 0).toFixed(2).toLocaleString('pt-BR')));
+                    select.add(new Option((d ? d : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })));
                   });
               } else {
                 // Caso não seja do tipo valor monetário, manter a ordenação padrão
@@ -128,8 +128,8 @@
                   .unique()
                   .sort(function (a, b) {
                     // Remover caracteres não numéricos e converter para float, considerando valores nulos como 0
-                    var aValue = Number(a || '0');
-                    var bValue = Number(b || '0');
+                    var aValue = Number(a);
+                    var bValue = Number(b);
 
                     if (!(isNaN(aValue) && isNaN(bValue))) {
                       return aValue - bValue;
@@ -138,7 +138,7 @@
                     return 0;
                   })
                   .each(function (d, j) {
-                    select.add(new Option((d || '0')));
+                    select.add(new Option((d)));
                   });
               }
             });

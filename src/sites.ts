@@ -43,11 +43,12 @@ export const sites: Site[] = [
       const $ = cheerio.load(html);
       const qtd = Number($('#result').text().replace(/\D/g, ''));
       const imoveis = $('.card-resultado').map((_i, el) => {
-        const titulo = $(el).find('.titulo-resultado-busca').text().trim();
-        const endereco = $(el).find('.endereco-resultado-busca').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");;
-        const valor = $(el).find('.valores-resultado-busca').text().indexOf('Para detalhes') > 0 ? 0 : $(el).find('.valores-resultado-busca > h3').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
-        const area = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || 0;
-        const areaTotal = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || 0;
+        const tituloRaw = $(el).find('.titulo-resultado-busca').text().toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        const titulo = tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('PADRAO') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0 ? 'CASA' : tituloRaw;
+        const endereco = $(el).find('.endereco-resultado-busca').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").split(',')[0];
+        const valor = ($(el).find('.valores-resultado-busca').text().indexOf('Para detalhes') > 0 ? 0 : $(el).find('.valores-resultado-busca > h3').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0]) || '0';
+        const area = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || '0';
+        const areaTotal = $(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || '0';
         const quartos = $(el).find('.comodidades-resultado-busca > div:nth-child(2)').text().replace('Quartos', '').trim();
         const banheiros = $(el).find('.comodidades-resultado-busca > div:nth-child(3)').text().replace('Banheiros', '').trim();
         const vagas = $(el).find('.comodidades-resultado-busca > div:nth-child(4)').text().replace('Vagas', '').trim();
@@ -59,9 +60,9 @@ export const sites: Site[] = [
           titulo,
           imagens,
           endereco,
-          valor: Number(valor),
-          area: Number(area),
-          areaTotal: Number(areaTotal),
+          valor: parseFloat(valor),
+          area: parseFloat(area),
+          areaTotal: parseFloat(areaTotal),
           quartos: Number(quartos),
           link,
           banheiros: Number(banheiros),
@@ -100,13 +101,13 @@ export const sites: Site[] = [
       const imoveis: Imoveis[] = [];
       for (const el of $('div.col-sm-6.col-md-4.p0')) {
         const link = `https://www.aacosta.com.br/${$(el).find('a').attr('href')}`;
-        const titulo = $(el).find('h5>a').text().trim();
+        const tituloRaw = $(el).find('h5>a').text().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        const titulo = tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0 || tituloRaw.indexOf('PADRAO') >= 0 ? 'CASA' : tituloRaw;
         const endereco = $(el).find('div.item-entry>span>b').text().trim().replace(' Referência:', '').replace('JD.', 'Jardim').replace('RES.', 'Residencial').replace('PQ.', 'Parque').replace('VL.', 'Residencial').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-        const valor = $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0].indexOf('Consulte') > 0 ? 0 : $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0];
+        const valor = ($(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0].indexOf('Consulte') > 0 ? 0 : $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0]) || '0';
         const infos = $('div.item-entry>.property-icon').text().replace(/\n/g, '').replace(/ /g, '').replace(/\W/g, ' ').trim().split(' ');
         const quartos = infos[0];
         const vagas = infos[2];
-
 
         const { data: details } = await axios.get(link, {
           headers: {
@@ -126,9 +127,9 @@ export const sites: Site[] = [
           titulo,
           imagens,
           endereco,
-          areaTotal: Number(areaTotal),
-          valor: Number(valor),
-          area: Number(area),
+          valor: parseFloat(valor),
+          area: parseFloat(area),
+          areaTotal: parseFloat(areaTotal),
           quartos: Number(quartos),
           link,
           banheiros: Number(banheiros),
