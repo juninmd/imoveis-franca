@@ -54,7 +54,12 @@
             data: 'valor',
             title: 'Valor (R$)',
             render: function (data, type, row) {
-              return (data || 0);
+              try {
+                return (data ? data : 0 || 0).toFixed(2).toLocaleString('pt-BR');
+              } catch (error) {
+                console.error(data, 'dataaaaaaaaaaaa', error);
+                return 9999;
+              }
             }
           },
           { data: 'area', title: 'Área (m²)' },
@@ -66,7 +71,12 @@
             data: 'precoPorMetro',
             title: 'Preço por metro (R$)',
             render: function (data, type, row) {
-              return (data || 0);
+              try {
+                return (data ? data : 0 || 0).toFixed(2).toLocaleString('pt-BR');
+              } catch (error) {
+                console.error(data, 'dataaaaaaaaaaaa', error);
+                return 9999;
+              }
             }
           },
           {
@@ -82,17 +92,17 @@
             .columns('.filter')
             .every(function () {
               let column = this;
-              var select = $('<select><option value=""></option></select>')
-                .appendTo($(column.header()).empty())
-                .on('change', function () {
-                  var val = $.fn.dataTable.util.escapeRegex(
-                    $(this).val()
-                  );
+              var select = document.createElement('select');
+              select.add(new Option(''));
+              column.footer().replaceChildren(select);
 
-                  column
-                    .search(val ? '^' + val + '$' : '', true, false)
-                    .draw();
-                });
+              select.addEventListener('change', function () {
+                var val = DataTable.util.escapeRegex(select.value);
+
+                column
+                  .search(val ? '^' + val + '$' : '', true, false)
+                  .draw();
+              });
 
               // Verificar se a coluna é do tipo valor monetário
               if ($(column.header()).hasClass('monetary-filter')) {
@@ -101,19 +111,34 @@
                   .data()
                   .unique()
                   .sort(function (a, b) {
-                    return parseFloat(a || '0'.replace(/[^\d.-]/g, '')) - parseFloat(b || '0'.replace(/[^\d.-]/g, ''));
+                    // Remover caracteres não numéricos e converter para float, considerando valores nulos como 0
+                    var aValue = parseFloat((a?.toString() || '0').replace(/[^\d.-]/g, ''));
+                    var bValue = parseFloat((b?.toString() || '0').replace(/[^\d.-]/g, ''));
+
+                    // Comparar os valores
+                    return aValue - bValue;
                   })
                   .each(function (d, j) {
-                    select.append('<option value="' + d + '">' + d + '</option>');
+                    select.add(new Option((d ? d : 0 || 0).toFixed(2).toLocaleString('pt-BR')));
                   });
               } else {
                 // Caso não seja do tipo valor monetário, manter a ordenação padrão
                 column
                   .data()
                   .unique()
-                  .sort()
+                  .sort(function (a, b) {
+                    // Remover caracteres não numéricos e converter para float, considerando valores nulos como 0
+                    var aValue = Number(a || '0');
+                    var bValue = Number(b || '0');
+
+                    if (!(isNaN(aValue) && isNaN(bValue))) {
+                      return aValue - bValue;
+                    }
+
+                    return 0;
+                  })
                   .each(function (d, j) {
-                    select.append('<option value="' + d + '">' + d + '</option>');
+                    select.add(new Option((d || '0')));
                   });
               }
             });
@@ -177,6 +202,11 @@
   </div>
 
   <style>
+    select {
+      max-width: 100%;
+      width: 100%;
+    }
+
     table {
       border-collapse: collapse;
       width: 100%;
