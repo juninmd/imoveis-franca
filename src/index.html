@@ -48,6 +48,13 @@
         lengthMenu: [5, 10, 25, 50, 75, 100],
         fixedHeader: true,
         serverSide: false,
+        rowCallback: function (row, data, index) {
+          var precoPorMetro = data.precoPorMetro;
+          if (precoPorMetro < 1000) {
+            $(row).css('background-color', '#7483bd');
+            $(row).attr('title', 'Preço abaixo da média');
+          }
+        },
         "aoColumnDefs": [
           { "sType": "my-currency", "aTargets": [4, 10, 11] }
         ],
