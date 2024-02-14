@@ -121,8 +121,8 @@ export const sites: Site[] = [
         const imagens: string[] = [];
         $$('#lightgallery').find('a>img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
 
-        const areaTotal = getFixValue($$('.property-meta.entry-meta.clearfix>div:nth-child(2)').find('span.property-info-value').text().replace('m�', '').trim());
-        const area = getFixValue($$('.property-meta.entry-meta.clearfix>div:nth-child(3)').find('span.property-info-value').text().replace('m�', '').trim());
+        const areaTotal = getFixValue($$('.property-meta.entry-meta.clearfix>div:nth-child(2)').find('span.property-info-value').text().trim().replace('m�', '').trim());
+        const area = getFixValue($$('.property-meta.entry-meta.clearfix>div:nth-child(3)').find('span.property-info-value').text().trim().replace('m�', '').trim());
         const banheiros = $$('div.s-property-content>p').text().trim().match(/banheiro/g)?.length || 1;
         const precoPorMetro = valor / areaTotal;
         imoveis.push({

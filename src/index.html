@@ -15,6 +15,19 @@
   <script
     src="https://cdn.datatables.net/v/bm/jq-3.7.0/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.js"></script>
   <script>
+
+    jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+      "my-currency-pre": function (a) {
+        return parseFloat(a.replace(/\./gi, ''));
+      },
+      "my-currency-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+      },
+      "my-currency-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+      }
+    });
+
     function showImagesModal(images) {
       let modalBody = document.getElementById('modal-body');
       modalBody.innerHTML = '';
@@ -35,6 +48,9 @@
         lengthMenu: [5, 10, 25, 50, 75, 100],
         fixedHeader: true,
         serverSide: false,
+        "aoColumnDefs": [
+          { "sType": "my-currency", "aTargets": [4, 10, 11] }
+        ],
         ajax: {
           url: '/api/imoveis', // Rota da API que retorna os dados dos imóveis
           type: 'GET'
@@ -71,7 +87,7 @@
           },
           {
             data: 'entrada',
-            title: 'Entrada',
+            title: 'Entrada (R$)',
             render: function (data, type, row) {
               return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
             }
@@ -101,43 +117,25 @@
                   .draw();
               });
 
+              const isMoney = $(column.header()).hasClass('monetary-filter');
               // Verificar se a coluna é do tipo valor monetário
-              if ($(column.header()).hasClass('monetary-filter')) {
-                // Ordenar os valores de forma numérica
-                column
-                  .data()
-                  .unique()
-                  .sort(function (a, b) {
-                    // Remover caracteres não numéricos e converter para float, considerando valores nulos como 0
-                    var aValue = parseFloat((a?.toString())?.replace(/[^\d.-]/g, ''));
-                    var bValue = parseFloat((b?.toString())?.replace(/[^\d.-]/g, ''));
+              // Ordenar os valores de forma numérica
+              column
+                .data()
+                .unique()
+                .sort(function (a, b) {
+                  var aValue = parseFloat(a);
+                  var bValue = parseFloat(b);
 
-                    // Comparar os valores
-                    return aValue - bValue;
-                  })
-                  .each(function (d, j) {
-                    select.add(new Option((d ? d : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })));
-                  });
-              } else {
-                // Caso não seja do tipo valor monetário, manter a ordenação padrão
-                column
-                  .data()
-                  .unique()
-                  .sort(function (a, b) {
-                    // Remover caracteres não numéricos e converter para float, considerando valores nulos como 0
-                    var aValue = Number(a);
-                    var bValue = Number(b);
-
-                    if (!(isNaN(aValue) && isNaN(bValue))) {
-                      return aValue - bValue;
-                    }
-
-                    return 0;
-                  })
-                  .each(function (d, j) {
-                    select.add(new Option((d)));
-                  });
-              }
+                  return aValue - bValue;
+                })
+                .each(function (d, j) {
+                  if (isMoney) {
+                    select.add(new Option(d.toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })));
+                  } else {
+                    select.add(new Option(d));
+                  }
+                });
             });
         }
       });
@@ -168,7 +166,7 @@
         <th class="filter">Banheiros</th>
         <th class="filter">Vagas</th>
         <th class="filter monetary-filter" title="Valor / Área Terreno">Preço por metro (R$)</th>
-        <th class="filter monetary-filter" title="Valor * 0.20%">Entrada</th>
+        <th class="filter monetary-filter" title="Valor * 0.20%">Entrada (R$)</th>
         <th>Link</th>
       </tr>
     </thead>
@@ -187,7 +185,7 @@
         <th>Banheiros</th>
         <th>Vagas</th>
         <th>Preço por metro (R$)</th>
-        <th>Entrada</th>
+        <th>Entrada (R$)</th>
         <th>Link</th>
       </tr>
     </tfoot>
