@@ -60,6 +60,7 @@ export const generateList = async () => {
   await browser.close();
 
   lista = sortImoveis(lista);
+  lista = filterImoveis(lista, { minPrice: 1, minArea: 1 });
   return lista;
 };
 
@@ -95,7 +96,7 @@ async function retrieveHtml(browser: Browser, url: string, site: Site) {
   if (site.driver === 'puppet') {
     const page = await getNewPage(browser);
 
-    await page.goto(url.trim(), { timeout: 20000, waitUntil: 'domcontentloaded' });
+    await page.goto(url.trim(), { timeout: 20000, waitUntil: 'networkidle0' });
 
     if (site.waitFor) {
       await page.waitForSelector(site.waitFor);

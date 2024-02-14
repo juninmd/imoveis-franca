@@ -54,12 +54,7 @@
             data: 'valor',
             title: 'Valor (R$)',
             render: function (data, type, row) {
-              try {
-                return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
-              } catch (error) {
-                console.error(data, 'dataaaaaaaaaaaa', error);
-                return 9999;
-              }
+              return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
             }
           },
           { data: 'area', title: 'Área (m²)' },
@@ -71,12 +66,14 @@
             data: 'precoPorMetro',
             title: 'Preço por metro (R$)',
             render: function (data, type, row) {
-              try {
-                return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
-              } catch (error) {
-                console.error(data, 'dataaaaaaaaaaaa', error);
-                return 9999;
-              }
+              return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
+            }
+          },
+          {
+            data: 'entrada',
+            title: 'Entrada',
+            render: function (data, type, row) {
+              return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
             }
           },
           {
@@ -170,7 +167,8 @@
         <th class="filter">Quartos</th>
         <th class="filter">Banheiros</th>
         <th class="filter">Vagas</th>
-        <th class="filter monetary-filter">Preço por metro (R$)</th>
+        <th class="filter monetary-filter" title="Valor / Área Terreno">Preço por metro (R$)</th>
+        <th class="filter monetary-filter" title="Valor * 0.20%">Entrada</th>
         <th>Link</th>
       </tr>
     </thead>
@@ -189,6 +187,7 @@
         <th>Banheiros</th>
         <th>Vagas</th>
         <th>Preço por metro (R$)</th>
+        <th>Entrada</th>
         <th>Link</th>
       </tr>
     </tfoot>
