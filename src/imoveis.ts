@@ -12,23 +12,26 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   minBedrooms?: number;
   minArea?: number;
   maxArea?: number;
+  minAreaTotal?: number;
+  maxAreaTotal?: number;
   minBathrooms?: number;
   minVacancies?: number;
 }) => {
-  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minBathrooms, minVacancies } = queryParams;
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies } = queryParams;
 
   return imoveis.filter(imovel => {
-    // Verificar se os parâmetros estão definidos antes de aplicar os filtros
     const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
     const passMinPrice = !minPrice || imovel.valor >= minPrice;
-    const passMinArea = !minArea || imovel.areaTotal >= minArea;
-    const passMaxArea = !maxArea || imovel.areaTotal <= maxArea;
+    const passMinArea = !minArea || imovel.area >= minArea;
+    const passMaxArea = !maxArea || imovel.area <= maxArea;
+    const passMinAreaTotal = !minAreaTotal || imovel.areaTotal >= minAreaTotal;
+    const passMaxAreaTotal = !maxAreaTotal || imovel.areaTotal <= maxAreaTotal;
     const passBedRooom = !minBedrooms || imovel.quartos >= minBedrooms;
     const passMinBathroom = !minBathrooms || imovel.banheiros >= minBathrooms;
     const passMinVacancies = !minVacancies || imovel.vagas >= minVacancies;
 
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal;
   });
 };
 
@@ -76,24 +79,27 @@ export const generateList = async () => {
 
 export async function getImoveis(site: Site, browser: Browser, queryParams, page: number) {
   try {
-    Object.keys(site.translateParams).forEach((param => {
-      const paramName = site.translateParams[param];
-      if (paramName) {
-        site.params[paramName] = queryParams[param];
-      }
-    }));
-
-    // Change Page
-    const paramName = site.translateParams['currentPage'];
-    if (paramName) {
-      site.params[paramName] = page;
+    if (site.params && site.translateParams) {
+      Object.keys(site.translateParams).forEach((param => {
+        const paramName = site.translateParams[param];
+        if (paramName) {
+          site.params[paramName] = queryParams[param];
+        }
+      }));
     }
 
-    const link = `${site.url}?${qs.stringify(site.params)} `;
-    const html = await retrieveHtml(browser, link, site);
+    const paginateParams = site.getPaginateParams(page);
+    if (site.payload) {
+      site.payload = { ...site.payload, ...paginateParams.payload };
+    } else if (site.params) {
+      site.params = { ...site.params, ...paginateParams.params };
+    }
+
+    const link = `${site.url}?${site.params ? qs.stringify(site.params) : ''}`;
+    const content = await retrieveContent(browser, link, site);
     console.info(link, site.driver);
 
-    const { imoveis, qtd } = (await site.adapter(html));
+    const { imoveis, qtd } = (await site.adapter(content));
 
     return { imoveis, qtd, page };
   } catch (error) {
@@ -102,7 +108,7 @@ export async function getImoveis(site: Site, browser: Browser, queryParams, page
   }
 }
 
-async function retrieveHtml(browser: Browser, url: string, site: Site) {
+async function retrieveContent(browser: Browser, url: string, site: Site) {
   if (site.driver === 'puppet') {
     const page = await getNewPage(browser);
 
@@ -115,12 +121,16 @@ async function retrieveHtml(browser: Browser, url: string, site: Site) {
     const html = await page.content();
     await page.close();
     return html;
-  }
-
-  const { data: html } = await axios.get(url, { responseEncoding: 'utf8' });
-  if (site.waitFor == undefined || html.indexOf(site.waitFor) >= 0) {
+  } else if (site.driver === 'axios') {
+    const { data: html } = await axios.get(url, { responseEncoding: 'utf8' });
+    if (site.waitFor == undefined || html.indexOf(site.waitFor) >= 0) {
+      return html;
+    }
+  } else if (site.driver === 'axios_rest') {
+    const { data: html } = await axios.request({ url, method: site.method, data: site.payload, params: site.params });
     return html;
   }
+
   throw new Error(`Html content not found`);
 }
 

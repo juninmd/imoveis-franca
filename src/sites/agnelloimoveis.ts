@@ -16,11 +16,7 @@ export default {
     "id_tipo_imovel[]": 12,
     finalidade: 'residencial',
   },
-  translateParams: {
-    currentPage: 'pag',
-    maxPrice: undefined,
-    minPrice: undefined,
-  },
+  getPaginateParams: (page: number) => ({ params: { pag: page } }),
   disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
   async adapter(html): Promise<{ imoveis: Imoveis[], qtd: number }> {
     const $ = cheerio.load(html);

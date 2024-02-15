@@ -17,11 +17,7 @@ export default {
     'vagas': '2',
     'filtro': 1
   },
-  translateParams: {
-    currentPage: 'pagina',
-    maxPrice: 'valorMaximo',
-    minPrice: 'valorMinimo',
-  },
+  getPaginateParams: (page: number) => ({ params: { pagina: page } }),
   async adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number }> {
     const $ = cheerio.load(html);
     const qtd = Number($('#result').text().replace(/\D/g, ''));

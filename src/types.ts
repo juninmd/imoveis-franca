@@ -17,15 +17,18 @@ export interface Imoveis {
 
 export interface Site {
   name: string,
-  driver: 'axios' | 'puppet',
+  driver: 'axios' | 'puppet' | 'axios_rest',
   enabled: boolean,
-  waitFor: string | undefined,
-  disableQuery: string,
+  method?: string,
+  payload?: any,
+  waitFor?: string | undefined,
+  disableQuery?: string,
   url: string,
   link?: string,
-  translateParams: { currentPage: string; maxPrice: string; minPrice: string },
-  params: any,
+  translateParams?: { currentPage: string; maxPrice: string; minPrice: string },
+  params?: any,
   itemsPerPage: number,
+  getPaginateParams: (page: number) => { payload?: any, params?: any },
   adapter: (html: string) => Promise<{
     imoveis: Imoveis[],
     qtd: number
