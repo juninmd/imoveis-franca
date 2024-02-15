@@ -43,7 +43,20 @@
     }
 
     $(document).ready(function () {
-      $('#imoveis-table').DataTable({
+
+      $("#btnFind").click(function (e) {
+        var formData = $('#searchForm').serialize();
+        const url = '/api/imoveis?' + formData;
+        console.log(url);
+        table.ajax.url(url).load();
+        return e.preventDefault();
+      });
+
+      function getForm() {
+        return $('#searchForm').serialize();
+      }
+
+      var table = $('#imoveis-table').DataTable({
         pageLength: 5,
         lengthMenu: [5, 10, 25, 50, 75, 100],
         fixedHeader: true,
@@ -59,7 +72,7 @@
           { "sType": "my-currency", "aTargets": [4, 10, 11] }
         ],
         ajax: {
-          url: '/api/imoveis', // Rota da API que retorna os dados dos imóveis
+          url: '/api/imoveis?' + getForm(), // Rota da API que retorna os dados dos imóveis
           type: 'GET'
         },
         columns: [
@@ -166,6 +179,88 @@
 </head>
 
 <body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Pesquisa de Casas em Franca - SP</h1>
+      <form id="searchForm">
+        <div class="columns">
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Valor Mínimo</label>
+              <div class="control">
+                <input class="input" type="number" min="1" max="10000000" placeholder="Valor Mínimo" name="minPrice">
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Valor Máximo</label>
+              <div class="control">
+                <input class="input" type="number" min="1" max="10000000" placeholder="Valor Máximo" name="maxPrice">
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Área Mínima</label>
+              <div class="control">
+                <input class="input" type="number" min="1" max="250" placeholder="Área Mínima" name="minArea">
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Área Máxima</label>
+              <div class="control">
+                <input class="input" type="number" min="1" max="250" placeholder="Área Máxima" name="maxArea">
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Mínimo de Quartos</label>
+              <div class="control">
+                <input class="input" type="number" min="1" placeholder="Mínimo de Quartos" name="minBedrooms">
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Mínimo de Banheiros</label>
+              <div class="control">
+                <input class="input" type="number" min="1" placeholder="Mínimo de Banheiros" name="minBathrooms">
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Mínimo de Vagas</label>
+              <div class="control">
+                <input class="input" type="number" min="1" placeholder="Mínimo de Vagas" name="minVacancies">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <div class="field">
+            <div class="control">
+              <button id="btnFind" class="button is-primary">Pesquisar</button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </section>
+
   <div class="box">
     <table id="imoveis-table" class="table is-fullwidth">
       <thead>
@@ -280,10 +375,6 @@
     }
   </style>
 
-  <script>
-    // Faça a requisição para a rota da API
-
-  </script>
 </body>
 
 </html>

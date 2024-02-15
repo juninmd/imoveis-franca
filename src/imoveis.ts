@@ -5,19 +5,29 @@ import { Imoveis, Site, sites } from './sites';
 import { Browser } from 'puppeteer';
 import RedisConnection from './redis';
 
-export const filterImoveis = (imoveis: Imoveis[], queryParams: { maxPrice?: any; minPrice?: any; quartos?: any; minArea?: any; maxArea?: any; }) => {
-  const { maxPrice, minPrice, quartos, minArea, maxArea } = queryParams;
+export const filterImoveis = (imoveis: Imoveis[], queryParams: {
+  maxPrice?: number;
+  minPrice?: number;
+  minBedrooms?: number;
+  minArea?: number;
+  maxArea?: number;
+  minBathrooms?: number;
+  minVacancies?: number;
+}) => {
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minBathrooms, minVacancies } = queryParams;
 
   return imoveis.filter(imovel => {
     // Verificar se os parâmetros estão definidos antes de aplicar os filtros
-    const passMaxPrice = maxPrice === undefined || imovel.valor <= maxPrice;
-    const passMinPrice = minPrice === undefined || imovel.valor >= minPrice;
-    const passMinArea = minArea === undefined || imovel.areaTotal >= minArea;
-    const passMaxArea = maxArea === undefined || imovel.areaTotal <= maxArea;
-    const passQuartos = quartos === undefined || imovel.quartos >= quartos;
+    const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
+    const passMinPrice = !minPrice || imovel.valor >= minPrice;
+    const passMinArea = !minArea || imovel.areaTotal >= minArea;
+    const passMaxArea = !maxArea || imovel.areaTotal <= maxArea;
+    const passBedRooom = !minBedrooms || imovel.quartos >= minBedrooms;
+    const passMinBathroom = !minBathrooms || imovel.banheiros >= minBathrooms;
+    const passMinVacancies = !minVacancies || imovel.vagas >= minVacancies;
 
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passQuartos;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies;
   });
 };
 
@@ -60,7 +70,6 @@ export const generateList = async () => {
   await browser.close();
 
   lista = sortImoveis(lista);
-  lista = filterImoveis(lista, { minPrice: 1, minArea: 1 });
   return lista;
 };
 

@@ -13,7 +13,7 @@ app.get('/', (_req: Request, res: Response) => {
 app.get('/api/imoveis', async (req: Request, res: Response) => {
   let lista = await generateList();
   lista = filterImoveis(lista, req.query);
-  res.json({ data: lista });
+  return res.json({ data: lista });
 });
 
 // Iniciar o servidor
