@@ -1,9 +1,10 @@
 import qs from 'qs';
 import axios from 'axios';
 import { getNewPage, puppetAdapter } from './puppeter';
-import { Imoveis, Site, sites } from './sites';
+import { sites } from './sites';
 import { Browser } from 'puppeteer';
 import RedisConnection from './redis';
+import { Imoveis, Site } from './types';
 
 export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   maxPrice?: number;
@@ -126,7 +127,7 @@ async function retrieveHtml(browser: Browser, url: string, site: Site) {
 export const retrieImoveisSite = async (site: Site, browser, queryParams) => {
   let lista: any[] = [];
   try {
-    let page = 1;
+    const page = 1;
     const { imoveis, qtd } = await getImoveis(site, browser, queryParams, page);
 
     const pages = Math.ceil(qtd / site.itemsPerPage);

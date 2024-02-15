@@ -16,7 +16,7 @@ export class RedisConnection {
     return RedisConnection.instance;
   }
 
-  public static async setKey(key: string, value: any): Promise<void> {
+  public static async setKey(key: string, value): Promise<void> {
     const client = RedisConnection.getInstance();
     await client.set(key, JSON.stringify(value));
   }
