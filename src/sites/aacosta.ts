@@ -10,17 +10,24 @@ export default {
   name: 'aacosta.com.br',
   url: 'https://www.aacosta.com.br/listagem.jsp',
   itemsPerPage: 10,
-  params: {
-    negociacao: 2,
-    tipo: 1, // casa
+  params: [{
+    negociacao: 1, // aluguel
+    tipo: 0,
     cidade: 1,
     ordem: 'preco'
   },
+  {
+    negociacao: 2, // compra
+    tipo: 0,
+    cidade: 1,
+    ordem: 'preco'
+  }],
   translateParams: {
     currentPage: 'numpagina',
     maxPrice: undefined,
     minPrice: undefined,
   },
+  getPaginateParams: (page: number) => ({ params: { numpagina: page } }),
   disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
   async adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number }> {
     const $ = cheerio.load(html);

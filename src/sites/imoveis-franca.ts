@@ -8,15 +8,11 @@ export default {
   name: 'imoveisfranca.com.br',
   driver: 'puppet',
   itemsPerPage: 10,
-  params: {
+  params: [{
     'pagina': 1,
-    'tipo': 'comprar',
-    'TipoCompra': '11',  // casa
     'localizacao': 'franca',
-    'banheiros': '2',
-    'vagas': '2',
     'filtro': 1
-  },
+  }],
   getPaginateParams: (page: number) => ({ params: { pagina: page } }),
   async adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number }> {
     const $ = cheerio.load(html);

@@ -10,12 +10,16 @@ export default {
   name: 'agnelloimoveis.com.br',
   url: 'https://www.agnelloimoveis.com.br/pesquisa-de-imoveis/',
   itemsPerPage: 16,
-  params: {
-    locacao_venda: 'V',
+  params: [{
+    locacao_venda: 'V', // compra em bairros
     "id_cidade[]": 63,
-    "id_tipo_imovel[]": 12,
-    finalidade: 'residencial',
+    finalidade: 0,
   },
+  {
+    locacao_venda: 'L', // aluguel em bairros
+    "id_cidade[]": 63,
+    finalidade: 0,
+  }],
   getPaginateParams: (page: number) => ({ params: { pag: page } }),
   disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
   async adapter(html): Promise<{ imoveis: Imoveis[], qtd: number }> {
@@ -29,9 +33,9 @@ export default {
       const endereco = $(el).find('h3>small').text().trim().replace('Bairro: ', '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
       const valor = getFixValue($(el).find('div.price>span').text() || '0');
       const infos = $(el).find('div.amenities>ul.imo-itens>li');
-      const quartos = infos[0].attribs['title'].replace(/\D/g, '');
-      const banheiros = infos[1].attribs['title'].replace(/\D/g, '');
-      const vagas = infos[2].attribs['title'].replace(/\D/g, '');
+      const quartos = infos[0]?.attribs['title']?.replace(/\D/g, '') || '';
+      const banheiros = infos[1]?.attribs['title']?.replace(/\D/g, '') || '';
+      const vagas = infos[2]?.attribs['title']?.replace(/\D/g, '') || '';
 
       const { data: details } = await axios.get(link, {
         headers: {

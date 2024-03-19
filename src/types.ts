@@ -26,7 +26,7 @@ export interface Site {
   url: string,
   link?: string,
   translateParams?: { currentPage: string; maxPrice: string; minPrice: string },
-  params?: any,
+  params?: any[],
   itemsPerPage: number,
   getPaginateParams: (page: number) => { payload?: any, params?: any },
   adapter: (html: string) => Promise<{

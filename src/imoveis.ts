@@ -39,8 +39,17 @@ export const sortImoveis = (imoveis: any[]) => {
   return imoveis.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
 };
 
+interface BaseQueryParams {
+  minPrice: number,
+  maxPrice: number,
+  quartos: number,
+  minArea: number,
+  maxArea: number,
+  maxPages?: number,
+}
+
 export const generateList = async () => {
-  const baseQueryParams = {
+  const baseQueryParams: BaseQueryParams = {
     minPrice: 1,
     maxPrice: 500000,
     quartos: 2,
@@ -60,7 +69,7 @@ export const generateList = async () => {
       lista = lista.concat(cacheKey);
       continue;
     }
-    promsies.push(retrieImoveisSite(site, browser, baseQueryParams));
+    promsies.push(retrieImoveisSite(site, baseQueryParams, browser));
   }
 
   const promisesResolved: Imoveis[][] = await Promise.all(promsies);
@@ -77,13 +86,13 @@ export const generateList = async () => {
   return lista;
 };
 
-export async function getImoveis(site: Site, browser: Browser, queryParams, page: number) {
+export async function getImoveis(site: Site, params = undefined, browser: Browser, baseQueryParams: BaseQueryParams, page: number) {
   try {
-    if (site.params && site.translateParams) {
+    if (params && site.translateParams) {
       Object.keys(site.translateParams).forEach((param => {
         const paramName = site.translateParams[param];
         if (paramName) {
-          site.params[paramName] = queryParams[param];
+          params[paramName] = baseQueryParams[param];
         }
       }));
     }
@@ -91,12 +100,12 @@ export async function getImoveis(site: Site, browser: Browser, queryParams, page
     const paginateParams = site.getPaginateParams(page);
     if (site.payload) {
       site.payload = { ...site.payload, ...paginateParams.payload };
-    } else if (site.params) {
-      site.params = { ...site.params, ...paginateParams.params };
+    } else if (params) {
+      params = { ...params, ...paginateParams.params };
     }
 
-    const link = `${site.url}?${site.params ? qs.stringify(site.params) : ''}`;
-    const content = await retrieveContent(browser, link, site);
+    const link = `${site.url}?${params ? qs.stringify(params) : ''}`;
+    const content = await retrieveContent(browser, link, site, params);
     console.info(link, site.driver);
 
     const { imoveis, qtd } = (await site.adapter(content));
@@ -104,11 +113,11 @@ export async function getImoveis(site: Site, browser: Browser, queryParams, page
     return { imoveis, qtd, page };
   } catch (error) {
     console.error(`Retry ${site.url}`, error);
-    throw error;
+    return await getImoveis(site, params, browser, baseQueryParams, page);
   }
 }
 
-async function retrieveContent(browser: Browser, url: string, site: Site) {
+async function retrieveContent(browser: Browser, url: string, site: Site, params = undefined) {
   if (site.driver === 'puppet') {
     const page = await getNewPage(browser);
 
@@ -127,39 +136,57 @@ async function retrieveContent(browser: Browser, url: string, site: Site) {
       return html;
     }
   } else if (site.driver === 'axios_rest') {
-    const { data: html } = await axios.request({ url, method: site.method, data: site.payload, params: site.params });
+    const { data: html } = await axios.request({ url, method: site.method, data: site.payload, params });
     return html;
   }
 
   throw new Error(`Html content not found`);
 }
 
-export const retrieImoveisSite = async (site: Site, browser, queryParams) => {
+export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryParams, browser: Browser) => {
   let lista: any[] = [];
   try {
-    const page = 1;
-    const { imoveis, qtd } = await getImoveis(site, browser, queryParams, page);
 
+    if (site.params) {
+      for (const params of site.params || []) {
+        const imoveis = await retrieImoveisSiteByParams(site, params, baseQueryParams, browser)
+        lista = lista.concat(imoveis);
+      }
+    } else if (site.payload) {
+      const imoveis = await retrieImoveisSiteByParams(site, undefined, baseQueryParams, browser)
+      lista = lista.concat(imoveis);
+    }
+    return lista;
+  } catch (error) {
+    console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
+    return lista;
+  }
+}
+
+export const retrieImoveisSiteByParams = async (site: Site, params = undefined, baseQueryParams: BaseQueryParams, browser: Browser) => {
+  try {
+    let lista: any[] = [];
+    const page = 1;
+    const { imoveis, qtd } = await getImoveis(site, params, browser, baseQueryParams, page);
+    lista.push(...imoveis);
     const pages = Math.ceil(qtd / site.itemsPerPage);
     console.info(`------- ${site.name} possuí ${pages} páginas`);
-    lista = lista.concat(imoveis);
 
-    if (pages === 1 || (queryParams.maxPages && page >= queryParams.maxPages)) {
+    if (pages === 1 || (baseQueryParams.maxPages && page >= baseQueryParams.maxPages)) {
       return lista;
     }
 
     for (let currentPage = 2; currentPage <= pages; currentPage++) {
-      const { imoveis, page } = await getImoveis(site, browser, queryParams, currentPage);
+      const { imoveis, page } = await getImoveis(site, params, browser, baseQueryParams, currentPage);
       console.info(`------- ${site.name} página ${page} de ${pages}`);
       lista.push(...imoveis);
-      if (queryParams.maxPages && page >= queryParams.maxPages) {
+      if (baseQueryParams.maxPages && page >= baseQueryParams.maxPages) {
         return lista;
       }
     }
     return lista;
-
   } catch (error) {
     console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
-    return lista;
+    return [];
   }
 }
