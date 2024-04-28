@@ -8,7 +8,10 @@ export const getFixValue = (rawArea = '0') => {
     else {
       rawArea = rawArea.replace('.', ',').trim();
     }
-  } else if (isNaN(Number(rawArea))) {
+  } else if (rawArea.indexOf(',') >= 1) {
+
+  }
+  else if (isNaN(Number(rawArea))) {
     rawArea = '0';
   }
   const parsedArea = parseFloat(rawArea.replace(',', '.').trim() || '0');

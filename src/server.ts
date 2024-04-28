@@ -11,9 +11,14 @@ app.get('/', (_req: Request, res: Response) => {
 
 // Rota para a API que gera a lista de imóveis
 app.get('/api/imoveis', async (req: Request, res: Response) => {
-  let lista = await generateList();
-  lista = filterImoveis(lista, req.query);
-  return res.json({ data: lista });
+  try {
+    let lista = await generateList();
+    lista = filterImoveis(lista, req.query);
+    return res.json({ data: lista });
+  } catch (error) {
+    return res.json({ error: error }).status(500);
+  }
+
 });
 
 // Iniciar o servidor

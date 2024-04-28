@@ -4,10 +4,13 @@
   },
   "types": [
     "node",
+    "@types/jest"
   ],
   "compilerOptions": {
     "typeRoots": [
-      "../node_modules/@types"
+      "../node_modules/@types",
+      "./src/types",
+      "node_modules/@types"
     ],
     "target": "es2022",
     "module": "NodeNext",
@@ -16,7 +19,7 @@
       "dom"
     ],
     "moduleResolution": "node16",
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "dist",
     "allowSyntheticDefaultImports": true,
     "importHelpers": true,
@@ -33,5 +36,6 @@
   },
   "include": [
     "src/**/*",
+    "__tests__/**/*",
   ]
 }

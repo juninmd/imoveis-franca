@@ -20,6 +20,19 @@
         "<node_internals>/**",
         "node_modules/**"
       ]
+    },
+    {
+      "name": "Launch Jest",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "powershell.exe",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-Command",
+        "& '${workspaceRoot}/node_modules/.bin/jest' --runInBand "
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
     }
   ]
 }

@@ -1,9 +1,8 @@
 import qs from 'qs';
 import axios from 'axios';
-import { getNewPage, puppetAdapter } from './puppeter';
 import { sites } from './sites';
-import { Browser } from 'puppeteer';
-import RedisConnection from './redis';
+import browser from './infra/browser';
+import RedisConnection from './infra/redis';
 import { Imoveis, Site } from './types';
 
 export const filterImoveis = (imoveis: Imoveis[], queryParams: {
@@ -60,7 +59,6 @@ export const generateList = async () => {
 
   let lista: Imoveis[] = [];
 
-  const browser = await puppetAdapter();
   const promsies: any[] = [];
 
   for (const site of sites.filter(q => q.enabled)) {
@@ -69,7 +67,7 @@ export const generateList = async () => {
       lista = lista.concat(cacheKey);
       continue;
     }
-    promsies.push(retrieImoveisSite(site, baseQueryParams, browser));
+    promsies.push(retrieImoveisSite(site, baseQueryParams));
   }
 
   const promisesResolved: Imoveis[][] = await Promise.all(promsies);
@@ -80,13 +78,11 @@ export const generateList = async () => {
 
   lista = lista.concat(...promisesResolved);
 
-  await browser.close();
-
   lista = sortImoveis(lista);
   return lista;
 };
 
-export async function getImoveis(site: Site, params = undefined, browser: Browser, baseQueryParams: BaseQueryParams, page: number) {
+export async function getImoveis(site: Site, params = undefined, baseQueryParams: BaseQueryParams, page: number) {
   try {
     if (params && site.translateParams) {
       Object.keys(site.translateParams).forEach((param => {
@@ -105,21 +101,23 @@ export async function getImoveis(site: Site, params = undefined, browser: Browse
     }
 
     const link = `${site.url}?${params ? qs.stringify(params) : ''}`;
-    const content = await retrieveContent(browser, link, site, params);
+    const content = await retrieveContent(link, site, params);
     console.info(link, site.driver);
 
-    const { imoveis, qtd } = (await site.adapter(content));
+    const { imoveis, qtd, html, json } = (await site.adapter(content));
+
+    await RedisConnection.setKey(`content-${link}`, html || json);
 
     return { imoveis, qtd, page };
   } catch (error) {
     console.error(`Retry ${site.url}`, error);
-    return await getImoveis(site, params, browser, baseQueryParams, page);
+    return await getImoveis(site, params, baseQueryParams, page);
   }
 }
 
-async function retrieveContent(browser: Browser, url: string, site: Site, params = undefined) {
+export async function retrieveContent(url: string, site: Site, params = undefined) {
   if (site.driver === 'puppet') {
-    const page = await getNewPage(browser);
+    const page = await browser.getNewPage();
 
     await page.goto(url.trim(), { timeout: 20000, waitUntil: 'networkidle0' });
 
@@ -143,17 +141,17 @@ async function retrieveContent(browser: Browser, url: string, site: Site, params
   throw new Error(`Html content not found`);
 }
 
-export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryParams, browser: Browser) => {
+export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryParams) => {
   let lista: any[] = [];
   try {
 
     if (site.params) {
       for (const params of site.params || []) {
-        const imoveis = await retrieImoveisSiteByParams(site, params, baseQueryParams, browser)
+        const imoveis = await retrieImoveisSiteByParams(site, params, baseQueryParams)
         lista = lista.concat(imoveis);
       }
     } else if (site.payload) {
-      const imoveis = await retrieImoveisSiteByParams(site, undefined, baseQueryParams, browser)
+      const imoveis = await retrieImoveisSiteByParams(site, undefined, baseQueryParams)
       lista = lista.concat(imoveis);
     }
     return lista;
@@ -163,11 +161,11 @@ export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryPa
   }
 }
 
-export const retrieImoveisSiteByParams = async (site: Site, params = undefined, baseQueryParams: BaseQueryParams, browser: Browser) => {
+export const retrieImoveisSiteByParams = async (site: Site, params = undefined, baseQueryParams: BaseQueryParams) => {
   try {
-    let lista: any[] = [];
+    let lista: Imoveis[] = [];
     const page = 1;
-    const { imoveis, qtd } = await getImoveis(site, params, browser, baseQueryParams, page);
+    const { imoveis, qtd } = await getImoveis(site, params, baseQueryParams, page);
     lista.push(...imoveis);
     const pages = Math.ceil(qtd / site.itemsPerPage);
     console.info(`------- ${site.name} possuí ${pages} páginas`);
@@ -177,7 +175,7 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     }
 
     for (let currentPage = 2; currentPage <= pages; currentPage++) {
-      const { imoveis, page } = await getImoveis(site, params, browser, baseQueryParams, currentPage);
+      const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
       console.info(`------- ${site.name} página ${page} de ${pages}`);
       lista.push(...imoveis);
       if (baseQueryParams.maxPages && page >= baseQueryParams.maxPages) {

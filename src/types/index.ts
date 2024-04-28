@@ -2,6 +2,7 @@
 export interface Imoveis {
   site: string,
   titulo: string,
+  descricao: string,
   imagens: string[],
   endereco: string,
   valor: number,
@@ -31,6 +32,8 @@ export interface Site {
   getPaginateParams: (page: number) => { payload?: any, params?: any },
   adapter: (html: string) => Promise<{
     imoveis: Imoveis[],
-    qtd: number
+    qtd: number,
+    html?: string,
+    json?: any,
   }>
 }
