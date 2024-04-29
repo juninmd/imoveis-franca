@@ -34,8 +34,8 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   });
 };
 
-export const sortImoveis = (imoveis: any[]) => {
-  return imoveis.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
+export const sortImoveis = (imoveis: Imoveis[]) => {
+  return imoveis.filter(q => q.valor > 0).sort((a, b) => a.precoPorMetro - b.precoPorMetro);
 };
 
 interface BaseQueryParams {

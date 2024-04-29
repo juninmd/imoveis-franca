@@ -36,7 +36,7 @@ export async function adapter(html): Promise<{ imoveis: Imoveis[], qtd: number, 
     const tituloRaw = $(el).find('a').attr('title').replace(/[\u0300-\u036f]/g, "").toUpperCase();
     const titulo = (tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0 || tituloRaw.indexOf('PADRAO') >= 0) ? 'CASA' : tituloRaw;
     const endereco = $(el).find('h3>small').text().trim().replace('Bairro: ', '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-    const valor = getFixValue($(el).find('div.price>span').text() || '0');
+    const valor = getFixValue($(el).find('div.price>span:nth-last-child(1)').text() || '0');
     const infos = $(el).find('div.amenities>ul.imo-itens>li');
     const quartos = infos[0]?.attribs['title']?.replace(/\D/g, '') || '';
     const banheiros = infos[1]?.attribs['title']?.replace(/\D/g, '') || '';
