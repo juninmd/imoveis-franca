@@ -15,8 +15,9 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   maxAreaTotal?: number;
   minBathrooms?: number;
   minVacancies?: number;
+  address?: string[];
 }) => {
-  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies } = queryParams;
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address } = queryParams;
 
   return imoveis.filter(imovel => {
     const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
@@ -29,8 +30,9 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passMinBathroom = !minBathrooms || imovel.banheiros >= minBathrooms;
     const passMinVacancies = !minVacancies || imovel.vagas >= minVacancies;
 
+    const endereco = !address || !!address.find(x => x === imovel.endereco);
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && endereco;
   });
 };
 
@@ -47,7 +49,7 @@ interface BaseQueryParams {
   maxPages?: number,
 }
 
-export const generateList = async () => {
+export const generateList = async (query) => {
   const baseQueryParams: BaseQueryParams = {
     minPrice: 1,
     maxPrice: 500000,
@@ -77,8 +79,9 @@ export const generateList = async () => {
   }
 
   lista = lista.concat(...promisesResolved);
-
+  lista = filterImoveis(lista, query);
   lista = sortImoveis(lista);
+  lista = calcularValorMedioBairroPorAreaTotal(lista);
   return lista;
 };
 
@@ -187,4 +190,19 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
     return [];
   }
+}
+
+export function calcularValorMedioBairroPorAreaTotal(imoveis: Imoveis[]): Imoveis[] {
+  const imoveisAtualizados = imoveis.map(imovel => {
+    const imoveisMesmoBairro = imoveis.filter(
+      i => i.endereco === imovel.endereco && i.areaTotal === imovel.areaTotal && i.areaTotal > 0
+    );
+
+    const somaValores = imoveisMesmoBairro.reduce((soma, i) => soma + i.valor, 0);
+    const valorMedio = imoveisMesmoBairro.length ? somaValores / imoveisMesmoBairro.length : 0;
+
+    return { ...imovel, valorMedioBairroPorAreaTotal: valorMedio };
+  });
+
+  return imoveisAtualizados;
 }

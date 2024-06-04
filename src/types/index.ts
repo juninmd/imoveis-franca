@@ -14,6 +14,7 @@ export interface Imoveis {
   vagas: number,
   precoPorMetro: number,
   entrada: number,
+  valorMedioBairroPorAreaTotal?: number; // Novo atributo
 };
 
 export interface Site {

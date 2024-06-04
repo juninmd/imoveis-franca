@@ -2,6 +2,7 @@
 <html lang="en" class="dark">
 
 <head>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lista de Imóveis</title>
@@ -14,6 +15,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   <script
     src="https://cdn.datatables.net/v/bm/jq-3.7.0/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
   <script>
 
     jQuery.extend(jQuery.fn.dataTableExt.oSort, {
@@ -28,13 +32,39 @@
       }
     });
 
+    function geocodeAddress(address, callback) {
+      var fullAddress = address + ', Franca - SP, Brasil';
+      var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(fullAddress);
+
+      $.getJSON(url, function (data) {
+        if (data && data.length > 0) {
+          var location = data[0];
+          callback(location.lat, location.lon);
+        } else {
+          alert('Geocode was not successful for the following reason: No results found');
+        }
+      });
+    }
+
+    function modalAdress(address) {
+      let modalBody = document.getElementById('modal-body-map');
+      modalBody.innerHTML = '';
+
+      geocodeAddress(address, function (lat, lon) {
+        modalBody.innerHTML = `<iframe src="https://www.agnelloimoveis.com.br/mapa_proximidades.php?latIni=${lat}&longIni=${lon}" style="height:710px; width:100%; outline:hidden;"></iframe>`;
+        $('.lightbox').addClass('is-active');
+      });
+    }
+
     function showImagesModal(images) {
       let modalBody = document.getElementById('modal-body');
       modalBody.innerHTML = '';
+
       const myImages = images.split(',');
       myImages.forEach(imageUrl => {
         modalBody.innerHTML += '<img src="' + imageUrl + '">';
       });
+
       $('.lightbox').addClass('is-active');
     }
 
@@ -43,6 +73,11 @@
     }
 
     $(document).ready(function () {
+
+      $('.select-multiple').select2({
+        placeholder: 'Selecione uma ou mais opções',
+        allowClear: true
+      });
 
       $("#btnFind").click(function (e) {
         var formData = $('#searchForm').serialize();
@@ -56,16 +91,17 @@
         return $('#searchForm').serialize();
       }
 
+      let addressSaved = [];
+
       var table = $('#imoveis-table').DataTable({
         pageLength: 5,
         lengthMenu: [5, 10, 25, 50, 75, 100],
         fixedHeader: true,
         serverSide: false,
         rowCallback: function (row, data, index) {
-          var precoPorMetro = data.precoPorMetro;
-          if (precoPorMetro <= 1000) {
-            // $(row).addClass('is-selected');
-            $(row).attr('title', 'Preço abaixo da média');
+          if (data.precoPorMetro < (data.valorMedioBairroPorAreaTotal / data.areaTotal)) {
+            $(row).addClass('is-selected');
+            $(row).attr('title', `Preço abaixo da média \nPor Metro: R$ ${data.precoPorMetro.toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })} < R$ ${(data.valorMedioBairroPorAreaTotal / data.areaTotal).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })}\nTotal: R$ ${data.valor.toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })} < R$ ${data.valorMedioBairroPorAreaTotal.toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 })}`);
           }
         },
         "aoColumnDefs": [
@@ -73,7 +109,33 @@
         ],
         ajax: {
           url: '/api/imoveis?' + getForm(), // Rota da API que retorna os dados dos imóveis
-          type: 'GET'
+          type: 'GET',
+          dataSrc: function (json) {
+            // Save current selections
+            var currentSelections = $('#enderecos').val() || [];
+            // Extract unique addresses
+            var addresses = [...new Set(json.data.map(item => item.endereco))];
+
+            if (addressSaved.length === 0) {
+              addressSaved = addresses;
+            }
+
+            // Clear current options
+            $('#enderecos').empty();
+
+            // Append new options
+            addressSaved.forEach(address => {
+              $('#enderecos').append(new Option(address, address));
+            });
+
+            // Refresh Select2
+            $('#enderecos').trigger('change');
+
+            // Restore selections
+            $('#enderecos').val(currentSelections).trigger('change');
+
+            return json.data;
+          }
         },
         columns: [
           { data: 'site', title: 'Site' },
@@ -92,10 +154,23 @@
             }
           },
           { data: 'titulo', title: 'Título' },
-          { data: 'endereco', title: 'Endereço' },
+          {
+            data: 'endereco',
+            title: 'Endereço',
+            render: function (data, type, row) {
+              return '<button onClick="modalAdress(\'' + data + '\')" class="button is-link">' + data + '</button>';
+            }
+          },
           {
             data: 'valor',
             title: 'Valor (R$)',
+            render: function (data, type, row) {
+              return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
+            }
+          },
+          {
+            data: 'valorMedioBairroPorAreaTotal',
+            title: 'Valor Médio do Bairro (R$)',
             render: function (data, type, row) {
               return (data ? data : 0 || 0).toLocaleString('pt-BR', { currency: 'BRL', minimumFractionDigits: 2 });
             }
@@ -125,7 +200,7 @@
             render: function (data, type, row) {
               return '<a class="button is-link" href="' + data + '" target="_blank">Ver mais</a>';
             }
-          }
+          },
         ],
         initComplete: function () {
           this.api()
@@ -179,6 +254,7 @@
 </head>
 
 <body>
+
   <section class="section">
     <div class="container">
       <h1 class="title">Pesquisa de Casas em Franca - SP</h1>
@@ -275,6 +351,20 @@
 
         </div>
 
+        <div class="columns">
+
+          <div class="column">
+            <div class="field">
+              <label class="label">Endereços</label>
+              <div class="control">
+                <select class="input select-multiple" id="enderecos" name="address[]" multiple="multiple">
+                </select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
         <div class="buttons">
           <div class="field">
             <div class="control">
@@ -296,6 +386,7 @@
           <th class="filter">Título</th>
           <th class="filter">Endereço</th>
           <th class="filter monetary-filter">Valor (R$)</th>
+          <th class="filter monetary-filter">Valor Médio do Bairro (R$)</th>
           <th class="filter">Área (m²)</th>
           <th class="filter">Área Terreno (m²)</th>
           <th class="filter">Quartos</th>
@@ -315,6 +406,7 @@
           <th>Título</th>
           <th>Endereço</th>
           <th>Valor (R$)</th>
+          <th>Valor Médio do Bairro(R$)</th>
           <th>Área (m²)</th>
           <th>Área Terreno (m²)</th>
           <th>Quartos</th>
@@ -333,10 +425,16 @@
     <div class="modal-content" style="width: 60%;">
       <span class="close" onClick="hideImage()">&times;</span>
       <div id="modal-body"></div>
+      <div id="modal-body-map"></div>
     </div>
   </div>
 
   <style>
+    button {
+      font-size: 11px !important;
+      height: 30px !important;
+    }
+
     select {
       max-width: 100%;
       width: 100%;
