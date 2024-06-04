@@ -1,6 +1,6 @@
 import cheerio from 'cheerio';
 import { Imoveis, Site } from '../types';
-import { getFixValue } from '../utils';
+import { getFixValue, normalizeNeighborhoodName } from '../utils';
 import axios from 'axios';
 
 export default {
@@ -41,7 +41,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const link = `https://www.aacosta.com.br/${$(el).find('a').attr('href')}`;
     const tituloRaw = $(el).find('h5>a').text().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
     const titulo = (tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0 || tituloRaw.indexOf('PADRAO') >= 0) ? 'CASA' : tituloRaw;
-    const endereco = $(el).find('div.item-entry>span>b').text().trim().replace(' Referência:', '').replace('JD.', 'Jardim').replace('RES.', 'Residencial').replace('PQ.', 'Parque').replace('VL.', 'Residencial').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    const endereco = normalizeNeighborhoodName($(el).find('div.item-entry>span>b').text().trim().replace(' Referência:', '').replace('JD.', 'Jardim').replace('RES.', 'Residencial').replace('PQ.', 'Parque').replace('VL.', 'Residencial').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ""));
     const valor = parseFloat(($(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0].indexOf('Consulte') > 0 ? 0 : $(el).find('div.item-entry>span.proerty-price').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0]) || '0');
     const infos = $('div.item-entry>.property-icon').text().replace(/\n/g, '').replace(/ /g, '').replace(/\W/g, ' ').trim().split(' ').filter(q => q.trim() !== '');
     const quartos = infos[0];

@@ -1,5 +1,5 @@
 import cheerio from 'cheerio';
-import { getFixValue } from '../utils';
+import { getFixValue, normalizeNeighborhoodName } from '../utils';
 import { Imoveis, Site } from '../types';
 
 export default {
@@ -26,7 +26,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const imoveis = $('.card-resultado').map((_i, el) => {
     const tituloRaw = $(el).find('.titulo-resultado-busca').text().toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
     const titulo = (tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('PADRAO') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0) ? 'CASA' : tituloRaw;
-    const endereco = $(el).find('.endereco-resultado-busca').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").split(',')[0];
+    const endereco = normalizeNeighborhoodName($(el).find('.endereco-resultado-busca').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").split(',')[0]);
     const valor = parseFloat(($(el).find('.valores-resultado-busca').text().indexOf('Para detalhes') > 0 ? 0 : $(el).find('.valores-resultado-busca > h3').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0]) || '0');
     const area = getFixValue($(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || '0');
     const areaTotal = getFixValue($(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || '0');

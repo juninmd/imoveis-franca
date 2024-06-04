@@ -1,5 +1,5 @@
 import cheerio from 'cheerio';
-import { getFixValue } from '../utils';
+import { getFixValue, normalizeNeighborhoodName } from '../utils';
 import { Imoveis, Site } from '../types';
 import axios from 'axios';
 
@@ -28,7 +28,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const imoveis: Imoveis[] = [];
   for (const el of $('.item-lista')) {
     const titulo = $(el).find('div.item-lista:nth-child(2) > div:nth-child(2) > a:nth-child(1) > small:nth-child(2)').text();
-    const endereco = $(el).find('div:nth-child(2) > a:nth-child(1) > h3:nth-child(1)').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").split(',')[0];
+    const endereco = normalizeNeighborhoodName($(el).find('div:nth-child(2) > a:nth-child(1) > h3:nth-child(1)').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").split(',')[0]);
     const valor = parseFloat(($(el).find('div.desc-item-lista > ul:nth-child(2) > a:nth-child(1) > li:nth-child(1)').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0]) || '0');
     const area = getFixValue($(el).find('.icones.ico2').find('a[data-tooltip="Área"]').text().replace('m²', '').trim() || '0');
     const areaTotal = getFixValue($(el).find('.icones.ico2').find('a[data-tooltip="Área"]').text().replace('m²', '').trim() || '0');

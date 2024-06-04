@@ -1,4 +1,5 @@
 import { Imoveis, Site } from '../types';
+import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   driver: 'axios_rest',
@@ -82,7 +83,7 @@ export async function adapter(json: any): Promise<{ imoveis: Imoveis[], qtd: num
       (link += '-' + codUri(imovel.local.cidade));
 
     const titulo = imovel.tipo.toUpperCase();
-    const endereco = imovel.local.bairro.toUpperCase();
+    const endereco = normalizeNeighborhoodName(imovel.local.bairro);
     const valor = imovel.comercializacao.venda.preco;
     const quartos = imovel.numeros.dormitorios || 0;
     const banheiros = imovel.numeros.banheiros || 0;
