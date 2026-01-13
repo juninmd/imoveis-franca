@@ -5,8 +5,10 @@ const app = express();
 const port = 3000;
 
 // Rota para o frontend
+app.use(express.static(__dirname + '/../../client/dist'));
+
 app.get('/', (_req: Request, res: Response) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/../../client/dist/index.html');
 });
 
 // Rota para a API que gera a lista de imóveis

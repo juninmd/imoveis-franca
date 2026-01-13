@@ -1,5 +1,6 @@
 import qs from 'qs';
 import axios from 'axios';
+import pLimit from 'p-limit';
 import { sites } from './sites';
 import browser from './infra/browser';
 import RedisConnection from './infra/redis';
@@ -177,14 +178,24 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
       return lista;
     }
 
+    const limit = pLimit(5); // Limit to 5 concurrent requests per site
+    const promises: Promise<any>[] = [];
+
     for (let currentPage = 2; currentPage <= pages; currentPage++) {
-      const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
-      console.info(`------- ${site.name} página ${page} de ${pages}`);
-      lista.push(...imoveis);
-      if (baseQueryParams.maxPages && page >= baseQueryParams.maxPages) {
-        return lista;
+      if (baseQueryParams.maxPages && currentPage > baseQueryParams.maxPages) {
+        break;
       }
+
+      promises.push(limit(async () => {
+        const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
+        console.info(`------- ${site.name} página ${page} de ${pages}`);
+        return imoveis;
+      }));
     }
+
+    const results = await Promise.all(promises);
+    results.forEach(result => lista.push(...result));
+
     return lista;
   } catch (error) {
     console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
