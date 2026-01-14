@@ -38,12 +38,16 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     setFilters(prev => ({ ...prev, address: selected }));
   };
 
+  const inputClass = "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500";
+  const labelClass = "text-xs text-gray-500 dark:text-gray-400";
+  const headingClass = "text-sm font-semibold text-gray-900 dark:text-gray-200 uppercase tracking-wider";
+
   return (
     <div className="p-4 space-y-6">
 
       {/* Price */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Preço (R$)</h3>
+        <h3 className={headingClass}>Preço (R$)</h3>
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
@@ -51,7 +55,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             placeholder="Min"
             value={filters.minPrice}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className={inputClass}
           />
           <input
             type="number"
@@ -59,55 +63,55 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             placeholder="Max"
             value={filters.maxPrice}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className={inputClass}
           />
         </div>
       </div>
 
       {/* Details */}
       <div className="space-y-3">
-         <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Características</h3>
+         <h3 className={headingClass}>Características</h3>
 
          <div className="space-y-2">
-           <label className="text-xs text-gray-500">Mínimo de Quartos</label>
+           <label className={labelClass}>Mínimo de Quartos</label>
            <input
               type="number"
               name="minBedrooms"
               placeholder="Ex: 2"
               value={filters.minBedrooms}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              className={inputClass}
            />
          </div>
 
          <div className="space-y-2">
-           <label className="text-xs text-gray-500">Mínimo de Banheiros</label>
+           <label className={labelClass}>Mínimo de Banheiros</label>
            <input
               type="number"
               name="minBathrooms"
               placeholder="Ex: 1"
               value={filters.minBathrooms}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              className={inputClass}
            />
          </div>
 
          <div className="space-y-2">
-           <label className="text-xs text-gray-500">Mínimo de Vagas</label>
+           <label className={labelClass}>Mínimo de Vagas</label>
            <input
               type="number"
               name="minVacancies"
               placeholder="Ex: 1"
               value={filters.minVacancies}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              className={inputClass}
            />
          </div>
       </div>
 
       {/* Area */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Área Útil (m²)</h3>
+        <h3 className={headingClass}>Área Útil (m²)</h3>
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
@@ -115,7 +119,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             placeholder="Min"
             value={filters.minArea}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+            className={inputClass}
           />
           <input
             type="number"
@@ -123,14 +127,14 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             placeholder="Max"
             value={filters.maxArea}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+            className={inputClass}
           />
         </div>
       </div>
 
       {/* Total Area */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Área Terreno (m²)</h3>
+        <h3 className={headingClass}>Área Terreno (m²)</h3>
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
@@ -138,7 +142,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             placeholder="Min"
             value={filters.minAreaTotal}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+            className={inputClass}
           />
           <input
             type="number"
@@ -146,39 +150,27 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             placeholder="Max"
             value={filters.maxAreaTotal}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+            className={inputClass}
           />
         </div>
       </div>
 
       {/* Address */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Endereços</h3>
+        <h3 className={headingClass}>Endereços</h3>
         <select
           multiple
           name="address"
           value={filters.address}
           onChange={handleAddressChange}
-          className="w-full p-2 border border-gray-300 rounded-md text-sm h-32"
+          className={`${inputClass} h-32`}
         >
           {addresses.sort().map((addr, i) => (
             <option key={i} value={addr}>{addr}</option>
           ))}
         </select>
-        <p className="text-xs text-gray-400">Segure Ctrl (ou Cmd) para selecionar múltiplos.</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">Segure Ctrl (ou Cmd) para selecionar múltiplos.</p>
       </div>
-
-      {/* Action */}
-      <button
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center gap-2"
-        // Since React Query handles the refetching based on state change, this button might be just visual or for "Apply" if we debounce.
-        // For now, inputs update state immediately, triggering refetch.
-        // We could wrap inputs in a form and update "appliedFilters" on submit to avoid too many requests.
-        // But let's keep it simple reactive for now.
-      >
-        <Search size={18} />
-        Filtrar
-      </button>
 
     </div>
   );

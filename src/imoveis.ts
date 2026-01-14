@@ -52,41 +52,43 @@ interface BaseQueryParams {
 
 export const generateList = async (query) => {
   const baseQueryParams: BaseQueryParams = {
-    minPrice: 1,
-    maxPrice: 500000,
-    quartos: 2,
-    minArea: 50,
-    maxArea: 250,
+    minPrice: Number(query.minPrice) || 1,
+    maxPrice: Number(query.maxPrice) || 2000000,
+    quartos: Number(query.minBedrooms) || 2,
+    minArea: Number(query.minArea) || 50,
+    maxArea: Number(query.maxArea) || 500,
     maxPages: undefined,
   };
 
   let lista: Imoveis[] = [];
 
-  const promsies: any[] = [];
+  const promises = sites.filter(q => q.enabled).map(async (site) => {
+    // Include baseQueryParams in cache key to ensure cache respects filters
+    const cacheKeyString = `${site.name}-${JSON.stringify(baseQueryParams)}`;
+    const cacheValue: Imoveis[] = await RedisConnection.getKey(cacheKeyString);
 
-  for (const site of sites.filter(q => q.enabled)) {
-    const cacheKey: Imoveis[] = await RedisConnection.getKey(site.name);
-    if (cacheKey) {
-      lista = lista.concat(cacheKey);
-      continue;
+    if (cacheValue) {
+      return cacheValue;
     }
-    promsies.push(retrieImoveisSite(site, baseQueryParams));
-  }
 
-  const promisesResolved: Imoveis[][] = await Promise.all(promsies);
+    const fetched = await retrieImoveisSite(site, baseQueryParams);
+    // Cache the result for this specific query
+    if (fetched && fetched.length > 0) {
+        await RedisConnection.setKey(cacheKeyString, fetched);
+    }
+    return fetched;
+  });
 
-  for (const promise of promisesResolved) {
-    await RedisConnection.setKey(promise[0].site, promise);
-  }
+  const results = await Promise.all(promises);
+  lista = results.flat();
 
-  lista = lista.concat(...promisesResolved);
   lista = filterImoveis(lista, query);
   lista = sortImoveis(lista);
   lista = calcularValorMedioBairroPorAreaTotal(lista);
   return lista;
 };
 
-export async function getImoveis(site: Site, params = undefined, baseQueryParams: BaseQueryParams, page: number) {
+export async function getImoveis(site: Site, params = undefined, baseQueryParams: BaseQueryParams, page: number, retry = 0) {
   try {
     if (params && site.translateParams) {
       Object.keys(site.translateParams).forEach((param => {
@@ -105,17 +107,25 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     }
 
     const link = `${site.url}?${params ? qs.stringify(params) : ''}`;
+    // console.info(`Fetching ${link} using ${site.driver}`);
+
+    // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
     const content = await retrieveContent(link, site, params);
-    console.info(link, site.driver);
 
-    const { imoveis, qtd, html, json } = (await site.adapter(content));
+    const { imoveis, qtd } = (await site.adapter(content));
 
-    await RedisConnection.setKey(`content-${link}`, html || json);
+    // Optional: still cache content for debugging or other purposes if needed,
+    // but the main caching is now at the site list level.
+    // await RedisConnection.setKey(`content-${link}`, html || json);
 
     return { imoveis, qtd, page };
   } catch (error) {
-    console.error(`Retry ${site.url}`, error);
-    return await getImoveis(site, params, baseQueryParams, page);
+    if (retry > 2) {
+      console.error(`Max retries reached for ${site.url} page ${page}`);
+      return { imoveis: [], qtd: 0, page };
+    }
+    console.error(`Retry ${site.url} page ${page}, attempt ${retry + 1}`, error.message);
+    return await getImoveis(site, params, baseQueryParams, page, retry + 1);
   }
 }
 
@@ -123,26 +133,30 @@ export async function retrieveContent(url: string, site: Site, params = undefine
   if (site.driver === 'puppet') {
     const page = await browser.getNewPage();
 
-    await page.goto(url.trim(), { timeout: 20000, waitUntil: 'networkidle0' });
+    await page.goto(url.trim(), { timeout: 30000, waitUntil: 'networkidle0' });
 
     if (site.waitFor) {
-      await page.waitForSelector(site.waitFor);
+      try {
+        await page.waitForSelector(site.waitFor, { timeout: 10000 });
+      } catch (e) {
+        console.warn(`Timeout waiting for selector ${site.waitFor} on ${url}`);
+      }
     }
 
     const html = await page.content();
     await page.close();
     return html;
   } else if (site.driver === 'axios') {
-    const { data: html } = await axios.get(url, { responseEncoding: 'utf8' });
+    const { data: html } = await axios.get(url, { responseEncoding: 'utf8', timeout: 30000 });
     if (site.waitFor == undefined || html.indexOf(site.waitFor) >= 0) {
       return html;
     }
   } else if (site.driver === 'axios_rest') {
-    const { data: html } = await axios.request({ url, method: site.method, data: site.payload, params });
+    const { data: html } = await axios.request({ url, method: site.method, data: site.payload, params, timeout: 30000 });
     return html;
   }
 
-  throw new Error(`Html content not found`);
+  throw new Error(`Html content not found or driver not supported`);
 }
 
 export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryParams) => {
@@ -170,11 +184,15 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     let lista: Imoveis[] = [];
     const page = 1;
     const { imoveis, qtd } = await getImoveis(site, params, baseQueryParams, page);
-    lista.push(...imoveis);
-    const pages = Math.ceil(qtd / site.itemsPerPage);
-    console.info(`------- ${site.name} possuí ${pages} páginas`);
 
-    if (pages === 1 || (baseQueryParams.maxPages && page >= baseQueryParams.maxPages)) {
+    if (imoveis && imoveis.length > 0) {
+        lista.push(...imoveis);
+    }
+
+    const pages = qtd ? Math.ceil(qtd / site.itemsPerPage) : 1;
+    console.info(`------- ${site.name} possuí ${pages} páginas. Initial fetch: ${imoveis?.length || 0} items.`);
+
+    if (pages <= 1 || (baseQueryParams.maxPages && page >= baseQueryParams.maxPages)) {
       return lista;
     }
 
@@ -189,12 +207,16 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
       promises.push(limit(async () => {
         const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
         console.info(`------- ${site.name} página ${page} de ${pages}`);
-        return imoveis;
+        return imoveis || [];
       }));
     }
 
     const results = await Promise.all(promises);
-    results.forEach(result => lista.push(...result));
+    results.forEach(result => {
+        if (result && result.length > 0) {
+            lista.push(...result);
+        }
+    });
 
     return lista;
   } catch (error) {
