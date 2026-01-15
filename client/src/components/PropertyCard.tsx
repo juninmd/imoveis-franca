@@ -24,6 +24,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ imovel, isFavorite, 
             <img
               src={imovel.imagens[0]}
               alt={imovel.titulo}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (

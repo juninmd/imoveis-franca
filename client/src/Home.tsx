@@ -3,8 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchImoveis } from './api';
 import { FilterSidebar } from './components/FilterSidebar';
 import { PropertyCard } from './components/PropertyCard';
-import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, Heart } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, Heart, FilterX } from 'lucide-react';
 import { clsx } from 'clsx';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useToast } from './components/Toast';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -33,6 +35,7 @@ export const Home = () => {
     address: [] as string[],
   });
 
+  const { addToast } = useToast();
   const debouncedFilters = useDebounce(filters, 500);
 
   const [sortOrder, setSortOrder] = useState('price_asc');
@@ -77,8 +80,13 @@ export const Home = () => {
   }, [favorites]);
 
   const toggleFavorite = (link: string) => {
+    const isAdding = !favorites.includes(link);
     setFavorites(prev =>
       prev.includes(link) ? prev.filter(l => l !== link) : [...prev, link]
+    );
+    addToast(
+      isAdding ? 'Imóvel salvo nos favoritos!' : 'Imóvel removido dos favoritos.',
+      isAdding ? 'success' : 'info'
     );
   };
 
@@ -128,6 +136,21 @@ export const Home = () => {
     }
   };
 
+  const activeFiltersCount = Object.entries(filters).filter(([, value]) => {
+     if (Array.isArray(value)) return value.length > 0;
+     return value !== '';
+  }).length;
+
+  const clearFilters = () => {
+    setFilters({
+      minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '',
+      minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '',
+      maxAreaTotal: '', address: []
+    });
+    setCurrentPage(1);
+    addToast('Filtros limpos com sucesso.', 'info');
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       {/* Mobile Sidebar Overlay */}
@@ -150,6 +173,16 @@ export const Home = () => {
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 text-gray-500 dark:text-gray-400">
             <X size={24} />
           </button>
+        </div>
+        <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+            <button
+               onClick={clearFilters}
+               disabled={activeFiltersCount === 0}
+               className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+               <FilterX size={16} />
+               Limpar Filtros ({activeFiltersCount})
+            </button>
         </div>
         <FilterSidebar
           filters={filters}
@@ -241,16 +274,29 @@ export const Home = () => {
              </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-                {currentImoveis.map((imovel, index) => (
-                  <PropertyCard
-                    key={`${imovel.link}-${index}`}
-                    imovel={imovel}
-                    isFavorite={favorites.includes(imovel.link)}
-                    onToggleFavorite={() => toggleFavorite(imovel.link)}
-                  />
-                ))}
-              </div>
+              <motion.div
+                layout
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8"
+              >
+                <AnimatePresence mode='popLayout'>
+                  {currentImoveis.map((imovel, index) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                      key={`${imovel.link}-${index}`}
+                    >
+                      <PropertyCard
+                        imovel={imovel}
+                        isFavorite={favorites.includes(imovel.link)}
+                        onToggleFavorite={() => toggleFavorite(imovel.link)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
 
               {/* Pagination */}
               {totalPages > 1 && (
