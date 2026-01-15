@@ -50,15 +50,29 @@ interface BaseQueryParams {
   maxPages?: number,
 }
 
-export const generateList = async (query) => {
-  const baseQueryParams: BaseQueryParams = {
-    minPrice: Number(query.minPrice) || 1,
-    maxPrice: Number(query.maxPrice) || 2000000,
+const PRICE_STEP = 50000;
+const AREA_STEP = 50;
+
+const getQuantizedParams = (query: any): BaseQueryParams => {
+  const rawMinPrice = Number(query.minPrice) || 0;
+  const rawMaxPrice = Number(query.maxPrice) || 2000000;
+  const rawMinArea = Number(query.minArea) || 0;
+  const rawMaxArea = Number(query.maxArea) || 500;
+
+  return {
+    // Quantize down for min, up for max to ensure superset
+    minPrice: Math.floor(rawMinPrice / PRICE_STEP) * PRICE_STEP,
+    maxPrice: Math.ceil(rawMaxPrice / PRICE_STEP) * PRICE_STEP,
     quartos: Number(query.minBedrooms) || 2,
-    minArea: Number(query.minArea) || 50,
-    maxArea: Number(query.maxArea) || 500,
+    minArea: Math.floor(rawMinArea / AREA_STEP) * AREA_STEP,
+    maxArea: Math.ceil(rawMaxArea / AREA_STEP) * AREA_STEP,
     maxPages: undefined,
   };
+};
+
+export const generateList = async (query) => {
+  // Use quantized params for fetching/caching to improve cache hit rate
+  const baseQueryParams = getQuantizedParams(query);
 
   let lista: Imoveis[] = [];
 
@@ -74,7 +88,8 @@ export const generateList = async (query) => {
     const fetched = await retrieImoveisSite(site, baseQueryParams);
     // Cache the result for this specific query
     if (fetched && fetched.length > 0) {
-        await RedisConnection.setKey(cacheKeyString, fetched);
+        // Cache for 1 hour
+        await RedisConnection.setKey(cacheKeyString, fetched, 3600);
     }
     return fetched;
   });
