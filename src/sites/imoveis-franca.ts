@@ -34,7 +34,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const banheiros = $(el).find('.comodidades-resultado-busca > div:nth-child(3)').text().replace('Banheiros', '').trim();
     const vagas = $(el).find('.comodidades-resultado-busca > div:nth-child(4)').text().replace('Vagas', '').trim();
     const imagens: string[] = [];
-    $(el).find('.imagem-resultado').find('.carousel-inner >.carousel-item > img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
+    $(el).find('div.carousel-inner > div.item > img').each((_q, i) => { imagens.push((i as any).attribs['src']) });
     const link = $(el).find('.link-resultado').attr('href');
     const precoPorMetro = valor / areaTotal;
     const descricao = '';

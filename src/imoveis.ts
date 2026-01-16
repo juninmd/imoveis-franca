@@ -162,8 +162,8 @@ export async function retrieveContent(url: string, site: Site, params = undefine
     await page.close();
     return html;
   } else if (site.driver === 'axios') {
-    const { data: html } = await axios.get(url, { responseEncoding: 'utf8', timeout: 30000 });
-    if (site.waitFor == undefined || html.indexOf(site.waitFor) >= 0) {
+    const { data: html } = await axios.get(url, { responseEncoding: 'utf8', timeout: 30000 } as any);
+    if (site.waitFor == undefined || (html as any).indexOf(site.waitFor) >= 0) {
       return html;
     }
   } else if (site.driver === 'axios_rest') {

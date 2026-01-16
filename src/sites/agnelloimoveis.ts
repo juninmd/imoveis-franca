@@ -38,17 +38,17 @@ export async function adapter(html): Promise<{ imoveis: Imoveis[], qtd: number, 
     const endereco = $(el).find('h3>small').text().trim().replace('Bairro: ', '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     const valor = getFixValue($(el).find('div.price>span:nth-last-child(1)').text() || '0');
     const infos = $(el).find('div.amenities>ul.imo-itens>li');
-    const quartos = infos[0]?.attribs['title']?.replace(/\D/g, '') || '';
-    const banheiros = infos[1]?.attribs['title']?.replace(/\D/g, '') || '';
-    const vagas = infos[2]?.attribs['title']?.replace(/\D/g, '') || '';
+    const quartos = (infos[0] as any)?.attribs['title']?.replace(/\D/g, '') || '';
+    const banheiros = (infos[1] as any)?.attribs['title']?.replace(/\D/g, '') || '';
+    const vagas = (infos[2] as any)?.attribs['title']?.replace(/\D/g, '') || '';
 
     const { data: details } = await axios.get(link, {
       responseEncoding: 'latin1',
       headers: {
         'Accept': 'text/html', // Especifica que estamos aceitando HTML
       }
-    });
-    const $$ = cheerio.load(details) as any;
+    } as any);
+    const $$ = cheerio.load(details as any) as any;
 
     const imagens: string[] = [];
     $$('.row>div.carousel').find('a>img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
