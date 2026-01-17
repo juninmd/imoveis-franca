@@ -33,7 +33,8 @@ export async function adapter(html): Promise<{ imoveis: Imoveis[], qtd: number, 
   const imoveis: Imoveis[] = [];
   for (const el of $('div.item.col-sm-6.col-md-4.col-lg-3')) {
     const link = `https://www.agnelloimoveis.com.br/${$(el).find('a').attr('href')}`;
-    const tituloRaw = $(el).find('a').attr('title').replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    const titleAttr = $(el).find('a').attr('title');
+    const tituloRaw = titleAttr ? titleAttr.replace(/[\u0300-\u036f]/g, "").toUpperCase() : "";
     const titulo = (tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0 || tituloRaw.indexOf('PADRAO') >= 0) ? 'CASA' : tituloRaw;
     const endereco = $(el).find('h3>small').text().trim().replace('Bairro: ', '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     const valor = getFixValue($(el).find('div.price>span:nth-last-child(1)').text() || '0');
