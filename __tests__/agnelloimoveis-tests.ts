@@ -1,28 +1,63 @@
-import { adapter } from '../src/sites/agnelloimoveis'; // Substitua 'seu-arquivo-de-codigo' pelo caminho real do seu arquivo
+import { adapter } from '../src/sites/agnelloimoveis';
+import axios from 'axios';
 
-// https://www.agnelloimoveis.com.br/comprar/Franca/Casa/Bairro/Jardim-Elisa/7986
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
 describe('adapter function', () => {
   it('should return an object with imoveis and qtd properties', async () => {
-    // Mock do parâmetro 'html' para simular o comportamento da função 'cheerio.load'
     const html = `
       <div>
         <h1 class="titulo_res_busca">10 imóveis encontrados</h1>
         <div class="item col-sm-6 col-md-4 col-lg-3">
-          <!-- Simular os elementos HTML necessários para o seu teste -->
+           <a href="fake-link" title="CASA PADRAO"></a>
+           <h3><small>Bairro: Centro</small></h3>
+           <div class="price"><span>R$ 500.000,00</span></div>
+           <div class="amenities">
+              <ul class="imo-itens">
+                <li title="3 Quartos"></li>
+                <li title="2 Banheiros"></li>
+                <li title="2 Vagas"></li>
+              </ul>
+           </div>
         </div>
-        <!-- Adicione mais elementos HTML de exemplo, conforme necessário -->
       </div>
     `;
 
-    // Chamar a função 'adapter' com o HTML mockado
+    // Mock axios response for the details page
+    mockedAxios.get.mockResolvedValue({
+      data: `
+        <div class="row">
+           <div class="carousel">
+              <a href="#"><img src="img1.jpg"></a>
+           </div>
+           <div class="main">
+              <div>
+                 <div>
+                    <small>A. Útil</small>
+                    100 M²
+                 </div>
+                 <div>
+                    <small>A. Terreno</small>
+                    200 M²
+                 </div>
+              </div>
+              <p id="descricao_imovel">Linda casa</p>
+           </div>
+        </div>
+      `,
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {},
+    } as any);
+
     const result = await adapter(html);
 
-    // Verificar se o resultado contém as propriedades esperadas
     expect(result).toHaveProperty('imoveis');
     expect(result).toHaveProperty('qtd');
-    expect(Array.isArray(result.imoveis)).toBe(true);
-    expect(typeof result.qtd).toBe('number');
+    expect(result.qtd).toBe(10);
+    expect(result.imoveis.length).toBe(1);
+    expect(result.imoveis[0].titulo).toBe('CASA');
   });
-
-  // Adicione mais testes conforme necessário para cobrir outros cenários
 });

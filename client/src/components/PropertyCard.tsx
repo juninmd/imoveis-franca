@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import type { Imovel } from '../types';
-import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart, Share2, ChevronLeft, ChevronRight, X as XIcon } from 'lucide-react';
+import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart, Share2 } from 'lucide-react';
 import { useToast } from './Toast';
+
+// Lazy load the ImageGallery component
+const ImageGallery = React.lazy(() => import('./ImageGallery'));
 
 interface PropertyCardProps {
   imovel: Imovel;
@@ -12,7 +15,6 @@ interface PropertyCardProps {
 export const PropertyCard: React.FC<PropertyCardProps> = ({ imovel, isFavorite, onToggleFavorite }) => {
   const [showImages, setShowImages] = useState(false);
   const { addToast } = useToast();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const formatCurrency = (value: number) =>
     value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -23,20 +25,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ imovel, isFavorite, 
     e.stopPropagation();
     navigator.clipboard.writeText(imovel.link);
     addToast('Link copiado para a área de transferência!', 'success');
-  };
-
-  const nextImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (imovel.imagens) {
-      setCurrentImageIndex((prev) => (prev + 1) % imovel.imagens.length);
-    }
-  };
-
-  const prevImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (imovel.imagens) {
-      setCurrentImageIndex((prev) => (prev - 1 + imovel.imagens.length) % imovel.imagens.length);
-    }
   };
 
   return (
@@ -140,48 +128,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ imovel, isFavorite, 
         </div>
       </div>
 
-      {/* Improved Image Gallery Modal */}
       {showImages && imovel.imagens && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => setShowImages(false)}
-        >
-          <button
-             onClick={() => setShowImages(false)}
-             className="absolute top-4 right-4 text-white/70 hover:text-white z-50 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors backdrop-blur-sm"
-           >
-             <XIcon size={24} />
-           </button>
-
-           <div className="relative w-full max-w-6xl aspect-video max-h-[80vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-              {imovel.imagens.length > 1 && (
-                 <>
-                    <button
-                       onClick={prevImage}
-                       className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all z-10 backdrop-blur-sm hover:scale-110"
-                    >
-                       <ChevronLeft size={32} />
-                    </button>
-                    <button
-                       onClick={nextImage}
-                       className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all z-10 backdrop-blur-sm hover:scale-110"
-                    >
-                       <ChevronRight size={32} />
-                    </button>
-                 </>
-              )}
-
-              <img
-                 src={imovel.imagens[currentImageIndex]}
-                 alt={`Foto ${currentImageIndex + 1}`}
-                 className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              />
-
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium">
-                 {currentImageIndex + 1} / {imovel.imagens.length}
-              </div>
-           </div>
-        </div>
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"><div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div></div>}>
+          <ImageGallery
+            images={imovel.imagens}
+            onClose={() => setShowImages(false)}
+          />
+        </Suspense>
       )}
     </>
   );

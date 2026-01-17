@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchImoveis } from './api';
 import { FilterSidebar } from './components/FilterSidebar';
 import { PropertyCard } from './components/PropertyCard';
+import { ScrollToTop } from './components/ScrollToTop';
 import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -204,7 +205,8 @@ export const Home = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 relative">
+        <ScrollToTop />
         <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300">
           <div className="flex items-center gap-4">
             <button
