@@ -1,13 +1,15 @@
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchImoveis } from './api';
-import { FilterSidebar } from './components/FilterSidebar';
 import { PropertyCard } from './components/PropertyCard';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon } from 'lucide-react';
+import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from './components/Toast';
+import { useIntersectionObserver } from './hooks/useIntersectionObserver';
+
+const FilterSidebar = React.lazy(() => import('./components/FilterSidebar').then(module => ({ default: module.FilterSidebar })));
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -40,8 +42,18 @@ export const Home = () => {
   const debouncedFilters = useDebounce(filters, 500);
 
   const [sortOrder, setSortOrder] = useState('price_asc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+
+  // Infinite Scroll State
+  const ITEMS_PER_PAGE = 12;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+
+  // Define options outside or useMemo to avoid re-renders
+  const observerOptions = useMemo(() => ({
+    threshold: 0.1,
+    rootMargin: '100px',
+  }), []);
+
+  const { ref: loadMoreRef, isIntersecting: isLoadMoreIntersecting } = useIntersectionObserver(observerOptions);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -124,18 +136,20 @@ export const Home = () => {
     }
   }, [imoveis, sortOrder, showFavoritesOnly, favorites]);
 
-  const totalPages = Math.ceil(sortedImoveis.length / itemsPerPage);
-  const currentImoveis = sortedImoveis.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Reset visible count when filters or sort change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [debouncedFilters, sortOrder, showFavoritesOnly]);
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Infinite Scroll Effect
+  useEffect(() => {
+    if (isLoadMoreIntersecting && visibleCount < sortedImoveis.length) {
+      setVisibleCount(prev => Math.min(prev + ITEMS_PER_PAGE, sortedImoveis.length));
     }
-  };
+  }, [isLoadMoreIntersecting, sortedImoveis.length, visibleCount]);
+
+  const currentImoveis = useMemo(() => sortedImoveis.slice(0, visibleCount), [sortedImoveis, visibleCount]);
 
   const activeFiltersCount = Object.entries(filters).filter(([, value]) => {
      if (Array.isArray(value)) return value.length > 0;
@@ -148,7 +162,6 @@ export const Home = () => {
       minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '',
       maxAreaTotal: '', address: []
     });
-    setCurrentPage(1);
     addToast('Filtros limpos com sucesso.', 'info');
   };
 
@@ -170,11 +183,11 @@ export const Home = () => {
       {/* Sidebar */}
       <aside
         className={clsx(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 transform lg:translate-x-0 shadow-2xl lg:shadow-none",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 transform lg:translate-x-0 shadow-2xl lg:shadow-none flex flex-col",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-2">
             <HomeIcon className="text-blue-600 dark:text-blue-400" size={24} />
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
@@ -186,7 +199,7 @@ export const Home = () => {
           </button>
         </div>
 
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
             <button
                onClick={clearFilters}
                disabled={activeFiltersCount === 0}
@@ -197,11 +210,27 @@ export const Home = () => {
             </button>
         </div>
 
-        <FilterSidebar
-          filters={filters}
-          setFilters={(f) => { setFilters(f); setCurrentPage(1); }}
-          addresses={allAddresses}
-        />
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <Suspense fallback={
+            <div className="p-5 space-y-6">
+               {[...Array(5)].map((_, i) => (
+                 <div key={i} className="space-y-3 pb-6 border-b border-gray-100 dark:border-gray-700">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse" />
+                    <div className="grid grid-cols-2 gap-3">
+                       <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                       <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                 </div>
+               ))}
+            </div>
+          }>
+            <FilterSidebar
+              filters={filters}
+              setFilters={(f) => { setFilters(f); /* Scroll to top handled by effect */ }}
+              addresses={allAddresses}
+            />
+          </Suspense>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -348,28 +377,19 @@ export const Home = () => {
                 </AnimatePresence>
               </motion.div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 py-8">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-gray-300 transition-all shadow-sm"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
+              {/* Infinite Scroll Sentinel */}
+              <div ref={loadMoreRef} className="h-10 flex items-center justify-center w-full">
+                 {visibleCount < sortedImoveis.length && (
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <span>Carregando mais imóveis...</span>
+                    </div>
+                 )}
+              </div>
 
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                    Página <span className="text-gray-900 dark:text-white font-bold">{currentPage}</span> de {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-gray-300 transition-all shadow-sm"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
+              {visibleCount >= sortedImoveis.length && sortedImoveis.length > 0 && (
+                <div className="text-center text-gray-400 text-sm py-8">
+                  Você chegou ao fim da lista.
                 </div>
               )}
             </>

@@ -2,6 +2,7 @@ import React, { useState, Suspense } from 'react';
 import type { Imovel } from '../types';
 import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart, Share2 } from 'lucide-react';
 import { useToast } from './Toast';
+import { clsx } from 'clsx';
 
 // Lazy load the ImageGallery component
 const ImageGallery = React.lazy(() => import('./ImageGallery'));
@@ -14,6 +15,7 @@ interface PropertyCardProps {
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ imovel, isFavorite, onToggleFavorite }) => {
   const [showImages, setShowImages] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { addToast } = useToast();
 
   const formatCurrency = (value: number) =>
@@ -37,7 +39,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ imovel, isFavorite, 
               alt={imovel.titulo}
               loading="lazy"
               decoding="async"
-              className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
+              onLoad={() => setImageLoaded(true)}
+              className={clsx(
+                "w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110",
+                imageLoaded ? "opacity-100" : "opacity-0"
+              )}
             />
           ) : (
              <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
