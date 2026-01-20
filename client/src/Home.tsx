@@ -7,7 +7,7 @@ import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon } from 'lu
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from './components/Toast';
-import { useIntersectionObserver } from './hooks/useIntersectionObserver';
+import { VirtuosoGrid } from 'react-virtuoso';
 
 const FilterSidebar = React.lazy(() => import('./components/FilterSidebar').then(module => ({ default: module.FilterSidebar })));
 
@@ -23,6 +23,23 @@ function useDebounce<T>(value: T, delay: number): T {
   }, [value, delay]);
   return debouncedValue;
 }
+
+const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ style, children, ...props }, ref) => (
+  <div
+    ref={ref}
+    {...props}
+    style={style}
+    className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8"
+  >
+    {children}
+  </div>
+));
+
+const ItemContainer = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div {...props} className="h-full">
+    {children}
+  </div>
+);
 
 export const Home = () => {
   const [filters, setFilters] = useState({
@@ -42,18 +59,6 @@ export const Home = () => {
   const debouncedFilters = useDebounce(filters, 500);
 
   const [sortOrder, setSortOrder] = useState('price_asc');
-
-  // Infinite Scroll State
-  const ITEMS_PER_PAGE = 12;
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-
-  // Define options outside or useMemo to avoid re-renders
-  const observerOptions = useMemo(() => ({
-    threshold: 0.1,
-    rootMargin: '100px',
-  }), []);
-
-  const { ref: loadMoreRef, isIntersecting: isLoadMoreIntersecting } = useIntersectionObserver(observerOptions);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -136,20 +141,10 @@ export const Home = () => {
     }
   }, [imoveis, sortOrder, showFavoritesOnly, favorites]);
 
-  // Reset visible count when filters or sort change
+  // Scroll to top when filters or sort change
   useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [debouncedFilters, sortOrder, showFavoritesOnly]);
-
-  // Infinite Scroll Effect
-  useEffect(() => {
-    if (isLoadMoreIntersecting && visibleCount < sortedImoveis.length) {
-      setVisibleCount(prev => Math.min(prev + ITEMS_PER_PAGE, sortedImoveis.length));
-    }
-  }, [isLoadMoreIntersecting, sortedImoveis.length, visibleCount]);
-
-  const currentImoveis = useMemo(() => sortedImoveis.slice(0, visibleCount), [sortedImoveis, visibleCount]);
 
   const activeFiltersCount = Object.entries(filters).filter(([, value]) => {
      if (Array.isArray(value)) return value.length > 0;
@@ -331,7 +326,7 @@ export const Home = () => {
                 Tentar novamente
               </button>
             </div>
-          ) : currentImoveis.length === 0 ? (
+          ) : sortedImoveis.length === 0 ? (
              <div className="text-center py-20 text-gray-500 dark:text-gray-400 flex flex-col items-center">
                <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-6">
                    <Search size={48} className="text-gray-400 dark:text-gray-500" />
@@ -352,47 +347,31 @@ export const Home = () => {
                )}
              </div>
           ) : (
-            <>
-              <motion.div
-                layout
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8"
-              >
-                <AnimatePresence mode='popLayout'>
-                  {currentImoveis.map((imovel, index) => (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      key={`${imovel.link}-${index}`}
-                    >
-                      <PropertyCard
-                        imovel={imovel}
-                        isFavorite={favorites.includes(imovel.link)}
-                        onToggleFavorite={() => toggleFavorite(imovel.link)}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* Infinite Scroll Sentinel */}
-              <div ref={loadMoreRef} className="h-10 flex items-center justify-center w-full">
-                 {visibleCount < sortedImoveis.length && (
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      <span>Carregando mais imóveis...</span>
-                    </div>
-                 )}
-              </div>
-
-              {visibleCount >= sortedImoveis.length && sortedImoveis.length > 0 && (
-                <div className="text-center text-gray-400 text-sm py-8">
-                  Você chegou ao fim da lista.
-                </div>
-              )}
-            </>
+            <VirtuosoGrid
+              useWindowScroll
+              totalCount={sortedImoveis.length}
+              components={{
+                List: ListContainer,
+                Item: ItemContainer
+              }}
+              itemContent={(index) => {
+                const imovel = sortedImoveis[index];
+                return (
+                   <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      key={imovel.link} // Ensure motion can key properly
+                   >
+                    <PropertyCard
+                      imovel={imovel}
+                      isFavorite={favorites.includes(imovel.link)}
+                      onToggleFavorite={() => toggleFavorite(imovel.link)}
+                    />
+                  </motion.div>
+                );
+              }}
+            />
           )}
         </div>
       </main>
