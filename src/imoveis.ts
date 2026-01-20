@@ -241,16 +241,29 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
 }
 
 export function calcularValorMedioBairroPorAreaTotal(imoveis: Imoveis[]): Imoveis[] {
-  const imoveisAtualizados = imoveis.map(imovel => {
-    const imoveisMesmoBairro = imoveis.filter(
-      i => i.endereco === imovel.endereco && i.areaTotal === imovel.areaTotal && i.areaTotal > 0
-    );
+  const stats = new Map<string, { sum: number; count: number }>();
 
-    const somaValores = imoveisMesmoBairro.reduce((soma, i) => soma + i.valor, 0);
-    const valorMedio = imoveisMesmoBairro.length ? somaValores / imoveisMesmoBairro.length : 0;
+  // First pass: Calculate sums and counts
+  for (const imovel of imoveis) {
+    if (imovel.areaTotal > 0 && imovel.endereco) {
+      const key = `${imovel.endereco}|${imovel.areaTotal}`;
+      const stat = stats.get(key) || { sum: 0, count: 0 };
+      stat.sum += imovel.valor;
+      stat.count += 1;
+      stats.set(key, stat);
+    }
+  }
 
+  // Second pass: Assign averages
+  return imoveis.map(imovel => {
+    let valorMedio = 0;
+    if (imovel.areaTotal > 0 && imovel.endereco) {
+      const key = `${imovel.endereco}|${imovel.areaTotal}`;
+      const stat = stats.get(key);
+      if (stat && stat.count > 0) {
+        valorMedio = stat.sum / stat.count;
+      }
+    }
     return { ...imovel, valorMedioBairroPorAreaTotal: valorMedio };
   });
-
-  return imoveisAtualizados;
 }
