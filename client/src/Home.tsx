@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchImoveis } from './api';
 import { PropertyCard } from './components/PropertyCard';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon } from 'lucide-react';
+import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useToast } from './components/Toast';
+import { useToast } from './components/ToastContext';
 import { VirtuosoGrid } from 'react-virtuoso';
 
 const FilterSidebar = React.lazy(() => import('./components/FilterSidebar').then(module => ({ default: module.FilterSidebar })));
@@ -184,7 +184,9 @@ export const Home = () => {
       >
         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-2">
-            <HomeIcon className="text-blue-600 dark:text-blue-400" size={24} />
+            <div className="bg-blue-600 dark:bg-blue-500 p-1.5 rounded-lg text-white">
+                <HomeIcon size={20} strokeWidth={2.5} />
+            </div>
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
               Imóveis Franca
             </h1>
@@ -248,7 +250,7 @@ export const Home = () => {
                ) : (
                  <>
                     <Search size={18} className="text-gray-400" />
-                    {sortedImoveis.length} Imóveis encontrados
+                    {sortedImoveis.length} <span className="hidden sm:inline">Imóveis encontrados</span>
                  </>
                )}
             </h2>
@@ -278,11 +280,13 @@ export const Home = () => {
              </button>
 
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Ordenar:</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <ArrowUpDown size={14} />
+                </span>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className="py-2 pl-2 pr-8 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
+                  className="py-2 pl-2 pr-8 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
                 >
                   <option value="price_asc">Menor Preço</option>
                   <option value="price_desc">Maior Preço</option>
@@ -297,24 +301,25 @@ export const Home = () => {
           {isLoading ? (
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                {[...Array(6)].map((_, i) => (
-                 <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm h-[28rem] animate-pulse border border-gray-100 dark:border-gray-700">
-                   <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-t-xl" />
+                 <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm h-full overflow-hidden border border-gray-100 dark:border-gray-700/50">
+                   <div className="h-64 bg-gray-200 dark:bg-gray-700 animate-pulse" />
                    <div className="p-5 space-y-4">
-                     <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                     <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse" />
+                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse" />
+
                      <div className="pt-4 grid grid-cols-4 gap-2">
                         {[...Array(4)].map((_, j) => (
-                            <div key={j} className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                            <div key={j} className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
                         ))}
                      </div>
+                     <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl w-full mt-4 animate-pulse" />
                    </div>
                  </div>
                ))}
              </div>
           ) : isError ? (
             <div className="text-center py-20 text-red-500 dark:text-red-400 flex flex-col items-center">
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full mb-4">
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full mb-4 animate-bounce">
                   <X size={48} className="text-red-500" />
               </div>
               <p className="text-xl font-semibold mb-2">Erro ao carregar imóveis</p>
@@ -340,7 +345,7 @@ export const Home = () => {
                {activeFiltersCount > 0 && !showFavoritesOnly && (
                    <button
                        onClick={clearFilters}
-                       className="mt-6 px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
+                       className="mt-6 px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors hover:shadow-sm"
                    >
                        Limpar Filtros
                    </button>
@@ -358,10 +363,10 @@ export const Home = () => {
                 const imovel = sortedImoveis[index];
                 return (
                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                      key={imovel.link} // Ensure motion can key properly
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="h-full"
                    >
                     <PropertyCard
                       imovel={imovel}

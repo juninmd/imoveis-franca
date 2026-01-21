@@ -1,32 +1,15 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
-
-export type ToastType = 'success' | 'error' | 'info';
-
-interface Toast {
-  id: string;
-  message: string;
-  type: ToastType;
-}
-
-interface ToastContextType {
-  addToast: (message: string, type?: ToastType) => void;
-  removeToast: (id: string) => void;
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
-};
+import { ToastContext } from './ToastContext';
+import type { Toast, ToastType } from './ToastContext';
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
 
   const addToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -35,11 +18,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTimeout(() => {
       removeToast(id);
     }, 3000);
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>
