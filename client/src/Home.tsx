@@ -2,8 +2,10 @@ import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchImoveis } from './api';
 import { PropertyCard } from './components/PropertyCard';
+import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
+import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown } from 'lucide-react';
+import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from './components/ToastContext';
@@ -301,56 +303,34 @@ export const Home = () => {
           {isLoading ? (
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                {[...Array(6)].map((_, i) => (
-                 <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm h-full overflow-hidden border border-gray-100 dark:border-gray-700/50">
-                   <div className="h-64 bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                   <div className="p-5 space-y-4">
-                     <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse" />
-                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse" />
-
-                     <div className="pt-4 grid grid-cols-4 gap-2">
-                        {[...Array(4)].map((_, j) => (
-                            <div key={j} className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-                        ))}
-                     </div>
-                     <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl w-full mt-4 animate-pulse" />
-                   </div>
-                 </div>
+                 <PropertyCardSkeleton key={i} />
                ))}
              </div>
           ) : isError ? (
-            <div className="text-center py-20 text-red-500 dark:text-red-400 flex flex-col items-center">
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full mb-4 animate-bounce">
-                  <X size={48} className="text-red-500" />
-              </div>
-              <p className="text-xl font-semibold mb-2">Erro ao carregar imóveis</p>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Não foi possível conectar ao servidor.</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-lg shadow-blue-600/20"
-              >
-                Tentar novamente
-              </button>
-            </div>
+            <EmptyState
+                icon={AlertCircle}
+                title="Erro ao carregar imóveis"
+                description="Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
+                action={{
+                    label: 'Tentar novamente',
+                    onClick: () => window.location.reload()
+                }}
+            />
           ) : sortedImoveis.length === 0 ? (
-             <div className="text-center py-20 text-gray-500 dark:text-gray-400 flex flex-col items-center">
-               <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-6">
-                   <Search size={48} className="text-gray-400 dark:text-gray-500" />
-               </div>
-               <p className="text-xl font-semibold mb-2">Nenhum imóvel encontrado</p>
-               <p className="max-w-md mx-auto text-gray-400">
-                  {showFavoritesOnly
+             <EmptyState
+                icon={Search}
+                title="Nenhum imóvel encontrado"
+                description={
+                  showFavoritesOnly
                      ? "Você ainda não adicionou nenhum imóvel aos favoritos."
-                     : "Tente ajustar os filtros para encontrar o que você procura."}
-               </p>
-               {activeFiltersCount > 0 && !showFavoritesOnly && (
-                   <button
-                       onClick={clearFilters}
-                       className="mt-6 px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors hover:shadow-sm"
-                   >
-                       Limpar Filtros
-                   </button>
-               )}
-             </div>
+                     : "Tente ajustar os filtros para encontrar o que você procura."
+                }
+                action={
+                    activeFiltersCount > 0 && !showFavoritesOnly
+                    ? { label: 'Limpar Filtros', onClick: clearFilters }
+                    : undefined
+                }
+             />
           ) : (
             <VirtuosoGrid
               useWindowScroll

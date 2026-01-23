@@ -9,9 +9,23 @@ const port = 3000;
 
 // Security and Performance Middleware
 app.use(helmet({
-  contentSecurityPolicy: false, // Disabled for simplicity with external images/scripts, can be tightened later
+  contentSecurityPolicy: false, // Disabled for simplicity with external images/scripts
 }));
-app.use(compression());
+
+// Compression with optimized settings
+app.use(compression({
+  level: 6, // Balanced compression level
+  threshold: 1024, // Only compress responses larger than 1KB
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      // don't compress responses with this request header
+      return false
+    }
+    // fallback to standard filter function
+    return compression.filter(req, res)
+  }
+}));
+
 app.use(cors());
 
 // Rota para o frontend

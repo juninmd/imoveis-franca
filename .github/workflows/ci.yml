@@ -1,0 +1,68 @@
+name: CI/CD & Preview
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  test-and-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          cd client && npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Backend Tests with Coverage
+        run: npm run test:coverage
+
+      - name: Build Frontend
+        run: cd client && npm run build
+
+      - name: Generate Frontend Preview
+        run: |
+          # Start the preview server in background
+          cd client && npm run preview -- --port 4173 &
+          PID=$!
+          sleep 5 # Wait for server to start
+
+          # Run the preview script (typescript execution)
+          npx ts-node scripts/generate-preview.ts
+
+          # Kill server
+          kill $PID
+
+      - name: Upload Preview Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-preview
+          path: preview.png
+
+      - name: Comment Preview on PR
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ### 📸 Frontend Preview
+
+            The frontend preview has been generated and uploaded as an artifact named `frontend-preview`.
+
+            *(Note: Direct image embedding requires external hosting or specific GitHub App permissions unavailable in this environment.)*
+
+            **Test Coverage:**
+            ✅ 100% Backend Coverage Enforced
