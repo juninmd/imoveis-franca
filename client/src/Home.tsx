@@ -162,6 +162,34 @@ export const Home = () => {
     addToast('Filtros limpos com sucesso.', 'info');
   };
 
+  const activeFiltersList = useMemo(() => {
+    const list: { key: keyof typeof filters; label: string; value?: string }[] = [];
+    if (filters.minPrice) list.push({ key: 'minPrice', label: `Mín: R$ ${parseInt(filters.minPrice).toLocaleString('pt-BR')}` });
+    if (filters.maxPrice) list.push({ key: 'maxPrice', label: `Máx: R$ ${parseInt(filters.maxPrice).toLocaleString('pt-BR')}` });
+    if (filters.minBedrooms) list.push({ key: 'minBedrooms', label: `${filters.minBedrooms}+ Quartos` });
+    if (filters.minBathrooms) list.push({ key: 'minBathrooms', label: `${filters.minBathrooms}+ Banhos` });
+    if (filters.minVacancies) list.push({ key: 'minVacancies', label: `${filters.minVacancies}+ Vagas` });
+    if (filters.minArea) list.push({ key: 'minArea', label: `Área Mín: ${filters.minArea} m²` });
+    if (filters.maxArea) list.push({ key: 'maxArea', label: `Área Máx: ${filters.maxArea} m²` });
+    if (filters.minAreaTotal) list.push({ key: 'minAreaTotal', label: `Total Mín: ${filters.minAreaTotal} m²` });
+    if (filters.maxAreaTotal) list.push({ key: 'maxAreaTotal', label: `Total Máx: ${filters.maxAreaTotal} m²` });
+
+    filters.address.forEach((addr) => {
+      list.push({ key: 'address', value: addr, label: addr });
+    });
+
+    return list;
+  }, [filters]);
+
+  const removeFilter = (item: { key: keyof typeof filters; value?: string }) => {
+    setFilters((prev) => {
+      if (item.key === 'address' && item.value) {
+        return { ...prev, address: prev.address.filter((a) => a !== item.value) };
+      }
+      return { ...prev, [item.key]: '' };
+    });
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       {/* Mobile Sidebar Overlay */}
@@ -235,7 +263,7 @@ export const Home = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 relative">
         <ScrollToTop />
-        <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300">
+        <header className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -300,6 +328,30 @@ export const Home = () => {
         </header>
 
         <div className="p-4 md:p-6 lg:p-8 flex-1 overflow-x-hidden">
+          {activeFiltersList.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {activeFiltersList.map((filter, index) => (
+                <button
+                  key={`${filter.key}-${filter.value || index}`}
+                  onClick={() => removeFilter(filter)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  {filter.label}
+                  <X
+                    size={13}
+                    className="opacity-60 hover:opacity-100 hover:text-red-500 transition-opacity"
+                  />
+                </button>
+              ))}
+              <button
+                onClick={clearFilters}
+                className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors ml-1 px-2 py-1.5"
+              >
+                Limpar
+              </button>
+            </div>
+          )}
+
           {isLoading ? (
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                {[...Array(6)].map((_, i) => (
