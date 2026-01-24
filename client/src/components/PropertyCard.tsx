@@ -11,19 +11,20 @@ interface PropertyCardProps {
   imovel: Imovel;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  viewMode?: 'grid' | 'list';
 }
 
 const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => (
-  <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+  <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-full">
      <Icon size={18} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
-     <div className="flex flex-col items-center">
+     <div className="flex flex-col items-center text-center">
         <span className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-none">{value}{suffix}</span>
         <span className="text-[10px] uppercase text-gray-500 dark:text-gray-400 font-medium tracking-wide leading-tight mt-1">{label}</span>
      </div>
   </div>
 );
 
-export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavorite, onToggleFavorite }) => {
+export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavorite, onToggleFavorite, viewMode = 'grid' }) => {
   const [showImages, setShowImages] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { addToast } = useToast();
@@ -41,10 +42,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800/90 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border border-gray-100 dark:border-gray-700/50 group/card h-full">
+      <div className={clsx(
+        "bg-white dark:bg-gray-800/90 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex border border-gray-100 dark:border-gray-700/50 group/card h-full",
+        viewMode === 'list' ? "flex-col md:flex-row" : "flex-col"
+      )}>
         {/* Image Section */}
         <div
-            className="relative h-64 bg-gray-100 dark:bg-gray-700/50 cursor-pointer overflow-hidden"
+            className={clsx(
+              "relative bg-gray-100 dark:bg-gray-700/50 cursor-pointer overflow-hidden",
+              viewMode === 'list' ? "w-full md:w-72 h-64 md:h-auto flex-shrink-0" : "w-full h-64"
+            )}
             onClick={() => setShowImages(true)}
         >
           {imovel.imagens && imovel.imagens.length > 0 ? (
