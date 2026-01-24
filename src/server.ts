@@ -41,7 +41,7 @@ app.get('/', (_req: Request, res: Response) => {
 // Rota para a API que gera a lista de imóveis
 app.get('/api/imoveis', async (req: Request, res: Response) => {
   try {
-    let lista = await generateList(req.query);
+    const lista = await generateList(req.query);
     // Cache control for API response - short duration as data might change
     res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
     return res.json({ data: lista });

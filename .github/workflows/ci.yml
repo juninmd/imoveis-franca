@@ -25,6 +25,12 @@ jobs:
           npm ci
           cd client && npm ci
 
+      - name: Lint Code
+        run: npm run lint
+
+      - name: Build Backend
+        run: npx tsc -p tsconfig.json
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 

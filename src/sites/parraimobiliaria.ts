@@ -45,7 +45,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
     // Price extraction
     const priceText = $(el).text();
-    const priceMatch = priceText.match(/R\$\s*([\d\.]+),(\d{2})/);
+    const priceMatch = priceText.match(/R\$\s*([\d.]+),(\d{2})/);
     let valor = 0;
     if (priceMatch) {
         valor = parseFloat(priceMatch[1].replace(/\./g, '') + '.' + priceMatch[2]);
@@ -55,8 +55,8 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const quartos = Number(text.match(/(\d+)\s*Dorm/i)?.[1] || 0);
     const banheiros = Number(text.match(/(\d+)\s*Banho/i)?.[1] || 0);
     const vagas = Number(text.match(/(\d+)\s*Garagem/i)?.[1] || 0);
-    const areaConstMatch = text.match(/([\d\.,]+)\s*m²\s*Const/i);
-    const areaTerrMatch = text.match(/([\d\.,]+)\s*m²\s*Terreno/i);
+    const areaConstMatch = text.match(/([\d.,]+)\s*m²\s*Const/i);
+    const areaTerrMatch = text.match(/([\d.,]+)\s*m²\s*Terreno/i);
 
     const area = getFixValue(areaConstMatch ? areaConstMatch[1] : '0');
     const areaTotal = getFixValue(areaTerrMatch ? areaTerrMatch[1] : '0');
