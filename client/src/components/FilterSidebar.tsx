@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { MapPin, Search, Check, DollarSign, Home, Maximize, Grid } from 'lucide-react';
+import { MapPin, Search, Check, DollarSign, Home, Maximize, Grid, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { clsx } from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FilterState {
   minPrice: string;
@@ -20,6 +21,58 @@ interface FilterSidebarProps {
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   addresses: string[];
 }
+
+const CollapsibleSection: React.FC<{
+  title: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  onReset?: () => void;
+  hasValue?: boolean;
+}> = ({ title, children, defaultOpen = true, onReset, hasValue }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border-b border-gray-100 dark:border-gray-700 last:border-0 pb-4 mb-4 last:mb-0 last:pb-0">
+      <div className="flex items-center justify-between w-full py-2">
+        <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center gap-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-1 text-left outline-none"
+        >
+            {title}
+            {isOpen ? (
+            <ChevronUp size={14} className="text-gray-300 dark:text-gray-600" />
+            ) : (
+            <ChevronDown size={14} className="text-gray-300 dark:text-gray-600" />
+            )}
+        </button>
+
+        {hasValue && onReset && (
+             <button
+                onClick={onReset}
+                className="text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 transition-colors p-1"
+                title="Limpar filtro"
+             >
+                 <RotateCcw size={12} />
+             </button>
+        )}
+      </div>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, addresses }) => {
   const [addressSearch, setAddressSearch] = useState('');
@@ -51,17 +104,16 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
 
   const inputClass = "w-full p-2.5 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all hover:border-gray-300 dark:hover:border-gray-500";
   const labelClass = "text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5 block";
-  const sectionClass = "space-y-4 pb-6 border-b border-gray-100 dark:border-gray-700 last:border-0";
-  const headingClass = "text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2";
 
   return (
-    <div className="p-5 space-y-6">
+    <div className="p-5">
 
       {/* Price */}
-      <div className={sectionClass}>
-        <h3 className={headingClass}>
-          <DollarSign size={14} className="text-emerald-500" /> Preço (R$)
-        </h3>
+      <CollapsibleSection
+        title={<><DollarSign size={14} className="text-emerald-500" /> Preço (R$)</>}
+        hasValue={!!filters.minPrice || !!filters.maxPrice}
+        onReset={() => setFilters(prev => ({ ...prev, minPrice: '', maxPrice: '' }))}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div>
              <label className={labelClass}>Mínimo</label>
@@ -86,13 +138,14 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
              />
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Details */}
-      <div className={sectionClass}>
-         <h3 className={headingClass}>
-            <Home size={14} className="text-blue-500" /> Características
-         </h3>
+      <CollapsibleSection
+         title={<><Home size={14} className="text-blue-500" /> Características</>}
+         hasValue={!!filters.minBedrooms || !!filters.minBathrooms || !!filters.minVacancies}
+         onReset={() => setFilters(prev => ({ ...prev, minBedrooms: '', minBathrooms: '', minVacancies: '' }))}
+      >
          <div className="grid grid-cols-3 gap-3">
              <div>
                <label className={labelClass}>Quartos</label>
@@ -106,7 +159,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
                />
              </div>
              <div>
-               <label className={labelClass}>Banheiros</label>
+               <label className={labelClass}>Banhos</label>
                <input
                   type="number"
                   name="minBathrooms"
@@ -128,13 +181,14 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
                />
              </div>
          </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Area */}
-      <div className={sectionClass}>
-        <h3 className={headingClass}>
-           <Maximize size={14} className="text-purple-500" /> Área Útil (m²)
-        </h3>
+      <CollapsibleSection
+        title={<><Maximize size={14} className="text-purple-500" /> Área Útil (m²)</>}
+        hasValue={!!filters.minArea || !!filters.maxArea}
+        onReset={() => setFilters(prev => ({ ...prev, minArea: '', maxArea: '' }))}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div>
              <label className={labelClass}>Mínima</label>
@@ -159,13 +213,14 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
              />
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Total Area */}
-      <div className={sectionClass}>
-        <h3 className={headingClass}>
-           <Grid size={14} className="text-orange-500" /> Área Terreno (m²)
-        </h3>
+      <CollapsibleSection
+        title={<><Grid size={14} className="text-orange-500" /> Área Terreno (m²)</>}
+        hasValue={!!filters.minAreaTotal || !!filters.maxAreaTotal}
+        onReset={() => setFilters(prev => ({ ...prev, minAreaTotal: '', maxAreaTotal: '' }))}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div>
              <label className={labelClass}>Mínima</label>
@@ -190,14 +245,14 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
              />
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Address */}
-      <div className={sectionClass}>
-        <h3 className={headingClass}>
-            <MapPin size={14} className="text-red-500" /> Endereços
-        </h3>
-
+      <CollapsibleSection
+        title={<><MapPin size={14} className="text-red-500" /> Endereços</>}
+        hasValue={filters.address.length > 0}
+        onReset={() => setFilters(prev => ({ ...prev, address: [] }))}
+      >
         <div className="space-y-2">
             <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -258,7 +313,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
                 )}
             </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
     </div>
   );

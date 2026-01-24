@@ -5,7 +5,7 @@ import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle } from 'lucide-react';
+import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from './components/ToastContext';
@@ -26,12 +26,12 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ style, children, ...props }, ref) => (
+const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ style, children, className, ...props }, ref) => (
   <div
     ref={ref}
     {...props}
     style={style}
-    className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8"
+    className={className}
   >
     {children}
   </div>
@@ -61,6 +61,7 @@ export const Home = () => {
   const debouncedFilters = useDebounce(filters, 500);
 
   const [sortOrder, setSortOrder] = useState('price_asc');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -309,6 +310,33 @@ export const Home = () => {
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
              </button>
 
+             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={clsx(
+                    "p-1.5 rounded-md transition-all",
+                    viewMode === 'grid'
+                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                  )}
+                  title="Visualização em Grade"
+                >
+                  <LayoutGrid size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={clsx(
+                    "p-1.5 rounded-md transition-all",
+                    viewMode === 'list'
+                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                  )}
+                  title="Visualização em Lista"
+                >
+                  <List size={18} />
+                </button>
+             </div>
+
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700">
                 <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <ArrowUpDown size={14} />
@@ -387,6 +415,7 @@ export const Home = () => {
             <VirtuosoGrid
               useWindowScroll
               totalCount={sortedImoveis.length}
+              listClassName={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8" : "grid grid-cols-1 gap-6 pb-8"}
               components={{
                 List: ListContainer,
                 Item: ItemContainer
@@ -404,6 +433,7 @@ export const Home = () => {
                       imovel={imovel}
                       isFavorite={favorites.includes(imovel.link)}
                       onToggleFavorite={() => toggleFavorite(imovel.link)}
+                      viewMode={viewMode}
                     />
                   </motion.div>
                 );
