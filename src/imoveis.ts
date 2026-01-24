@@ -196,7 +196,7 @@ export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryPa
 
 export const retrieImoveisSiteByParams = async (site: Site, params = undefined, baseQueryParams: BaseQueryParams) => {
   try {
-    let lista: Imoveis[] = [];
+    const lista: Imoveis[] = [];
     const page = 1;
     const { imoveis, qtd } = await getImoveis(site, params, baseQueryParams, page);
 

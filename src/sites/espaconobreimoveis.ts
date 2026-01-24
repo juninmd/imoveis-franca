@@ -29,7 +29,7 @@ export async function adapter(json: any): Promise<{ imoveis: Imoveis[], qtd: num
   const imoveis: Imoveis[] = [];
 
   const tiraAcentos = function (e) {
-    var t = {
+    const t = {
       'á': 'a',
       'à': 'a',
       'ä': 'a',
@@ -54,7 +54,7 @@ export async function adapter(json: any): Promise<{ imoveis: Imoveis[], qtd: num
       '[': '_',
       ']': '_'
     };
-    return (e = e.toLowerCase()).replace(/[^A-Za-z0-9\[\] ]/g, function (e) {
+    return (e = e.toLowerCase()).replace(/[^A-Za-z0-9[\] ]/g, function (e) {
       return t[e] ||
         e
     }).replace(new RegExp(/[\u0300-\u036f]/g), '');

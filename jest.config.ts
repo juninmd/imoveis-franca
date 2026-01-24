@@ -1,10 +1,12 @@
 import type { Config } from 'jest';
 
 const config: Config = {
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.tsx?$': 'ts-jest',
+  },
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/client/'],
+  testPathIgnorePatterns: ['/node_modules/', '/client/', 'content.ts'],
   collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.ts',
