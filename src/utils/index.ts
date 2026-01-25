@@ -1,17 +1,26 @@
 export const getFixValue = (rawArea = '0') => {
+  let areaStr = rawArea;
+
   // Se tiver ponto, diferenciar mil de centavo
-  if (rawArea.indexOf('.') >= 1) {
-    const l = rawArea.split('.')[1].length;
+  if (areaStr.indexOf('.') >= 1) {
+    const l = areaStr.split('.')[1].length;
     if (l > 2) {
-      rawArea = rawArea.replace(/\./g, '').trim();
+      areaStr = areaStr.replace(/\./g, '').trim();
     }
     else {
-      rawArea = rawArea.replace('.', ',').trim();
+      areaStr = areaStr.replace('.', ',').trim();
     }
-  } else if (isNaN(Number(rawArea))) {
-    rawArea = '0';
   }
-  const parsedArea = parseFloat(rawArea.replace(',', '.').trim() || '0');
+
+  // Convert comma to dot for parsing
+  const standardized = areaStr.replace(',', '.').trim();
+
+  // Now check if it's a number
+  if (isNaN(Number(standardized))) {
+    return 0;
+  }
+
+  const parsedArea = parseFloat(standardized || '0');
   return parsedArea;
 }
 

@@ -25,8 +25,11 @@ jobs:
           npm ci
           cd client && npm ci
 
-      - name: Lint Code
+      - name: Lint Code (Root)
         run: npm run lint
+
+      - name: Lint Code (Client)
+        run: cd client && npm run lint
 
       - name: Build Backend
         run: npx tsc -p tsconfig.json
@@ -36,6 +39,9 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: npm run test:coverage
+
+      - name: Run Frontend Tests with Coverage
+        run: cd client && npm run test:coverage
 
       - name: Build Frontend
         run: cd client && npm run build
@@ -72,3 +78,4 @@ jobs:
 
             **Test Coverage:**
             ✅ 100% Backend Coverage Enforced
+            ✅ Frontend Tests Executed
