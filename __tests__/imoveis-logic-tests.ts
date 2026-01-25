@@ -104,6 +104,35 @@ describe('Imoveis Logic', () => {
       expect(result).toHaveLength(1);
       expect(result[0].quartos).toBe(3);
     });
+
+    it('should filter by bathrooms, vacancies and area', () => {
+      const imoveis = [
+        { ...mockImovel, banheiros: 1, vagas: 1, area: 50, areaTotal: 100 },
+        { ...mockImovel, banheiros: 3, vagas: 3, area: 150, areaTotal: 300 }
+      ];
+
+      // Bathrooms
+      expect(filterImoveis(imoveis, { minBathrooms: 2 })).toHaveLength(1);
+      // Vacancies
+      expect(filterImoveis(imoveis, { minVacancies: 2 })).toHaveLength(1);
+      // Min Area
+      expect(filterImoveis(imoveis, { minArea: 100 })).toHaveLength(1);
+      // Max Area
+      expect(filterImoveis(imoveis, { maxArea: 100 })).toHaveLength(1);
+      // Min Area Total
+      expect(filterImoveis(imoveis, { minAreaTotal: 200 })).toHaveLength(1);
+      // Max Area Total
+      expect(filterImoveis(imoveis, { maxAreaTotal: 200 })).toHaveLength(1);
+    });
+
+    it('should filter by address', () => {
+      const imoveis = [
+        { ...mockImovel, endereco: 'CENTRO' },
+        { ...mockImovel, endereco: 'BAIRRO' }
+      ];
+      expect(filterImoveis(imoveis, { address: ['CENTRO'] })).toHaveLength(1);
+      expect(filterImoveis(imoveis, { address: ['OUTRO'] })).toHaveLength(0);
+    });
   });
 
   describe('sortImoveis', () => {

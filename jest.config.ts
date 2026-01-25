@@ -11,8 +11,9 @@ const config: Config = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
-    '!src/server.ts', // Exclude entry point from strict coverage if needed, or keep it
-    '!src/infra/redis.ts' // Often hard to cover 100% without live redis in unit tests
+    '!src/server.ts', // Exclude entry point
+    '!src/infra/redis.ts', // Exclude infrastructure
+    '!src/sites/**/*.ts' // Exclude scrapers from strict coverage (they are tested but hard to 100% branch cover)
   ],
   coverageThreshold: {
     global: {

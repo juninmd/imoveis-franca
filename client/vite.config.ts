@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite'
+/// <reference types="vitest" />
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -39,6 +40,23 @@ export default defineConfig({
           ui: ['lucide-react', 'clsx', 'tailwind-merge']
         }
       }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      // Optional: exclude artifacts
+      exclude: [
+        'node_modules/',
+        'src/test/setup.ts',
+        'postcss.config.js',
+        'tailwind.config.js',
+        '**/*.d.ts',
+      ]
     }
   }
 })
