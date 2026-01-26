@@ -179,7 +179,7 @@ export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryPa
   try {
 
     if (site.params) {
-      for (const params of site.params || []) {
+      for (const params of site.params) {
         const imoveis = await retrieImoveisSiteByParams(site, params, baseQueryParams)
         lista = lista.concat(imoveis);
       }
@@ -236,6 +236,7 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     return lista;
   } catch (error) {
     console.error(`Erro ao consultar o site ${site.name}: ${error.message} `);
+    // Explicitly returning empty array
     return [];
   }
 }

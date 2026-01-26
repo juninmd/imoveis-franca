@@ -1,4 +1,4 @@
-name: CI/CD & Preview
+name: CI/CD Pipeline
 
 on:
   pull_request:
@@ -77,5 +77,5 @@ jobs:
             *(Note: Direct image embedding requires external hosting or specific GitHub App permissions unavailable in this environment.)*
 
             **Test Coverage:**
-            ✅ 100% Backend Coverage Enforced
+            ✅ Backend Coverage Enforced (98% Strict Threshold)
             ✅ Frontend Tests Executed
