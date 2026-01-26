@@ -1,6 +1,7 @@
 import { getImoveis, retrieveContent, retrieImoveisSite, retrieImoveisSiteByParams } from '../src/imoveis';
 import { Site } from '../src/types';
 import BrowserSingleton from '../src/infra/browser';
+import axios from 'axios';
 
 jest.mock('../src/infra/browser');
 jest.mock('axios');
@@ -42,8 +43,7 @@ describe('Imoveis Missing Coverage', () => {
         adapter: async () => ({ imoveis: [], qtd: 0 }),
       } as unknown as Site;
 
-      const axios = require('axios');
-      axios.get.mockResolvedValue({ data: 'html' });
+      (axios.get as jest.Mock).mockResolvedValue({ data: 'html' });
 
       await getImoveis(site, { existing: 1 }, {} as any, 1);
 
@@ -89,8 +89,7 @@ describe('Imoveis Missing Coverage', () => {
          adapter: async () => ({ imoveis: [{ title: 'A' }], qtd: 1 }),
        } as unknown as Site;
 
-       const axios = require('axios');
-       axios.request.mockResolvedValue({ data: 'html' });
+       (axios.request as jest.Mock).mockResolvedValue({ data: 'html' });
 
        const result = await retrieImoveisSite(site, { maxPages: 1 } as any);
 
@@ -109,8 +108,7 @@ describe('Imoveis Missing Coverage', () => {
          url: 'http://test.com'
        } as unknown as Site;
 
-       const axios = require('axios');
-       axios.get.mockResolvedValue({ data: 'html' });
+       (axios.get as jest.Mock).mockResolvedValue({ data: 'html' });
 
        const baseQueryParams = { maxPages: 2 } as any;
 

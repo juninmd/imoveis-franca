@@ -27,6 +27,17 @@ vi.mock('./api', () => ({
 // Mock scroll functions
 window.scrollTo = vi.fn();
 
+// Mock react-virtuoso to render items immediately
+vi.mock('react-virtuoso', () => ({
+  VirtuosoGrid: ({ totalCount, itemContent }: { totalCount: number; itemContent: (index: number) => React.ReactNode }) => (
+    <div data-testid="virtuoso-grid">
+      {Array.from({ length: totalCount }).map((_, index) => (
+        <div key={index}>{itemContent(index)}</div>
+      ))}
+    </div>
+  ),
+}));
+
 describe('App Component', () => {
   it('renders and displays title', async () => {
     render(<App />);

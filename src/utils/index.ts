@@ -1,5 +1,5 @@
 export const getFixValue = (rawArea = '0') => {
-  let areaStr = rawArea;
+  let areaStr = (rawArea || '').trim();
 
   // Se tiver ponto, diferenciar mil de centavo
   if (areaStr.indexOf('.') >= 1) {

@@ -10,6 +10,7 @@ jest.mock('puppeteer-extra', () => {
 
 jest.mock('puppeteer-extra-plugin-stealth', () => () => 'stealth-plugin');
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 describe('BrowserSingleton', () => {
   let mockBrowser: any;
   let mockPage: any;

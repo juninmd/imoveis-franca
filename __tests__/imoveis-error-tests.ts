@@ -20,7 +20,7 @@ describe('Imoveis Error Handling', () => {
     it('should catch errors when iterating site params fails', async () => {
       const brokenSite = {
         name: 'BrokenSite',
-        // @ts-ignore
+        // @ts-expect-error Testing error handling
         params: 123, // Not iterable
         enabled: true
       } as unknown as Site;

@@ -7,7 +7,7 @@ vi.mock('axios');
 describe('API Service', () => {
   it('fetchImoveis calls axios with correct params', async () => {
     const mockResponse = { data: { data: [{ id: 1, title: 'Casa' }] } };
-    // @ts-ignore
+    // @ts-expect-error Mocking axios
     axios.get.mockResolvedValue(mockResponse);
 
     const params = { minPrice: 1000 };
