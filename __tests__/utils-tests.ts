@@ -31,6 +31,10 @@ describe('Utils', () => {
     it('should handle empty string', () => {
         expect(getFixValue('')).toBe(0);
     });
+
+    it('should handle undefined (default parameter)', () => {
+      expect(getFixValue()).toBe(0);
+    });
   });
 
   describe('normalizeNeighborhoodName', () => {
@@ -48,6 +52,10 @@ describe('Utils', () => {
 
     it('should remove extra spaces', () => {
         expect(normalizeNeighborhoodName('  Bairro   Legal  ')).toBe('BAIRRO LEGAL');
+    });
+
+    it('should handle default parameter', () => {
+      expect(normalizeNeighborhoodName()).toBe('');
     });
   });
 });

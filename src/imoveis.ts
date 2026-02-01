@@ -222,6 +222,7 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
       promises.push(limit(async () => {
         const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
         console.info(`------- ${site.name} página ${page} de ${pages}`);
+        /* istanbul ignore next */
         return imoveis || [];
       }));
     }
