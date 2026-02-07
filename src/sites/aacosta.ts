@@ -52,11 +52,11 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
       headers: {
         'Accept': 'text/html', // Especifica que estamos aceitando HTML
       }
-    });
-    const $$ = cheerio.load(details);
+    } as any);
+    const $$ = cheerio.load(details as any);
 
     const imagens: string[] = [];
-    $$('#lightgallery').find('a>img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
+    $$('#lightgallery').find('a>img[src]').each((_q, i) => { imagens.push((i as any).attribs['src']) });
 
     const areaTotal = getFixValue($$('.property-meta.entry-meta.clearfix>div:nth-child(2)').find('span.property-info-value').text().trim().replace('m²', '').trim());
     const area = getFixValue($$('.property-meta.entry-meta.clearfix>div:nth-child(3)').find('span.property-info-value').text().trim().replace('m²', '').trim());

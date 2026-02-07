@@ -42,9 +42,9 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
       headers: {
         'Accept': 'text/html', // Especifica que estamos aceitando HTML
       }
-    });
+    } as any);
 
-    const $$ = cheerio.load(details) as any;
+    const $$ = cheerio.load(details as any) as any;
     const imagens: string[] = [];
     $$('#gallery-1').find('a.rsImg > img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
     const descricao = $$('div.item-imovel').text().trim();

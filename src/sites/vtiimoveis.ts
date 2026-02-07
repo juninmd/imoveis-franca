@@ -1,57 +1,86 @@
 import cheerio from 'cheerio';
-import { getFixValue, normalizeNeighborhoodName } from '../utils';
 import { Imoveis, Site } from '../types';
+import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
-  url: 'https://vtiimoveis.com.br/resultados-pesquisa',
-  name: 'https://vtiimoveis.com.br',
+  url: 'https://vtiimoveis.com.br/status/venda/?type=casa',
+  name: 'vtiimoveis.com.br',
   driver: 'puppet',
-  itemsPerPage: 10,
-  params: [{
-    'status[]': 'venda',
-    'type[]': 'casa',
-  }],
-  getPaginateParams: (page: number) => ({ path: { pagina: page } }),
+  itemsPerPage: 10, // Default usually
+  params: [],
+  getPaginateParams: (page: number) => {
+    if (page === 1) return { url: 'https://vtiimoveis.com.br/status/venda/?type=casa' };
+    return { url: `https://vtiimoveis.com.br/status/venda/page/${page}/?type=casa` };
+  },
   adapter,
-  disableQuery: '.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled',
-  waitFor: undefined
 } as Site;
 
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);
-  const qtd = Number($('#result').text().replace(/\D/g, ''));
-  const imoveis = $('.card-resultado').map((_i, el) => {
-    const tituloRaw = $(el).find('.titulo-resultado-busca').text().toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
-    const titulo = (tituloRaw.indexOf('CASA') >= 0 || tituloRaw.indexOf('PADRAO') >= 0 || tituloRaw.indexOf('SOBRADO') >= 0) ? 'CASA' : tituloRaw;
-    const endereco = normalizeNeighborhoodName($(el).find('.endereco-resultado-busca').text().trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").split(',')[0]);
-    const valor = parseFloat(($(el).find('.valores-resultado-busca').text().indexOf('Para detalhes') > 0 ? 0 : $(el).find('.valores-resultado-busca > h3').text().replace('R$', '').replace(/\./g, '').trim().split(',')[0]) || '0');
-    const area = getFixValue($(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || '0');
-    const areaTotal = getFixValue($(el).find('.comodidades-resultado-busca > div:nth-child(1)').text().replace('m²', '').trim() || '0');
-    const quartos = $(el).find('.comodidades-resultado-busca > div:nth-child(2)').text().replace('Quartos', '').trim();
-    const banheiros = $(el).find('.comodidades-resultado-busca > div:nth-child(3)').text().replace('Banheiros', '').trim();
-    const vagas = $(el).find('.comodidades-resultado-busca > div:nth-child(4)').text().replace('Vagas', '').trim();
-    const imagens: string[] = [];
-    $(el).find('.imagem-resultado').find('.carousel-inner >.carousel-item > img[src]').each((_q, i) => { imagens.push(i.attribs['src']) });
-    const link = $(el).find('.link-resultado').attr('href');
-    const precoPorMetro = valor / areaTotal;
-    const descricao = '';
-    return {
-      titulo,
-      descricao,
-      imagens,
-      endereco,
-      valor: (valor),
-      area: area,
-      areaTotal: areaTotal,
-      quartos: Number(quartos),
-      link,
-      banheiros: Number(banheiros),
-      vagas: Number(vagas),
-      precoPorMetro,
-      site: 'imoveisfranca.com.br',
-      entrada: valor * 0.20,
-    };
-  }).get();
+
+  // Try to find quantity if available, otherwise just count items or return 0
+  // VTI doesn't seem to show total count easily on the listing page
+  const qtd = 0;
+
+  const imoveis: Imoveis[] = [];
+  $('.item-wrap').each((_i, el) => {
+    const titleElement = $(el).find('.item-title a');
+    const titulo = titleElement.text().trim();
+    const link = titleElement.attr('href') || '';
+
+    // Price
+    const valorRaw = $(el).find('.item-price').text().trim();
+    const valor = parseFloat(valorRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
+
+    // Address
+    const addressRaw = $(el).find('.item-address').text().trim();
+    // Sometimes address is in the title or hidden.
+    // Title format: "CASA À VENDA – BAIRRO SÃO JOAQUIM"
+    let endereco = normalizeNeighborhoodName(addressRaw);
+    if (!endereco && titulo.includes(' – ')) {
+      const parts = titulo.split(' – ');
+      if (parts.length > 1) {
+        endereco = normalizeNeighborhoodName(parts[1]);
+      }
+    }
+
+    // Details
+    const areaRaw = $(el).find('.h-area .hz-figure').first().text().trim();
+    const area = getFixValue(areaRaw);
+
+    const quartosRaw = $(el).find('.h-beds .hz-figure').text().trim();
+    const quartos = Number(quartosRaw) || 0;
+
+    const banheirosRaw = $(el).find('.h-baths .hz-figure').text().trim();
+    const banheiros = Number(banheirosRaw) || 0;
+
+    const vagasRaw = $(el).find('.h-cars .hz-figure').text().trim();
+    const vagas = Number(vagasRaw) || 0;
+
+    // Image
+    const imgRel = $(el).find('.listing-thumb img').attr('src');
+    const imagens = imgRel ? [imgRel] : [];
+
+    if (link && valor > 0) {
+      imoveis.push({
+        titulo,
+        descricao: '',
+        imagens,
+        endereco,
+        valor,
+        area,
+        areaTotal: area, // Often Total Area isn't distinguished on card
+        quartos,
+        link,
+        banheiros,
+        vagas,
+        precoPorMetro: area > 0 ? valor / area : 0,
+        site: 'vtiimoveis.com.br',
+        entrada: valor * 0.20
+      });
+    }
+  });
+
   return { imoveis, qtd, html };
-};
+}
