@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { generateList } from './imoveis';
+import { generateList } from './business/imoveis-list';
 
 const app = express();
 const port = 3000;

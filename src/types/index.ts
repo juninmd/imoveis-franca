@@ -1,4 +1,3 @@
-
 export interface Imoveis {
   site: string,
   titulo: string,
@@ -30,11 +29,20 @@ export interface Site {
   translateParams?: { currentPage: string; maxPrice: string; minPrice: string },
   params?: any[],
   itemsPerPage: number,
-  getPaginateParams: (page: number) => { payload?: any, params?: any },
+  getPaginateParams: (page: number) => { payload?: any, params?: any, path?: any },
   adapter: (html: string) => Promise<{
     imoveis: Imoveis[],
     qtd: number,
     html?: string,
     json?: any,
   }>
+}
+
+export interface BaseQueryParams {
+  minPrice: number,
+  maxPrice: number,
+  quartos: number,
+  minArea: number,
+  maxArea: number,
+  maxPages?: number,
 }

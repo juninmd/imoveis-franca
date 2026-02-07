@@ -4,18 +4,15 @@ import { Imoveis, Site } from '../types';
 
 export default {
   enabled: true,
-  url: 'https://imoveisfranca.com.br/comprar/comprar',
-  name: 'imoveisfranca.com.br',
+  url: 'https://vtiimoveis.com.br/resultados-pesquisa',
+  name: 'https://vtiimoveis.com.br',
   driver: 'puppet',
   itemsPerPage: 10,
   params: [{
-    'pagina': 1,
-    'localizacao': 'franca',
-    'filtro': 1,
-    'IDFinalidade': 2,
-    'TipoCompra': 11
+    'status[]': 'venda',
+    'type[]': 'casa',
   }],
-  getPaginateParams: (page: number) => ({ params: { pagina: page } }),
+  getPaginateParams: (page: number) => ({ path: { pagina: page } }),
   adapter,
   disableQuery: '.pagination .justify-content-center > li:nth-last-child(1).page-item.disabled',
   waitFor: undefined

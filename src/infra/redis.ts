@@ -16,9 +16,13 @@ export class RedisConnection {
     return RedisConnection.instance;
   }
 
-  public static async setKey(key: string, value): Promise<void> {
+  public static async setKey(key: string, value, ttlSeconds = undefined): Promise<void> {
     const client = RedisConnection.getInstance();
-    await client.set(key, JSON.stringify(value));
+    if (ttlSeconds) {
+      await client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+    } else {
+      await client.set(key, JSON.stringify(value));
+    }
   }
 
   public static async getKey<T>(key: string): Promise<T | null> {
