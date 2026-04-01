@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Site } from '../src/types';
 import BrowserSingleton from '../src/infra/browser';
-import { retrieveContent } from '../src/business/retrieve-page-content';
+import { retrieveContent } from '../src/imoveis';
 
 jest.mock('axios');
 jest.mock('../src/infra/browser');
@@ -79,6 +79,6 @@ describe('retrieveContent function', () => {
       driver: 'unknown',
     };
 
-    await expect(retrieveContent(url, site as any)).rejects.toThrowError('Html content not found');
+    await expect(retrieveContent(url, site as any)).rejects.toThrowError('Html content not found or driver not supported');
   });
 });
