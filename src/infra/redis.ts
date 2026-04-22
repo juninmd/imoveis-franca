@@ -8,9 +8,9 @@ export class RedisConnection {
   public static getInstance(): Redis {
     if (!RedisConnection.instance) {
       RedisConnection.instance = new Redis({
-        port: 32768,
-        host: 'localhost',
-        password: 'redispw'
+        port: Number(process.env.REDIS_PORT) || 6379,
+        host: process.env.REDIS_HOST || 'redis.databases.svc.cluster.local',
+        password: process.env.REDIS_PASSWORD
       });
     }
     return RedisConnection.instance;
