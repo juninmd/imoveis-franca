@@ -10,7 +10,7 @@ RUN cd client && npm run build
 
 # Build Server
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 COPY . .
 RUN pnpm run build:release || pnpm exec tsc -p tsconfig.json
 
@@ -20,7 +20,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Install production dependencies for server
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 
 # Copy built assets
 COPY --from=builder /app/dist ./dist
