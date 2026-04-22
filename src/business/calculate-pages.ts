@@ -3,7 +3,7 @@ import { getImoveis } from './retriveve-page';
 
 export const retrieImoveisSiteByParams = async (site: Site, params = undefined, baseQueryParams: BaseQueryParams) => {
   try {
-    let lista: Imoveis[] = [];
+    const lista: Imoveis[] = [];
     const page = 1;
     const { imoveis, qtd } = await getImoveis(site, params, baseQueryParams, page);
     lista.push(...imoveis);
