@@ -1,15 +1,30 @@
 FROM node:20-slim AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Build Client
+COPY client/package.json client/pnpm-lock.yaml ./client/
+RUN cd client && pnpm install --frozen-lockfile
+COPY client/ ./client/
+RUN cd client && pnpm run build
+
+# Build Server
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build:release || pnpm exec tsc -p tsconfig.json
 
 FROM node:20-slim
 WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Install production dependencies for server
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy built assets
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/client/dist ./client/dist
-COPY package*.json ./
-RUN npm install --production
+
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
