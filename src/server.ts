@@ -1,4 +1,7 @@
 import express, { Request, Response } from 'express';
+import helmet from 'helmet';
+import compression from 'compression';
+import cors from 'cors';
 import { generateList } from './imoveis';
 
 const app = express();
