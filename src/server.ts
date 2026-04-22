@@ -43,7 +43,7 @@ app.get('/api/imoveis', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
     return res.json({ data: lista });
   } catch (error) {
-    return res.json({ error: error }).status(500);
+    return res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 
 });
