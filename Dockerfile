@@ -3,10 +3,10 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Build Client
-COPY client/package.json client/pnpm-lock.yaml ./client/
-RUN cd client && pnpm install --frozen-lockfile
+COPY client/package*.json ./client/
+RUN cd client && npm install
 COPY client/ ./client/
-RUN cd client && pnpm run build
+RUN cd client && npm run build
 
 # Build Server
 COPY package.json pnpm-lock.yaml ./
