@@ -1,11 +1,15 @@
-# Build stage
 FROM node:20-slim AS builder
 WORKDIR /app
+COPY package*.json ./
+RUN npm install
 COPY . .
-RUN cd client && npm install && npm run build
+RUN npm run build
 
-# Final stage
-FROM nginx:alpine
-COPY --from=builder /app/client/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20-slim
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/client/dist ./client/dist
+COPY package*.json ./
+RUN npm install --production
+EXPOSE 3000
+CMD ["npm", "start"]
