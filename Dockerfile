@@ -1,4 +1,4 @@
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -14,7 +14,7 @@ RUN pnpm install
 COPY . .
 RUN pnpm run build:release || pnpm exec tsc -p tsconfig.json
 
-FROM node:20-slim
+FROM node:24-slim
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
