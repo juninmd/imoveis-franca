@@ -5,6 +5,11 @@
 	"engines": {
 		"node": ">= 24"
 	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"puppeteer"
+		]
+	},
 	"dependencies": {
 		"@types/compression": "^1.8.1",
 		"@types/cors": "^2.8.19",
