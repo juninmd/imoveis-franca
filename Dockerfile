@@ -1,6 +1,6 @@
 FROM node:24-slim AS builder
 WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Build Client
 COPY client/package*.json ./client/
@@ -16,7 +16,7 @@ RUN pnpm run build:release || pnpm exec tsc -p tsconfig.json
 
 FROM node:24-slim
 WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Install production dependencies for server
 COPY package.json pnpm-lock.yaml ./
