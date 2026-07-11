@@ -9,5 +9,12 @@ import imoveismpb from './imoveismpb';
 import mazzaimoveis from './mazzaimoveis';
 import parraimobiliaria from './parraimobiliaria';
 import vtiimoveis from './vtiimoveis';
+import botelhoimobiliaria from './botelhoimobiliaria';
+import unioconimobiliaria from './unioconimobiliaria';
 
-export const sites: Site[] = [c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis, imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis, ...imoveismpb as unknown as Site[]];
+export const sites: Site[] = [
+  c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
+  imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
+  botelhoimobiliaria, unioconimobiliaria,
+  ...imoveismpb as unknown as Site[]
+];

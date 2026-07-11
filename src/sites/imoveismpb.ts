@@ -1,4 +1,4 @@
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../types';
 import { getFixValue, normalizeNeighborhoodName } from '../utils';
 import axios from 'axios';
