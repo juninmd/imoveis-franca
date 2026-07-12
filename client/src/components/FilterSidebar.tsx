@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MapPin, Search, Check, DollarSign, Home, Maximize, Grid, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { MapPin, Search, Check, DollarSign, Home, Maximize, Grid, ChevronDown, ChevronUp, RotateCcw, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -261,8 +261,16 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
                     placeholder="Filtrar bairros..."
                     value={addressSearch}
                     onChange={(e) => setAddressSearch(e.target.value)}
-                    className={clsx(inputClass, "pl-9 py-2")}
+                    className={clsx(inputClass, "pl-9 pr-8 py-2")}
                 />
+                {addressSearch && (
+                  <button
+                    onClick={() => setAddressSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
             </div>
 
             <div className="border border-gray-200 dark:border-gray-600 rounded-lg max-h-52 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800/40">
