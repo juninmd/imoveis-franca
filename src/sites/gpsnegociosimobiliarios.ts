@@ -70,11 +70,11 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
     const link = `https://www.gpsnegociosimobiliarios.com.br/${href}`;
 
-    let bgImage = $card.find('.card-img').css('background-image');
-    let imagens: string[] = [];
+    const bgImage = $card.find('.card-img').css('background-image');
+    const imagens: string[] = [];
     /* istanbul ignore next */
     if (bgImage) {
-        let imgRel = bgImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+        const imgRel = bgImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
         /* istanbul ignore else */
         if (imgRel) {
             imagens.push(`https://www.gpsnegociosimobiliarios.com.br/${imgRel}`);
