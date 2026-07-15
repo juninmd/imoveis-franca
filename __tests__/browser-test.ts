@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Site } from '../src/types';
 import BrowserSingleton from '../src/infra/browser';
-import { retrieveContent } from '../src/business/retrieve-page-content';
+import { retrieveContent } from '../src/imoveis';
 
 jest.mock('axios');
 jest.mock('../src/infra/browser');
@@ -34,8 +34,8 @@ describe('retrieveContent function', () => {
 
     expect(BrowserSingleton.getNewPage).toHaveBeenCalledTimes(1);
     // Updated timeout to match implementation (30000)
-    expect(mockedPage.goto).toHaveBeenCalledWith(url.trim(), { timeout: 20000, waitUntil: 'networkidle0' });
-    expect(mockedPage.waitForSelector).toHaveBeenCalledWith(site.waitFor);
+    expect(mockedPage.goto).toHaveBeenCalledWith(url.trim(), { timeout: 30000, waitUntil: 'networkidle0' });
+    expect(mockedPage.waitForSelector).toHaveBeenCalledWith(site.waitFor, { timeout: 10000 });
     expect(mockedPage.content).toHaveBeenCalledTimes(1);
     expect(mockedPage.close).toHaveBeenCalledTimes(1);
     expect(result).toBe(expectedHtml);
@@ -52,7 +52,7 @@ describe('retrieveContent function', () => {
 
     const result = await retrieveContent(url, site as any);
 
-    expect(axios.get).toHaveBeenCalledWith(url, { responseType: 'text' });
+    expect(axios.get).toHaveBeenCalledWith(url, { responseEncoding: 'utf8', timeout: 30000 });
     expect(result).toBe(expectedHtml);
   });
 
@@ -69,7 +69,7 @@ describe('retrieveContent function', () => {
     const result = await retrieveContent(url, site as any);
 
     // Matches implementation: params is undefined passed through
-    expect(axios.request).toHaveBeenCalledWith({ url, method: 'POST', data: site.payload, params: undefined });
+    expect(axios.request).toHaveBeenCalledWith({ url, method: 'POST', data: site.payload, params: undefined, timeout: 30000 });
     expect(result).toBe(expectedHtml);
   });
 
