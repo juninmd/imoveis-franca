@@ -1,3 +1,4 @@
+import gpsnegociosimobiliarios from './gpsnegociosimobiliarios';
 import c15imob from './c15imob';
 import aacosta from './aacosta';
 import agnelloimoveis from './agnelloimoveis';
@@ -19,6 +20,6 @@ export const sites: Site[] = [
   c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
-  transacaoimobiliaria, conectaassesconimoveis,
+  transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,
   ...imoveismpb as unknown as Site[]
 ];
