@@ -35,7 +35,6 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const titulo = $(el).find('.c49-property-title').text().trim() || $(el).find('h3').text().trim();
     const descricao = $(el).find('.c49-property-resume').text().trim();
 
-    // Neighborhood sometimes in the h3 or .pull-left
     let enderecoRaw = $(el).find('.pull-left').text().trim();
     if (!enderecoRaw || enderecoRaw.length < 3) {
        enderecoRaw = titulo;
@@ -45,7 +44,6 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const valorRaw = $(el).find('.c49-property-value').text().replace('Venda', '').trim();
     const valor = parseFloat(valorRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
-    // Images
     const imagens: string[] = [];
     $(el).find('.carousel-item img').each((_i, img) => {
         const src = $(img).attr('src') || $(img).attr('data-src');
@@ -56,8 +54,6 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
         if (img) imagens.push(img.startsWith('http') ? img : `https://www.transacaoimobiliaria.com.br${img.startsWith('/') ? '' : '/'}${img}`);
     }
 
-    // Details: area, quartos, banheiros, vagas
-    // They are inside div.c49-property-number-wrap
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;
 
     $(el).find('.c49-property-number-wrap').each((_i, wrap) => {
