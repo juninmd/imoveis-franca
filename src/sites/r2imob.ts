@@ -44,7 +44,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     $(el).find('.property-value .top-info b').each((_, priceEl) => {
        const text = $(priceEl).text().trim();
        if (text.includes('$')) {
-           valor = parseFloat(text.replace('$', '').replace(/\,/g, '').trim() || '0');
+           valor = parseFloat(text.replace('$', '').replace(/,/g, '').trim() || '0');
        }
     });
     if (valor === 0) {

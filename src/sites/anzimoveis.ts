@@ -33,10 +33,10 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
     const link = linkAttr.startsWith('http') ? linkAttr : `https://anzimoveis.com.br${linkAttr.startsWith('/') ? '' : '/'}${linkAttr}`;
 
-    let titulo = $(el).find('.title, h2, h3').first().text().trim();
+    const titulo = $(el).find('.title, h2, h3').first().text().trim();
     if (!titulo) return;
 
-    let addressText = $(el).find('.address, .location, [class*="address"], [class*="location"]').first().text().trim();
+    const addressText = $(el).find('.address, .location, [class*="address"], [class*="location"]').first().text().trim();
     const endereco = normalizeNeighborhoodName(addressText.split(',')[0]);
 
     let valor = 0;
