@@ -18,13 +18,13 @@ import conectaassesconimoveis from './conectaassesconimoveis';
 import r2imob from './r2imob';
 import artefattoimoveis from './artefattoimoveis';
 import anzimoveis from './anzimoveis';
-
+import zagoimoveis from './zagoimoveis';
 
 export const sites: Site[] = [
   c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,
-  r2imob, artefattoimoveis, anzimoveis,
+  r2imob, artefattoimoveis, anzimoveis, zagoimoveis,
   ...imoveismpb as unknown as Site[]
 ];

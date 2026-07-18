@@ -381,9 +381,12 @@ export const Home = () => {
           )}
 
           {isLoading ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+             <div className={clsx(
+               "grid gap-6",
+               viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
+             )}>
                {[...Array(6)].map((_, i) => (
-                 <PropertyCardSkeleton key={i} />
+                 <PropertyCardSkeleton key={i} viewMode={viewMode} />
                ))}
              </div>
           ) : isError ? (
