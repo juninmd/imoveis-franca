@@ -381,14 +381,27 @@ export const Home = () => {
           )}
 
           {isLoading ? (
-             <div className={clsx(
-               "grid gap-6",
-               viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
-             )}>
+             <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className={clsx(
+                 "grid gap-6",
+                 viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
+               )}
+             >
                {[...Array(6)].map((_, i) => (
-                 <PropertyCardSkeleton key={i} viewMode={viewMode} />
+                 <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.05, ease: "easeOut" }}
+                    className="h-full"
+                 >
+                   <PropertyCardSkeleton viewMode={viewMode} />
+                 </motion.div>
                ))}
-             </div>
+             </motion.div>
           ) : isError ? (
             <EmptyState
                 icon={AlertCircle}
