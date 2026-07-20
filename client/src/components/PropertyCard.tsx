@@ -4,7 +4,6 @@ import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart,
 import { useToast } from './ToastContext';
 import { clsx } from 'clsx';
 
-// Lazy load the ImageGallery component
 const ImageGallery = React.lazy(() => import('./ImageGallery'));
 
 interface PropertyCardProps {
@@ -14,15 +13,18 @@ interface PropertyCardProps {
   viewMode?: 'grid' | 'list';
 }
 
-const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => (
-  <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-full">
-     <Icon size={18} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
-     <div className="flex flex-col items-center text-center">
-        <span className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-none">{value}{suffix}</span>
-        <span className="text-[10px] uppercase text-gray-500 dark:text-gray-400 font-medium tracking-wide leading-tight mt-1">{label}</span>
-     </div>
-  </div>
-);
+const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => {
+  const displayValue = value > 0 ? `${value}${suffix}` : '-';
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-full">
+       <Icon size={18} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
+       <div className="flex flex-col items-center text-center">
+          <span className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-none">{displayValue}</span>
+          <span className="text-[10px] uppercase text-gray-500 dark:text-gray-400 font-medium tracking-wide leading-tight mt-1">{label}</span>
+       </div>
+    </div>
+  );
+};
 
 export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavorite, onToggleFavorite, viewMode = 'grid' }) => {
   const [showImages, setShowImages] = useState(false);
@@ -32,7 +34,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
 
-  const isBelowAverage = imovel.valorMedioBairroPorAreaTotal > 0 && imovel.precoPorMetro < (imovel.valorMedioBairroPorAreaTotal / imovel.areaTotal);
+  const isBelowAverage = (imovel.valorMedioBairroPorAreaTotal || 0) > 0 && imovel.precoPorMetro < ((imovel.valorMedioBairroPorAreaTotal || 0) / imovel.areaTotal);
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -46,7 +48,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
         "bg-white dark:bg-gray-800/90 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex border border-gray-100 dark:border-gray-700/50 group/card h-full",
         viewMode === 'list' ? "flex-col md:flex-row" : "flex-col"
       )}>
-        {/* Image Section */}
         <div
             className={clsx(
               "relative bg-gray-100 dark:bg-gray-700/50 cursor-pointer overflow-hidden",
@@ -72,10 +73,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              </div>
           )}
 
-          {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
 
-          {/* Action Buttons */}
           <div className="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 group-hover/card:translate-x-0 transition-transform duration-300 z-10">
              <button
                 onClick={(e) => {
@@ -98,7 +97,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
               </button>
           </div>
 
-          {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2 items-start pointer-events-none z-10">
              <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-900 dark:text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
                 {imovel.site.replace('www.', '')}
@@ -111,7 +109,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              )}
           </div>
 
-          {/* Price & Image Count */}
           <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end text-white z-10">
              <div className="flex flex-col">
                 <span className="text-2xl font-bold tracking-tight text-white drop-shadow-md">
@@ -132,7 +129,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="p-5 flex flex-col flex-1 gap-4">
           <div>
              <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 leading-snug line-clamp-2 min-h-[3.5rem] group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors" title={imovel.titulo}>
