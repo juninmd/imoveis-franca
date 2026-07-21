@@ -20,6 +20,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, initialIndex = 0, o
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleKeyDown = React.useCallback((e: KeyboardEvent) => {
     if (e.key === 'ArrowRight') nextImage(e);
     if (e.key === 'ArrowLeft') prevImage(e);
