@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Home, DollarSign, Bed, Bath, Car, Maximize, MapPin, X, Check, Grid, Search } from 'lucide-react';
+import { Home, DollarSign, Maximize, MapPin, X, Check, Grid, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,7 +16,7 @@ interface FilterSidebarProps {
     maxAreaTotal: string;
     address: string[];
   };
-  setFilters: React.Dispatch<React.SetStateAction<any>>;
+  setFilters: React.Dispatch<React.SetStateAction<FilterSidebarProps['filters']>>;
   addresses: string[];
 }
 
@@ -40,8 +40,16 @@ const CollapsibleSection = ({
             <div className="flex items-center justify-between mb-2">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex-1 flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm"
+                    className="flex-1 flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm group"
                 >
+                    <motion.div
+                        initial={false}
+                        animate={{ rotate: isOpen ? 90 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-gray-400 group-hover:text-blue-500"
+                    >
+                        ▶
+                    </motion.div>
                     {title}
                     {hasValue && (
                         <div className="w-2 h-2 rounded-full bg-blue-500" />
