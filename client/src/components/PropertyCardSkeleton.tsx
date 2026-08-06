@@ -32,11 +32,11 @@ export const PropertyCardSkeleton = ({ viewMode = 'grid' }: { viewMode?: 'grid' 
         <div className={isList ? 'flex justify-between items-start' : ''}>
           <div className={isList ? 'flex-1' : ''}>
             {/* Title Placeholder */}
-            <div className={`h-7 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3 ${isList ? 'w-2/3' : 'w-3/4'}`} />
+            <div className={`h-7 bg-gray-200 dark:bg-gray-700 rounded animate-pulse duration-700 mb-3 ${isList ? 'w-2/3' : 'w-3/4'}`} />
             {/* Address Placeholder */}
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse" />
+              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse duration-700" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse duration-1000" />
             </div>
 
             {/* Description Placeholder (list only) */}
@@ -62,14 +62,14 @@ export const PropertyCardSkeleton = ({ viewMode = 'grid' }: { viewMode?: 'grid' 
           <div className={`grid grid-cols-4 gap-2 text-center ${isList ? 'flex-1 max-w-md' : ''}`}>
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex flex-col items-center gap-2">
-                <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="w-8 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse duration-700" />
+                <div className="w-8 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse duration-1000" />
               </div>
             ))}
           </div>
 
           {/* Button Placeholder */}
-          <div className={`${isList ? 'w-32 ml-4' : 'w-full mt-4'} h-10 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse`} />
+          <div className={`${isList ? 'w-32 ml-4' : 'w-full mt-4'} h-10 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse duration-1000`} />
         </div>
       </div>
     </motion.div>
