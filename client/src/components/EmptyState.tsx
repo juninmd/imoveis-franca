@@ -27,12 +27,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
          {description}
       </p>
       {action && (
-          <button
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
               className="px-6 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium transition-all shadow-lg shadow-blue-600/20 active:scale-95"
           >
               {action.label}
-          </button>
+          </motion.button>
       )}
     </motion.div>
   );

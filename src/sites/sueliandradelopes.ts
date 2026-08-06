@@ -1,4 +1,4 @@
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../types';
 import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
@@ -42,11 +42,11 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
     const imagens: string[] = [];
     $(el).find('img').each((_i, img) => {
-      let src = $(img).attr('src') || $(img).attr('data-src');
+      let src = $(img).attr('data-src') || $(img).attr('src');
       if (!src) return;
       if (src.includes('logo')) return;
       src = src.replace('thumb15-', '');
-      if (!src.startsWith('http')) {
+      if (!src.startsWith('http') && !src.startsWith('data:image')) {
         src = `https://www.sueliandradelopes.com.br${src}`;
       }
       imagens.push(src);
