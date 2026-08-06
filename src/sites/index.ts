@@ -10,6 +10,7 @@ import imoveismpb from './imoveismpb';
 import mazzaimoveis from './mazzaimoveis';
 import parraimobiliaria from './parraimobiliaria';
 import vtiimoveis from './vtiimoveis';
+import sueliandradelopes from './sueliandradelopes';
 import botelhoimobiliaria from './botelhoimobiliaria';
 import unioconimobiliaria from './unioconimobiliaria';
 import imobiliariaplano from './imobiliariaplano';
@@ -22,7 +23,6 @@ import zagoimoveis from './zagoimoveis';
 import bragaimobiliaria from './bragaimobiliaria';
 import groupagility from './groupagility';
 import silveiraimoveis from './silveiraimoveis';
-import sueliandradelopes from './sueliandradelopes';
 import futuraimobiliariafranca from './futuraimobiliariafranca';
 
 export const sites: Site[] = [
