@@ -10,15 +10,27 @@ interface ImageGalleryProps {
 const ImageGallery: React.FC<ImageGalleryProps> = ({ images, initialIndex = 0, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(initialIndex);
 
-  const nextImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const prevImage = (e?: React.MouseEvent | KeyboardEvent) => {
+    if (e && 'stopPropagation' in e) e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const nextImage = (e?: React.MouseEvent | KeyboardEvent) => {
+    if (e && 'stopPropagation' in e) e.stopPropagation();
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
-  const prevImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleKeyDown = React.useCallback((e: KeyboardEvent) => {
+    if (e.key === 'ArrowRight') nextImage(e);
+    if (e.key === 'ArrowLeft') prevImage(e);
+    if (e.key === 'Escape') onClose();
+  }, [images.length, onClose]);
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   return (
     <div

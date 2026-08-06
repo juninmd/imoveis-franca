@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Site } from '../src/types';
 import BrowserSingleton from '../src/infra/browser';
-import { retrieveContent } from '../src/business/retrieve-page-content';
+import { retrieveContent } from '../src/imoveis';
 
 jest.mock('axios');
 jest.mock('../src/infra/browser');

@@ -1,4 +1,4 @@
-import { generateList } from './business/imoveis-list';
+import { generateList } from './imoveis';
 import './server';
 
 async function init() {

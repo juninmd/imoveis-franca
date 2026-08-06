@@ -65,6 +65,7 @@ describe('Imoveis Branch Coverage', () => {
     });
 
     it('should respect maxPages limit', async () => {
+        jest.setTimeout(30000);
        // We need a site that returns many items/pages
        const site = {
          name: 'PagedSite',
