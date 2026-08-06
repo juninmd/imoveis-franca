@@ -23,6 +23,7 @@ import bragaimobiliaria from './bragaimobiliaria';
 import groupagility from './groupagility';
 import silveiraimoveis from './silveiraimoveis';
 import sueliandradelopes from './sueliandradelopes';
+import futuraimobiliariafranca from './futuraimobiliariafranca';
 
 export const sites: Site[] = [
   c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
@@ -30,6 +31,6 @@ export const sites: Site[] = [
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,
   r2imob, artefattoimoveis, anzimoveis, zagoimoveis, bragaimobiliaria, groupagility,
-  silveiraimoveis, sueliandradelopes,
+  silveiraimoveis, sueliandradelopes, futuraimobiliariafranca,
   ...imoveismpb as unknown as Site[]
 ];
