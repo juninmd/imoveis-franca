@@ -32,7 +32,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     if (!linkAttr) return;
     const link = linkAttr.startsWith('http') ? linkAttr : `https://www.futuraimobiliariafranca.com.br${linkAttr}`;
 
-    let tituloRaw = $(el).find('.det-lista a').first().text().trim();
+    const tituloRaw = $(el).find('.det-lista a').first().text().trim();
     if (!tituloRaw) return;
 
     let enderecoRaw = $(el).find('.loc b').first().text().trim();
@@ -61,7 +61,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const regexBanheiros = /Banheiros:\s*<b>(\d+)<\/b>/i;
     const regexVagas = /Garagens:\s*<b>(\d+)<\/b>/i;
 
-    let quartosMatch = caracHtml.match(regexQuartos);
+    const quartosMatch = caracHtml.match(regexQuartos);
     if (quartosMatch) quartos = parseInt(quartosMatch[1]);
 
     const banheirosMatch = caracHtml.match(regexBanheiros);
