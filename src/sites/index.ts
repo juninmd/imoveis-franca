@@ -1,3 +1,4 @@
+import oasisimobiliaria from "./oasisimobiliaria";
 import gpsnegociosimobiliarios from './gpsnegociosimobiliarios';
 import c15imob from './c15imob';
 import aacosta from './aacosta';
@@ -33,5 +34,5 @@ export const sites: Site[] = [
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,
   r2imob, artefattoimoveis, anzimoveis, zagoimoveis, bragaimobiliaria, groupagility,
   silveiraimoveis, sueliandradelopes, futuraimobiliariafranca, casanovaimoveis,
-  ...imoveismpb as unknown as Site[]
+  oasisimobiliaria, ...imoveismpb as unknown as Site[]
 ];
