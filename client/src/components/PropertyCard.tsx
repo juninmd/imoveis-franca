@@ -98,9 +98,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
 
           <div className="absolute top-3 left-3 flex flex-col gap-2 items-start pointer-events-none z-10">
-             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-900 dark:text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
-                {imovel.site.replace('www.', '')}
-             </div>
+             {imovel.site && (
+               <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-900 dark:text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
+                  {imovel.site.replace('www.', '')}
+               </div>
+             )}
              {isBelowAverage && (
                <div className="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-lg uppercase tracking-wider flex items-center gap-1.5 animate-pulse-slow border border-emerald-400">
                  <TrendingDown size={12} strokeWidth={3} />
