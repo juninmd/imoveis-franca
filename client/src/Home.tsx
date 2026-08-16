@@ -362,27 +362,33 @@ export const Home = () => {
 
         <div className="p-4 md:p-6 lg:p-8 flex-1 overflow-x-hidden">
           {activeFiltersList.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {activeFiltersList.map((filter, index) => (
-                <button
-                  key={`${filter.key}-${filter.value || index}`}
-                  onClick={() => removeFilter(filter)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  {filter.label}
-                  <X
-                    size={13}
-                    className="opacity-60 hover:opacity-100 hover:text-red-500 transition-opacity"
-                  />
-                </button>
-              ))}
+            <motion.div layout className="flex flex-wrap gap-2 mb-6">
+              <AnimatePresence>
+                {activeFiltersList.map((filter, index) => (
+                  <motion.button
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8, width: 0, overflow: "hidden", paddingLeft: 0, paddingRight: 0, margin: 0, transition: { duration: 0.2 } }}
+                    key={`${filter.key}-${filter.value || index}`}
+                    onClick={() => removeFilter(filter)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                  >
+                    {filter.label}
+                    <X
+                      size={13}
+                      className="opacity-60 hover:opacity-100 hover:text-red-500 transition-opacity"
+                    />
+                  </motion.button>
+                ))}
+              </AnimatePresence>
               <button
                 onClick={clearFilters}
                 className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors ml-1 px-2 py-1.5"
               >
                 Limpar
               </button>
-            </div>
+            </motion.div>
           )}
 
           {isLoading ? (
