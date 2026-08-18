@@ -3,6 +3,7 @@ import type { Imovel } from '../types';
 import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart, Share2, TrendingDown } from 'lucide-react';
 import { useToast } from './ToastContext';
 import { clsx } from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ImageGallery = React.lazy(() => import('./ImageGallery'));
 
@@ -16,7 +17,7 @@ interface PropertyCardProps {
 const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => {
   const displayValue = value > 0 ? `${value}${suffix}` : '-';
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-full border border-gray-100 dark:border-gray-700/50">
+    <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50/80 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/80 transition-colors h-full border border-gray-100 dark:border-gray-700/50 backdrop-blur-sm">
        <Icon size={18} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
        <div className="flex flex-col items-center text-center">
           <span className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-none">{displayValue}</span>
@@ -44,31 +45,42 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
   return (
     <>
-      <div className={clsx(
-        "bg-white dark:bg-gray-800/90 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex border border-gray-100 dark:border-gray-700/50 group/card h-full transform hover:-translate-y-1 hover:shadow-2xl",
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.3 }}
+        className={clsx(
+        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex border border-white/20 dark:border-gray-700/50 group/card h-full transform hover:-translate-y-1",
         viewMode === 'list' ? "flex-col md:flex-row" : "flex-col"
       )}>
         <div
             className={clsx(
-              "relative bg-gray-100 dark:bg-gray-700/50 cursor-pointer overflow-hidden",
+              "relative bg-gray-100 dark:bg-gray-800/80 cursor-pointer overflow-hidden isolate",
               viewMode === 'list' ? "w-full md:w-80 h-64 md:h-auto flex-shrink-0" : "w-full h-64"
             )}
             onClick={() => setShowImages(true)}
         >
           {imovel.imagens && imovel.imagens.length > 0 ? (
-            <img
-              src={imovel.imagens[0]}
-              alt={imovel.titulo}
-              loading="lazy"
-              decoding="async"
-              onLoad={() => setImageLoaded(true)}
-              className={clsx(
-                "w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110",
-                imageLoaded ? "opacity-100" : "opacity-0"
+            <>
+              {!imageLoaded && (
+                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
               )}
-            />
+              <img
+                src={imovel.imagens[0]}
+                alt={imovel.titulo}
+                loading="lazy"
+                decoding="async"
+                onLoad={() => setImageLoaded(true)}
+                className={clsx(
+                  "w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110",
+                  imageLoaded ? "opacity-100" : "opacity-0"
+                )}
+              />
+            </>
           ) : (
-             <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800">
+             <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm">
                <ImageIcon size={48} strokeWidth={1} />
              </div>
           )}
@@ -81,7 +93,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                    e.stopPropagation();
                    onToggleFavorite();
                 }}
-                className="p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-500 transition-all shadow-lg backdrop-blur-sm hover:scale-110 active:scale-95"
+                className="p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
                 title={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                 aria-label="Favoritar"
               >
@@ -89,7 +101,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
               </button>
              <button
                 onClick={handleShare}
-                className="p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-sm hover:scale-110 active:scale-95"
+                className="p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
                 title="Compartilhar"
                 aria-label="Compartilhar"
               >
@@ -99,16 +111,22 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
           <div className="absolute top-3 left-3 flex flex-col gap-2 items-start pointer-events-none z-10">
              {imovel.site && (
-               <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-900 dark:text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
+               <div className="bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
                   {imovel.site.replace('www.', '')}
                </div>
              )}
-             {isBelowAverage && (
-               <div className="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-lg uppercase tracking-wider flex items-center gap-1.5 animate-pulse-slow border border-emerald-400">
-                 <TrendingDown size={12} strokeWidth={3} />
-                 Oportunidade
-               </div>
-             )}
+             <AnimatePresence>
+               {isBelowAverage && (
+                 <motion.div
+                   initial={{ opacity: 0, x: -10 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-lg uppercase tracking-wider flex items-center gap-1.5 border border-emerald-400/50"
+                 >
+                   <TrendingDown size={12} strokeWidth={3} className="animate-bounce" />
+                   Oportunidade
+                 </motion.div>
+               )}
+             </AnimatePresence>
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end text-white z-10">
@@ -131,7 +149,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
         </div>
 
-        <div className="p-5 flex flex-col flex-1 gap-4 bg-white dark:bg-gray-800">
+        <div className="p-5 flex flex-col flex-1 gap-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
           <div>
              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 min-h-[3.5rem] group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors" title={imovel.titulo}>
                {imovel.titulo}
@@ -142,7 +160,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              </div>
           </div>
 
-          <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700/50">
+          <div className="mt-auto pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
              <div className="grid grid-cols-4 gap-2.5 text-center">
                <FeatureItem icon={Bed} value={imovel.quartos} label="Quartos" />
                <FeatureItem icon={Bath} value={imovel.banheiros} label="Banhos" />
@@ -155,16 +173,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              href={imovel.link}
              target="_blank"
              rel="noopener noreferrer"
-             className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-all font-bold text-sm shadow-md hover:shadow-lg active:scale-[0.98] mt-2 group/btn relative overflow-hidden"
+             className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600/90 dark:bg-blue-500/90 backdrop-blur-md text-white rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-all font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.25)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.98] mt-2 group/btn relative overflow-hidden border border-blue-500/50"
            >
-             <span className="relative z-10 flex items-center gap-2">
+             <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
                Ver Detalhes
                <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
              </span>
-             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
+             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-out" />
            </a>
         </div>
-      </div>
+      </motion.div>
 
       {showImages && imovel.imagens && (
         <Suspense fallback={null}>
