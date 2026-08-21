@@ -21,10 +21,14 @@ export const PropertyCardSkeleton = ({ viewMode = 'grid' }: { viewMode?: 'grid' 
       >
         <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         {/* Badge Placeholder */}
-        <div className="absolute top-3 left-3 w-20 h-6 bg-gray-300 dark:bg-gray-600 rounded-md" />
+        <div className="absolute top-3 left-3 w-20 h-6 bg-gray-300 dark:bg-gray-600 rounded-md overflow-hidden">
+             <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        </div>
         {/* Price Placeholder (only in grid or small list) */}
         {!isList && (
-          <div className="absolute bottom-4 left-4 w-32 h-8 bg-gray-300 dark:bg-gray-600 rounded-md" />
+          <div className="absolute bottom-4 left-4 w-32 h-8 bg-gray-300 dark:bg-gray-600 rounded-md overflow-hidden">
+               <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          </div>
         )}
       </div>
 

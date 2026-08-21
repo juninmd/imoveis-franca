@@ -40,6 +40,8 @@ import moradiaimoveis from "./moradiaimoveis";
 import andresaborgesimoveis from "./andresaborgesimoveis";
 import iegimoveisfrancaeregiao from "./iegimoveisfrancaeregiao";
 import salimimobiliaria from "./salimimobiliaria";
+import famaimoveisfranca from "./famaimoveisfranca";
+import carlosimoveisfranca from "./carlosimoveisfranca";
 
 export const sites: Site[] = [
   c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
@@ -52,5 +54,6 @@ export const sites: Site[] = [
   imobiliarialadonni as unknown as Site, pucciimobiliaria as unknown as Site, matriz as unknown as Site,
   cintraimoveis as unknown as Site, tratoimoveis as unknown as Site, faleirosimoveis as unknown as Site, moradiaimoveis as unknown as Site, andresaborgesimoveis as unknown as Site,
   iegimoveisfrancaeregiao as unknown as Site, salimimobiliaria as unknown as Site, boscoimoveis as unknown as Site,
+  famaimoveisfranca as unknown as Site, carlosimoveisfranca as unknown as Site,
   ...imoveismpb as unknown as Site[]
 ] as unknown as Site[];
