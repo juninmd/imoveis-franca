@@ -52,7 +52,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.3 }}
         className={clsx(
-        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex border border-white/20 dark:border-gray-700/50 group/card h-full transform hover:-translate-y-1",
+        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex border border-white/20 dark:border-gray-700/50 group/card h-full transform hover:-translate-y-1 hover:scale-[1.02]",
         viewMode === 'list' ? "flex-col md:flex-row" : "flex-col"
       )}>
         <div
