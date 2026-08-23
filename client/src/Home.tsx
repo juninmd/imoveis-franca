@@ -209,7 +209,7 @@ export const Home = () => {
       {/* Sidebar */}
       <aside
         className={clsx(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 transform lg:translate-x-0 shadow-2xl lg:shadow-none flex flex-col",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-80 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 transform lg:translate-x-0 shadow-2xl lg:shadow-none flex flex-col",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -240,17 +240,22 @@ export const Home = () => {
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <Suspense fallback={
-            <div className="p-5 space-y-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="p-5 space-y-6"
+            >
                {[...Array(5)].map((_, i) => (
-                 <div key={i} className="space-y-3 pb-6 border-b border-gray-100 dark:border-gray-700">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse" />
+                 <div key={i} className="space-y-3 pb-6 border-b border-gray-100/50 dark:border-gray-700/50">
+                    <div className="h-4 bg-gray-200/70 dark:bg-gray-700/70 rounded w-1/3 animate-pulse" />
                     <div className="grid grid-cols-2 gap-3">
-                       <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                       <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                       <div className="h-10 bg-gray-200/70 dark:bg-gray-700/70 rounded-lg animate-pulse" />
+                       <div className="h-10 bg-gray-200/70 dark:bg-gray-700/70 rounded-lg animate-pulse" />
                     </div>
                  </div>
                ))}
-            </div>
+            </motion.div>
           }>
             <FilterSidebar
               filters={filters}
@@ -357,35 +362,57 @@ export const Home = () => {
 
         <div className="p-4 md:p-6 lg:p-8 flex-1 overflow-x-hidden">
           {activeFiltersList.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {activeFiltersList.map((filter, index) => (
-                <button
-                  key={`${filter.key}-${filter.value || index}`}
-                  onClick={() => removeFilter(filter)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  {filter.label}
-                  <X
-                    size={13}
-                    className="opacity-60 hover:opacity-100 hover:text-red-500 transition-opacity"
-                  />
-                </button>
-              ))}
+            <motion.div layout className="flex flex-wrap gap-2 mb-6">
+              <AnimatePresence>
+                {activeFiltersList.map((filter, index) => (
+                  <motion.button
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8, width: 0, overflow: "hidden", paddingLeft: 0, paddingRight: 0, margin: 0, transition: { duration: 0.2 } }}
+                    key={`${filter.key}-${filter.value || index}`}
+                    onClick={() => removeFilter(filter)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                  >
+                    {filter.label}
+                    <X
+                      size={13}
+                      className="opacity-60 hover:opacity-100 hover:text-red-500 transition-opacity"
+                    />
+                  </motion.button>
+                ))}
+              </AnimatePresence>
               <button
                 onClick={clearFilters}
                 className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors ml-1 px-2 py-1.5"
               >
                 Limpar
               </button>
-            </div>
+            </motion.div>
           )}
 
           {isLoading ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+             <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className={clsx(
+                 "grid gap-6",
+                 viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
+               )}
+             >
                {[...Array(6)].map((_, i) => (
-                 <PropertyCardSkeleton key={i} />
+                 <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.05, ease: "easeOut" }}
+                    className="h-full"
+                 >
+                   <PropertyCardSkeleton viewMode={viewMode} />
+                 </motion.div>
                ))}
-             </div>
+             </motion.div>
           ) : isError ? (
             <EmptyState
                 icon={AlertCircle}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Site } from '../src/types';
 import BrowserSingleton from '../src/infra/browser';
-import { retrieveContent } from '../src/business/retrieve-page-content';
+import { retrieveContent } from '../src/imoveis';
 
 jest.mock('axios');
 jest.mock('../src/infra/browser');
@@ -33,7 +33,7 @@ describe('retrieveContent function', () => {
     const result = await retrieveContent(url, site as Site);
 
     expect(BrowserSingleton.getNewPage).toHaveBeenCalledTimes(1);
-    // Updated timeout to match implementation (30000)
+    // Updated timeout to match implementation (20000)
     expect(mockedPage.goto).toHaveBeenCalledWith(url.trim(), { timeout: 30000, waitUntil: 'networkidle0' });
     expect(mockedPage.waitForSelector).toHaveBeenCalledWith(site.waitFor, { timeout: 10000 });
     expect(mockedPage.content).toHaveBeenCalledTimes(1);
