@@ -56,7 +56,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
         }
     });
 
-    let linkAttr = $(el).find('a').first().attr('href');
+    const linkAttr = $(el).find('a').first().attr('href');
     const link = linkAttr ? (linkAttr.startsWith('http') ? linkAttr : `https://habitesefranca.com.br${linkAttr}`) : '';
 
     const imgSrc = $(el).find('img').first().attr('src');
