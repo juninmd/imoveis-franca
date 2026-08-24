@@ -15,7 +15,8 @@ describe('Imoveis Franca Adapter', () => {
           <div>1 Vagas</div>
         </div>
         <div class="carousel-inner">
-          <div class="item"><img src="img1.jpg"></div>
+          <div class="carousel-item active"><img src="img1.jpg"></div>
+          <div class="carousel-item"><img src="img2.jpg"></div>
         </div>
         <a class="link-resultado" href="/imovel/123">Link</a>
       </div>
@@ -32,5 +33,28 @@ describe('Imoveis Franca Adapter', () => {
     expect(imovel.quartos).toBe(3);
     expect(imovel.vagas).toBe(1);
     expect(imovel.endereco).toBe('CENTRO');
+    expect(imovel.imagens).toEqual(['img1.jpg', 'img2.jpg']);
+  });
+
+  it('should return no imagens when the carousel has no items', async () => {
+    const html = `
+      <div id="result">Encontrados 1 imóveis</div>
+      <div class="card-resultado">
+        <div class="titulo-resultado-busca">Casa Padrão</div>
+        <div class="endereco-resultado-busca">Centro, Franca</div>
+        <div class="valores-resultado-busca"><h3>R$ 450.000,00</h3></div>
+        <div class="comodidades-resultado-busca">
+          <div>200 m²</div>
+          <div>3 Quartos</div>
+          <div>2 Banheiros</div>
+          <div>1 Vagas</div>
+        </div>
+        <div class="carousel-inner"></div>
+        <a class="link-resultado" href="/imovel/123">Link</a>
+      </div>
+    `;
+
+    const result = await adapter(html);
+    expect(result.imoveis[0].imagens).toEqual([]);
   });
 });

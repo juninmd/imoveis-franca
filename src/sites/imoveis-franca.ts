@@ -35,8 +35,10 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const quartos = $(el).find('.comodidades-resultado-busca > div:nth-child(2)').text().replace('Quartos', '').trim();
     const banheiros = $(el).find('.comodidades-resultado-busca > div:nth-child(3)').text().replace('Banheiros', '').trim();
     const vagas = $(el).find('.comodidades-resultado-busca > div:nth-child(4)').text().replace('Vagas', '').trim();
+    // O site trocou o markup do carrossel de `div.item` para `div.carousel-item` (Bootstrap);
+    // sem essa classe as fotos vinham vazias mesmo com o site retornando as imagens.
     const imagens: string[] = [];
-    $(el).find('div.carousel-inner > div.item > img').each((_q, i) => { imagens.push((i as any).attribs['src']) });
+    $(el).find('div.carousel-inner > div.carousel-item > img').each((_q, i) => { imagens.push((i as any).attribs['src']) });
     const link = $(el).find('.link-resultado').attr('href');
     const precoPorMetro = valor / areaTotal;
     const descricao = '';

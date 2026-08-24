@@ -129,6 +129,20 @@ Branch: `feat/compra-aluguel-plataforma-moderna`
 - Stack deixada rodando (`docker compose up -d`) para o usuário navegar em
   http://localhost:3000 diretamente.
 
+### Bug real encontrado ao navegar (fora do escopo original, corrigido a pedido do usuário)
+- Usuário perguntou por que as fotos não apareciam nos cards. Diagnóstico: `imoveisfranca.com.br`
+  (site com mais volume, 1870 de 2368 imóveis) trocou o markup do carrossel de fotos de
+  `div.item` para `div.carousel-item` (atualização de Bootstrap do lado deles); o seletor do
+  adapter (`src/sites/imoveis-franca.ts`) ficou desatualizado e sempre retornava `imagens: []`,
+  mesmo o site tendo as fotos. Confirmado inspecionando o HTML real renderizado dentro do
+  container.
+- Corrigido o seletor para `div.carousel-inner > div.carousel-item > img`; fixture de teste
+  (`__tests__/imoveis-franca-tests.ts`) atualizada para o markup real + novo caso de carrossel
+  vazio. `pnpm test:coverage` → 53 suítes / **174 testes**, 100% mantido.
+- Confirmado ao vivo: novo scrape (após `FLUSHALL` no Redis do compose) trouxe imagens em 2367 de
+  2368 imóveis (`aacosta.com.br` já funcionava; agora `imoveisfranca.com.br` também). Screenshot
+  `docker-live-comprar-images-fixed.png` mostra fotos reais nos cards.
+
 ### Screenshots de UI/UX
 Capturados via Playwright (`scripts/generate-preview.ts`, estendido com `OUT`/`DARK`/`VIEWPORT`/
 `TIPO`) contra `vite preview` (build de produção do client) em
