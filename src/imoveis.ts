@@ -88,11 +88,13 @@ export const generateList = async (query) => {
     }
 
     const fetched = await retrieImoveisSite(site, baseQueryParams);
-    // Cache the result for this specific query
-    if (fetched && fetched.length > 0) {
-        // Cache for 1 hour
-        await RedisConnection.setKey(cacheKeyString, fetched, 3600);
-    }
+    // Cache o resultado, inclusive quando vazio ("cache negativo"): sem isso, um site
+    // permanentemente fora do ar (domínio morto, 404/410, timeout) fazia CADA requisição a
+    // /api/imoveis esperar de novo pelas 3 tentativas x até 30s dele, deixando a API lenta
+    // (minutos) em toda chamada sem cache. TTL curto para vazio permite recuperação rápida
+    // caso o site volte a funcionar.
+    const ttl = fetched && fetched.length > 0 ? 3600 : 300;
+    await RedisConnection.setKey(cacheKeyString, fetched, ttl);
     return fetched;
   });
 
