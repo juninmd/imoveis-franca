@@ -22,12 +22,12 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
   const imoveis: Imovel[] = [];
 
   const bodyText = $('body').text();
-  const qtdMatch = bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/(\d+)\s*resultados/i) || bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/Encontrados\s*(\d+)/i);
+  const qtdMatch = bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/(\d+)\s*resultados/i) || bodyText.match(/(\d+)\s*propriedades/i) || bodyText.match(/Encontrados\s*(\d+)/i);
   let qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
 
   // Find cards using attribute that seems common based on initial tests
   // Matriz uses a container with .grid.grid-cols-1.sm:grid-cols-2
-  const items = $('div[class*="group hover:bg-background"], a[class*="group hover:bg-background"], .border.rounded-lg, div.card-imovel, .property-card, a[href*="/imovel/"]');
+  const items = $('div[class*="group hover:bg-background"], a[class*="group hover:bg-background"], .border.rounded-lg, div.card-imovel, .property-card, .bento-card, a[href*="/imovel/"]');
 
   items.each((_i, el) => {
     const $el = $(el);

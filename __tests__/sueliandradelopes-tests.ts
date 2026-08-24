@@ -3,52 +3,51 @@ import { adapter } from '../src/sites/sueliandradelopes';
 describe('sueliandradelopes adapter', () => {
   it('should parse properties correctly', async () => {
     const html = `
-      <div class="imovelcard" data-link="/imovel/123/casa-venda">
-        <div class="imovelcard__info__tag">Venda</div>
-        <div class="imovelcard__info__local">Centro, Franca / SP</div>
-        <div class="imovelcard__info__ref">Ref: 01 - Casa</div>
-        <div class="imovelcard__valor__valor">R$ 500.000</div>
-
-        <div class="imovelcard__info__feature">
-          <b>3</b> Dormitórios
+      <div class="imovelcard" data-link="/imovel/4081761/cobertura-venda-franca-sp-residencial-amazonas">
+        <div class="row">
+          <a href="/imovel/4081761/cobertura-venda-franca-sp-residencial-amazonas" title="Cobertura para Venda" class="col imovelcard__img">
+            <img src="https://imgs1.cdn-imobibrasil.com.br/imagens/imoveis/thumb15-202512121056471366.jpg" alt="">
+          </a>
+          <div class="col imovelcard__infocontainer">
+            <div class="row imovelcard__infotopcontainer">
+              <div class="col imovelcard__info">
+                <h2 class="imovelcard__info__tag">Venda</h2>
+                <h2 class="imovelcard__info__local">Centro, Franca / SP</h2>
+                <p class="imovelcard__info__ref"><strong>Ref: 01</strong> - Casa</p>
+                <div class="imovelcard__info__feature"><i class="fa fa-bed"></i><p><b>3</b> <span>Dormitórios</span></p></div>
+                <div class="imovelcard__info__feature"><i class="fa fa-shower"></i><p><b>2</b> <span>Banheiros</span></p></div>
+                <div class="imovelcard__info__feature"><i class="fa fa-car"></i><p><b>2</b> <span>Vagas</span></p></div>
+                <div class="imovelcard__info__feature"><i class="fa fa-arrows-h"></i><p><b>150,00 m²</b> Útil</p></div>
+              </div>
+              <div class="col imovelcard__valor">
+                <p class="imovelcard__valor__valor"><span>R$</span> 500.000</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="imovelcard__info__feature">
-          <b>2</b> Banheiros
-        </div>
-        <div class="imovelcard__info__feature">
-          <b>2</b> Vagas
-        </div>
-        <div class="imovelcard__info__feature">
-          <b>150</b> m²
-        </div>
-
-        <a class="imovelcard__img" href="/imovel/123/casa-venda">
-          <img src="/img/test.jpg" />
-        </a>
       </div>
 
-      <div class="imovelcard" data-link="/imovel/456/apartamento-venda">
-        <div class="imovelcard__info__tag">Venda</div>
-        <div class="imovelcard__info__local">Cidade Nova, Franca / SP</div>
-        <div class="imovelcard__info__ref">Ref: 02 - Apartamento</div>
-        <div class="imovelcard__valor__valor">R$ 300.000</div>
-
-        <div class="imovelcard__info__feature">
-          <b>2</b> Dormitórios
+      <div class="imovelcard" data-link="/imovel/456/apartamento-venda-franca-sp-cidade-nova">
+        <div class="row">
+          <a href="/imovel/456/apartamento-venda-franca-sp-cidade-nova" title="Apartamento para Venda" class="col imovelcard__img">
+            <img data-src="/img/test2.jpg" src="data:image/png;base64,123" alt="">
+          </a>
+          <div class="col imovelcard__infocontainer">
+            <div class="row imovelcard__infotopcontainer">
+              <div class="col imovelcard__info">
+                <h2 class="imovelcard__info__local">Cidade Nova, Franca / SP</h2>
+                <p class="imovelcard__info__ref"><strong>Ref: 02</strong> - Apartamento</p>
+                <div class="imovelcard__info__feature"><i class="fa fa-bed"></i><p><b>2</b> <span>Dormitórios</span></p></div>
+                <div class="imovelcard__info__feature"><i class="fa fa-shower"></i><p><b>1</b> <span>Banheiro</span></p></div>
+                <div class="imovelcard__info__feature"><i class="fa fa-car"></i><p><b>1</b> <span>Vaga</span></p></div>
+                <div class="imovelcard__info__feature"><i class="fa fa-arrows-h"></i><p><b>80,00 m²</b> Útil</p></div>
+              </div>
+              <div class="col imovelcard__valor">
+                <p class="imovelcard__valor__valor"><span>R$</span> 300.000</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="imovelcard__info__feature">
-          <b>1</b> Banheiros
-        </div>
-        <div class="imovelcard__info__feature">
-          <b>1</b> Vaga
-        </div>
-        <div class="imovelcard__info__feature">
-          <b>80</b> m²
-        </div>
-
-        <a class="imovelcard__img" href="/imovel/456/apartamento-venda">
-          <img data-src="/img/test2.jpg" src="data:image/png;base64,123" />
-        </a>
       </div>
     `;
 
@@ -65,9 +64,9 @@ describe('sueliandradelopes adapter', () => {
       vagas: 2,
       area: 150,
       areaTotal: 150,
-      link: 'https://www.sueliandradelopes.com.br/imovel/123/casa-venda',
+      link: 'https://www.sueliandradelopes.com.br/imovel/4081761/cobertura-venda-franca-sp-residencial-amazonas',
       site: 'sueliandradelopes.com.br',
-      imagens: ['https://www.sueliandradelopes.com.br/img/test.jpg'],
+      imagens: ['https://imgs1.cdn-imobibrasil.com.br/imagens/imoveis/202512121056471366.jpg'],
     });
 
     expect(imoveis[1]).toMatchObject({
@@ -79,52 +78,48 @@ describe('sueliandradelopes adapter', () => {
       vagas: 1,
       area: 80,
       areaTotal: 80,
-      link: 'https://www.sueliandradelopes.com.br/imovel/456/apartamento-venda',
+      link: 'https://www.sueliandradelopes.com.br/imovel/456/apartamento-venda-franca-sp-cidade-nova',
       site: 'sueliandradelopes.com.br',
       imagens: ['https://www.sueliandradelopes.com.br/img/test2.jpg'],
     });
   });
 
   it('should handle edge cases', async () => {
-    // Generate a simple mock HTML
     const html = `
-      <div class="imovelcard">
+      <div class="imovelcard" data-link="/imovel/123/casa-venda">
         <a class="imovelcard__img" href="/imovel/123/casa-venda"></a>
-        <div class="imovelcard__info__ref">Ref: 001 - Casa</div>
-        <div class="imovelcard__info__local">Centro, Franca / SP</div>
-        <div class="imovelcard__valor__valor">R$ 500.000,00</div>
+        <p class="imovelcard__info__ref"><strong>Ref: 001</strong> - Casa</p>
+        <h2 class="imovelcard__info__local">Centro, Franca / SP</h2>
+        <p class="imovelcard__valor__valor"><span>R$</span> 500.000</p>
         <img src="https://example.com/img1.jpg">
         <img data-src="/img2.jpg">
         <img src="logo.png">
         <img data-src="">
-        <div class="imovelcard__info__feature">3 Dormitórios</div>
-        <div class="imovelcard__info__feature">2 Banheiros</div>
-        <div class="imovelcard__info__feature">2 Vagas</div>
-        <div class="imovelcard__info__feature">150,00 m²</div>
+        <div class="imovelcard__info__feature"><p><b>3</b> Dormitórios</p></div>
+        <div class="imovelcard__info__feature"><p><b>2</b> Banheiros</p></div>
+        <div class="imovelcard__info__feature"><p><b>2</b> Vagas</p></div>
+        <div class="imovelcard__info__feature"><p><b>150,00 m²</b> Útil</p></div>
       </div>
-      <div class="imovelcard">
+      <div class="imovelcard" data-link="/imovel/124/casa-venda">
         <a class="imovelcard__img" href="/imovel/124/casa-venda"></a>
-        <div class="imovelcard__info__ref">Ref: 002 - Casa</div>
-        <div class="imovelcard__info__local">Vila Nova, Franca / SP</div>
-        <div class="imovelcard__valor__valor">R$ 0,00</div>
-        <div class="imovelcard__info__feature">3 Dormitórios</div>
-        <div class="imovelcard__info__feature">2 Banheiros</div>
-        <div class="imovelcard__info__feature">2 Vagas</div>
-        <div class="imovelcard__info__feature">150,00 m²</div>
+        <p class="imovelcard__info__ref"><strong>Ref: 002</strong> - Casa</p>
+        <h2 class="imovelcard__info__local">Vila Nova, Franca / SP</h2>
+        <p class="imovelcard__valor__valor"><span>R$</span> 0</p>
+        <div class="imovelcard__info__feature"><p><b>3</b> Dormitórios</p></div>
       </div>
       <div class="imovelcard">
         <!-- Missing link -->
-        <div class="imovelcard__info__ref">Ref: 003 - Casa</div>
+        <p class="imovelcard__info__ref"><strong>Ref: 003</strong> - Casa</p>
       </div>
-      <div class="imovelcard">
+      <div class="imovelcard" data-link="/imovel/125/casa-venda">
         <a class="imovelcard__img" href="/imovel/125/casa-venda"></a>
-        <div class="imovelcard__info__ref">Ref: 004 - Casa</div>
-        <div class="imovelcard__info__local">Vila Nova, Franca / SP</div>
-        <div class="imovelcard__valor__valor">R$ 400.000,00</div>
-        <div class="imovelcard__info__feature">Quarto</div>
-        <div class="imovelcard__info__feature">1 Banheiro</div>
-        <div class="imovelcard__info__feature">Vaga</div>
-        <div class="imovelcard__info__feature">m²</div>
+        <p class="imovelcard__info__ref"><strong>Ref: 004</strong> - Casa</p>
+        <h2 class="imovelcard__info__local">Vila Nova, Franca / SP</h2>
+        <p class="imovelcard__valor__valor"><span>R$</span> 400.000</p>
+        <div class="imovelcard__info__feature"><p>Quarto</p></div>
+        <div class="imovelcard__info__feature"><p><b>1</b> Banheiro</p></div>
+        <div class="imovelcard__info__feature"><p>Vaga</p></div>
+        <div class="imovelcard__info__feature"><p>Útil</p></div>
       </div>
     `;
 

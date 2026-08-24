@@ -20,9 +20,8 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const $ = cheerio.load(html);
   const imoveis: Imoveis[] = [];
 
-  const qtdText = $('h1').text();
-  const qtdMatch = qtdText.match(/(\d+)\s+imóveis/i);
-  const qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
+  // Site não expõe mais texto de contagem em <h1>; usa a quantidade de cards encontrados.
+  const qtd = $('.row.imovel').length;
 
   $('.row.imovel').each((_i, el) => {
     let link = '';
