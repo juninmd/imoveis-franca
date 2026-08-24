@@ -104,14 +104,30 @@ Branch: `feat/compra-aluguel-plataforma-moderna`
   tipos no `setFilters` repassado ao `FilterSidebar`. `FilterSidebar.test.tsx` atualizado com
   `tipo: 'venda'` no `defaultFilters` de teste.
 
-### Docker (bloqueado neste ambiente)
-- `docker version`/`docker compose version` funcionam, mas o **daemon do Docker Desktop não está
-  rodando nesta máquina** (`failed to connect to the docker API ... dockerDesktopLinuxEngine`).
-  Não iniciei o Docker Desktop por conta própria (ação de sistema fora do escopo de "implementar
-  código"). `docker-compose.yml`, `.dockerignore` e o `Dockerfile` (Chromium + healthcheck) estão
-  prontos e revisados, mas **`docker compose up --build` não foi executado nem verificado nesta
-  sessão** — pendente de o usuário rodar localmente com o Docker Desktop ativo, ou pedir para eu
-  verificar numa sessão com o daemon disponível.
+### Docker — verificado (rodada local a pedido do usuário)
+- Docker Desktop foi iniciado e `docker compose up --build -d` rodou com sucesso.
+- **Bug real encontrado e corrigido**: o Chromium falhava dentro do container
+  (`Running as root without --no-sandbox is not supported`) porque a imagem roda como root e o
+  Puppeteer não passava `--no-sandbox`. Corrigido em `src/infra/browser.ts`
+  (`args: ['--no-sandbox', '--disable-setuid-sandbox']`), coberto pelos testes existentes
+  (`infra-browser-tests.ts` já invoca `getBrowser()` de verdade com `puppeteer-extra` mockado) —
+  100% de cobertura mantido.
+- **Bug de ambiente encontrado e corrigido**: `docker-compose.yml` publicava a porta 6379 do
+  redis no host, conflitando com um Redis de outro projeto já rodando ali. Removido o publish
+  (o `app` fala com o `redis` pela rede interna do compose; publicar a porta nunca foi necessário
+  para o funcionamento).
+- `curl http://localhost:3000/healthz` → `{"status":"ok"}`.
+- `curl http://localhost:3000/api/imoveis?tipo=venda` → **200, 2368 imóveis reais** (a maioria de
+  `imoveisfranca.com.br` e `aacosta.com.br`; boa parte dos outros 43 sites voltou vazia nesta
+  rodada — falha de rede/anti-bot pontual do ambiente, não do código: `filterImoveis`/`tipo`
+  funcionaram corretamente sobre o que voltou).
+- `curl http://localhost:3000/api/imoveis?tipo=aluguel` → **200, 0 imóveis** nesta rodada — reforça
+  a limitação já documentada (só `imoveismpb.com.br` tem finalidade aluguel hoje) e, adicionalmente,
+  esse site específico não retornou dados nesta execução (mesma causa de rede/anti-bot).
+- Screenshot com dados reais capturado contra o app rodando em Docker (não mockado) — enviado ao
+  usuário via `SendUserFile`.
+- Stack deixada rodando (`docker compose up -d`) para o usuário navegar em
+  http://localhost:3000 diretamente.
 
 ### Screenshots de UI/UX
 Capturados via Playwright (`scripts/generate-preview.ts`, estendido com `OUT`/`DARK`/`VIEWPORT`/
