@@ -15,6 +15,9 @@ export default {
   },
   adapter,
 } as Site;
+// Nota: `locacao_venda=L` (tentativa de variante "alugar") foi testado e descartado — o site
+// ignora o parâmetro e retorna um feed de imóveis À VENDA de outras cidades (ex.: Formosa-GO),
+// não aluguéis de Franca. Ver .workflow/49-plataforma-moderna-compra-aluguel/progress.md.
 
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);

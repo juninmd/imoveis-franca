@@ -51,7 +51,7 @@ describe('moradiaimoveisfranca.com.br site scraper', () => {
             `;
         const result = await adapter(mockHtml);
         expect(result.qtd).toBe(2);
-        expect(result.imoveis).toHaveLength(1);
+        expect(result.imoveis).toHaveLength(2);
         expect(result.imoveis[0].titulo).toBe('APARTAMENTO - Vila Santa Rita');
         expect(result.imoveis[0].valor).toBe(350000);
         expect(result.imoveis[0].area).toBe(50);
@@ -60,6 +60,12 @@ describe('moradiaimoveisfranca.com.br site scraper', () => {
         expect(result.imoveis[0].vagas).toBe(1);
         expect(result.imoveis[0].link).toBe('https://www.moradiaimoveisfranca.com.br/comprar/sp/franca/vila-santa-rita/apartamento/8525602');
         expect(result.imoveis[0].imagens).toEqual(['https://www.moradiaimoveisfranca.com.br/img/teste.jpg']);
+        expect(result.imoveis[0].tipo).toBe('venda');
+
+        expect(result.imoveis[1].titulo).toBe('CASA - São José');
+        expect(result.imoveis[1].valor).toBe(5000);
+        expect(result.imoveis[1].tipo).toBe('aluguel');
+        expect(result.imoveis[1].link).toBe('https://www.moradiaimoveisfranca.com.br/alugar/sp/franca/sao-jose/casa/8525416');
     });
 
     it('should return zero items when there are no results', async () => {

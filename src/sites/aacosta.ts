@@ -3,27 +3,13 @@ import { Imoveis, Site } from '../types';
 import { getFixValue, normalizeNeighborhoodName } from '../utils';
 import axios from 'axios';
 
-export default {
+const common = {
   driver: 'puppet',
   enabled: true,
-  tipo: 'venda',
   waitFor: undefined,
   name: 'aacosta.com.br',
   url: 'https://www.aacosta.com.br/listagem.jsp',
   itemsPerPage: 10,
-  params: [
-    // {
-    //   negociacao: 1, // aluguel
-    //   tipo: 0,
-    //   cidade: 1,
-    //   ordem: 'preco'
-    // },
-    {
-      negociacao: 2, // compra
-      tipo: 1, // casa
-      cidade: 1,
-      ordem: 'preco'
-    }],
   translateParams: {
     currentPage: 'numpagina',
     maxPrice: undefined,
@@ -32,7 +18,32 @@ export default {
   getPaginateParams: (page: number) => ({ params: { numpagina: page } }),
   disableQuery: '.pagination>ul>li:nth-last-child(1)>a:not([href])',
   adapter,
-} as Site
+};
+
+export const aacostaComprar: Site = {
+  ...common,
+  tipo: 'venda',
+  params: [{
+    negociacao: 2, // compra
+    tipo: 1, // casa
+    cidade: 1,
+    ordem: 'preco'
+  }],
+} as unknown as Site;
+
+export const aacostaAlugar: Site = {
+  ...common,
+  name: 'aacosta.com.br - Alugar',
+  tipo: 'aluguel',
+  params: [{
+    negociacao: 1, // aluguel
+    tipo: 0,
+    cidade: 1,
+    ordem: 'preco'
+  }],
+} as unknown as Site;
+
+export default [aacostaComprar, aacostaAlugar];
 
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);

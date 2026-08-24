@@ -241,6 +241,83 @@ Também observado: sites permanentemente fora do ar (`mazzaimoveis`, `r2imob`,
 tentativas × 30s por página em CADA requisição, sem cache negativo — deixa `/api/imoveis` lento
 em toda chamada sem cache. Vale um circuit-breaker/cache de falha como melhoria futura.
 
+## Pedido do usuário: "precisa agora corrigir a listagem dos aluguéis"
+
+Partindo de 0 imóveis de aluguel reais (só `imoveismpb.com.br - Alugar`, que não retornou dados
+nas últimas rodadas por instabilidade de rede do site). Investigação site a site:
+
+### Ganhos confirmados (dados reais, verificados um a um)
+- **andresaborgesimoveis.com.br** (`src/sites/andresaborgesimoveis.ts`): o adapter já detectava
+  `isRental` (título contém "locação"/"alugar") e **descartava** o item (`if (isRental) return`).
+  A página `imoveis.php` retorna venda E aluguel misturados. Removido o descarte; `tipo` agora é
+  `'aluguel'` ou `'venda'` por item, conforme detectado. **50 imóveis de aluguel reais**
+  (comerciais, valores plausíveis R$4.000–15.000/mês, endereços de Franca).
+- **moradiaimoveisfranca.com.br** (`src/sites/moradiaimoveis.ts`): mesmo padrão — `isRental`
+  detectado pelo link (`/alugar/`) e descartado. Mesma correção. **8 imóveis de aluguel reais**
+  (R$1.500–7.500/mês, endereços de Franca).
+- **aacosta.com.br** (`src/sites/aacosta.ts`): o `Site` já tinha o parâmetro de aluguel
+  **comentado** (`// negociacao: 1, // aluguel`). Testado ao vivo: endpoint funciona e retorna um
+  catálogo de aluguel genuíno e diferente do de venda. Site dividido em `aacostaComprar`/
+  `aacostaAlugar` (mesmo padrão já usado em `imoveismpb.ts`), cada um com seu próprio `tipo`.
+  **171 imóveis de aluguel reais** (R$900–1.300/mês, apartamentos em Franca).
+
+### Tentativa descartada por qualidade de dado ruim
+- **tratoimoveis.com.br**: testei a URL com `locacao_venda=L` (em vez de `V`) — respondia 200 e
+  retornava 46 itens com o mesmo seletor. Ao inspecionar os dados: **títulos diziam "à venda"/
+  "para Venda", valores de R$200.000–11.000.000 (preço de compra, não aluguel mensal), e vários
+  endereços eram de Formosa-GO, não Franca-SP**. O parâmetro `locacao_venda=L` não filtra
+  aluguel nesse site — ele é ignorado e retorna um feed nacional de vendas de outra franquia.
+  **Revertido** (`tratoimoveis.ts` voltou a ter só a variante de venda, com nota no código
+  explicando por quê). Não vale a pena expor um filtro "Alugar" com dado errado só para engordar
+  o número.
+
+### Tentativa inconclusiva, não aplicada
+- **imoveisfranca.com.br** (maior site, 1870 itens de venda): testei trocar `IDFinalidade=2` por
+  `IDFinalidade=1`. O total de "Ofertas" retornado (1875) é quase idêntico ao de venda, e os
+  preços vieram vazios/"Consulte" nos primeiros itens — não deu pra confirmar com segurança que é
+  um catálogo de aluguel de verdade e não apenas o parâmetro sendo ignorado (mesmo padrão do
+  trato). Não apliquei sem confirmação; fica de backlog investigar com mais profundidade
+  (ex.: comparar os IDs retornados entre `IDFinalidade=1` e `=2`).
+- **espaconobreimoveis.com.br**: o adapter já tem lógica ciente de `comercializacao.locacao` no
+  JSON, mas o endpoint `busca/Imoveis` está retornando 404 mesmo para venda (falha de conexão já
+  documentada antes) — sem o endpoint básico funcionando, não há como testar a variante aluguel.
+- **faleirosimoveis.com.br**: `locacao_venda=L` retornou 404 (mesmo problema de Franca não ser
+  mais atendida pelo site, já documentado).
+- **agnelloimoveis.com.br**: tem parâmetro de aluguel comentado no código, mas o site está
+  `enabled: false` (desabilitado por outro motivo) — fora de escopo mexer aqui agora.
+
+### Resultado medido em produção (docker compose local, cache limpo + nova busca completa)
+
+| | Antes desta correção | Depois |
+|---|---|---|
+| Imóveis para alugar | 0 | **229** |
+| Sites contribuindo aluguel | 0 (`imoveismpb - Alugar` instável na hora) | 3 (`aacosta`, `andresaborgesimoveis`, `moradiaimoveis`) |
+
+Todos os 229 itens inspecionados manualmente por amostragem: endereços de Franca, valores
+mensais plausíveis, títulos condizentes com aluguel — sem dado incorreto misturado (ao contrário
+da tentativa descartada do tratoimoveis).
+
+Novo teste: `__tests__/sites-aluguel-coverage.test.ts` (garante que as novas variantes de aluguel
+estão registradas em `sites` com `tipo` correto). Testes de `andresaborgesimoveis-tests.ts` e
+`moradiaimoveis-tests.ts` atualizados para cobrir a captura de aluguel em vez do descarte.
+
+`jest --coverage`: 59 suítes / 190 testes, 100% cobertura mantida. `tsc`/`eslint` limpos.
+
+### Achado extra corrigido: cache negativo (`src/imoveis.ts`, `generateList`)
+Ao tentar tirar um screenshot da aba Alugar populada, a página ficou "Carregando..." por mais
+de 8 minutos mesmo com o cache Redis dos sites que funcionam já quente. Causa: `generateList`
+só gravava no cache o resultado de um site quando `fetched.length > 0` — sites permanentemente
+fora do ar (domínio morto, 404/410, timeout) refaziam as 3 tentativas × até 30s **em toda
+requisição**, sem cache, deixando `/api/imoveis` levar minutos toda vez que o cache expirava.
+Corrigido: agora sempre grava no cache, inclusive resultado vazio, com TTL curto (5 min) para
+falha vs. 1h para sucesso — permite recuperação rápida se o site voltar a funcionar sem penalizar
+toda requisição no meio tempo.
+
+**Medido**: primeira chamada (cache frio) → 3min09s. Segunda chamada, imediatamente depois
+(cache quente, inclusive para os sites que falham) → **79ms**. Screenshot
+`docker-live-aluguel-real.png` mostra a aba Alugar carregada com 229 imóveis reais, fotos,
+badge "ALUGUEL" e preços em R$/mês.
+
 ### Screenshots finais
 `docker-live-all-sites-fixed.png` — tentativa de screenshot com o app real após o fix; o
 carregamento inicial (sem cache) demorou mais que os testes de screenshot suportavam por causa do

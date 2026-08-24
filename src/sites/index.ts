@@ -47,7 +47,7 @@ import grupohabitat from "./grupohabitat";
 import habitesefranca from "./habitesefranca";
 
 export const sites: Site[] = [
-  c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
+  c15imob, ...aacosta as unknown as Site[], agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,

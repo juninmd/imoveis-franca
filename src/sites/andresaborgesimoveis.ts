@@ -31,7 +31,6 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const endereco = normalizeNeighborhoodName(locationStr);
 
     const isRental = titulo.toLowerCase().includes('locação') || titulo.toLowerCase().includes('alugar');
-    if (isRental) return;
 
     let valor = 0;
     const valorStr = $(el).find('.c49-property-card_rent-price, .c49-property-card_sell-price').text().trim();
@@ -83,7 +82,8 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
             vagas,
             precoPorMetro: area > 0 ? valor / area : 0,
             site: 'andresaborgesimoveis.com.br',
-            entrada: valor * 0.20
+            entrada: valor * 0.20,
+            tipo: isRental ? 'aluguel' : 'venda',
         });
     }
   });
