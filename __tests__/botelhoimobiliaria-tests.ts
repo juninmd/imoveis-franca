@@ -11,29 +11,50 @@ describe('Botelho Imobiliaria Adapter', () => {
   it('should parse HTML correctly', async () => {
     const mockHtml = `
       <body>
-        <div>9 opções encontradas para Venda.</div>
-        <div class="group cursor-pointer" onclick="window.location='imovel.php?id=10'">
-            <h4>Casa Venda Franca</h4>
-            <div class="text-primary font-black text-2xl">R$ 500.000,00</div>
-            <div class="flex-wrap gap-2">
-                <span>3 quarto(s)</span>
-                <span>2 banh.</span>
-                <span>1 vaga(s)</span>
-                <span>100 m²</span>
+        <p>9 opções encontradas para <strong>Venda</strong>.</p>
+        <div onclick="window.location='imovel.php?id=10'"
+             class="group cursor-pointer bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm">
+            <div class="relative aspect-[4/3] overflow-hidden">
+                <img src="uploads/capa.jpg" class="w-full h-full object-cover">
+                <div class="absolute top-6 left-6 flex gap-2 flex-wrap">
+                    <span class="bg-white/90 text-on-surface text-[10px] font-black">VENDA</span>
+                    <span class="bg-primary/90 text-white text-[10px] font-black">Centro</span>
+                </div>
             </div>
-            <p><span class="material-symbols-outlined">location_on</span>Centro</p>
-            <img src="uploads/capa.jpg" />
+            <div class="p-8">
+                <h4 class="text-2xl font-headline font-black mb-3">Casa Venda Franca</h4>
+                <p class="text-tertiary text-sm flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-primary text-base">location_on</span>
+                    Centro                </p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span>3 quarto(s)</span>
+                    <span>2 banh.</span>
+                    <span>1 vaga(s)</span>
+                    <span>100 m²</span>
+                </div>
+                <p class="text-primary font-black text-2xl">R$ 500.000,00</p>
+            </div>
         </div>
-        <div class="group cursor-pointer" onclick="window.location='imovel.php?id=11'">
-            <h4>Apartamento Locacao Franca</h4>
-            <div class="text-primary font-black text-2xl">R$ 1.500,00 /mês</div>
-            <div class="flex-wrap gap-2">
-                <span>LOCAÇÃO</span>
-                <span>2 quarto(s)</span>
-                <span>50 m²</span>
+        <div onclick="window.location='imovel.php?id=11'"
+             class="group cursor-pointer bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm">
+            <div class="relative aspect-[4/3] overflow-hidden">
+                <img src="uploads/capa2.jpg" class="w-full h-full object-cover">
+                <div class="absolute top-6 left-6 flex gap-2 flex-wrap">
+                    <span class="bg-white/90 text-on-surface text-[10px] font-black">LOCAÇÃO</span>
+                    <span class="bg-primary/90 text-white text-[10px] font-black">Centro</span>
+                </div>
             </div>
-            <p><span class="material-symbols-outlined">location_on</span>Centro</p>
-            <img src="uploads/capa2.jpg" />
+            <div class="p-8">
+                <h4 class="text-2xl font-headline font-black mb-3">Apartamento Locacao Franca</h4>
+                <p class="text-tertiary text-sm flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-primary text-base">location_on</span>
+                    Centro                </p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span>2 quarto(s)</span>
+                    <span>50 m²</span>
+                </div>
+                <p class="text-primary font-black text-2xl">1.500,00<span class="text-xs">/mês</span></p>
+            </div>
         </div>
       </body>
     `;
@@ -67,7 +88,7 @@ describe('Botelho Imobiliaria Adapter', () => {
         </a>
         <a class="group" href="https://other.com/imovel.php?id=12">
             <h4 class="font-black">Imovel com titulo mas sem location ou tag</h4>
-            <div class="text-primary">R$ 300.000,00</div>
+            <p class="text-primary">R$ 300.000,00</p>
             <img src="https://img.com/capa3.jpg" />
         </a>
       </body>
@@ -88,7 +109,7 @@ describe('Botelho Imobiliaria Adapter', () => {
       <body>
         <a class="group" href="imovel.php?id=13">
             <h4>Title</h4>
-            <div class="text-primary">R$ 100.000,00</div>
+            <p class="text-primary">R$ 100.000,00</p>
             <div>
                <span class="material-symbols-outlined">location_on</span>
                <span>Some invalid node</span>
@@ -106,7 +127,7 @@ describe('Botelho Imobiliaria Adapter', () => {
       <body>
         <a class="group" href="imovel.php?id=14">
             <h4>Title2</h4>
-            <div class="text-primary">R$ 100.000,00</div>
+            <p class="text-primary">R$ 100.000,00</p>
             <div>
                <span class="material-symbols-outlined">location_on</span>
             </div>
@@ -123,7 +144,7 @@ describe('Botelho Imobiliaria Adapter', () => {
       <body>
         <a class="group" href="imovel.php?id=15">
             <h4>My Title</h4>
-            <div class="text-primary">R$ 100.000,00</div>
+            <p class="text-primary">R$ 100.000,00</p>
             <div>
                <span class="material-symbols-outlined">location_on</span>${longStr}
             </div>

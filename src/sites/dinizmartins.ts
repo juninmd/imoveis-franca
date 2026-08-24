@@ -63,11 +63,11 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
         // Typical structure might use icons or text
         if (icon.includes('bed') || text.includes('quarto') || text.includes('dorm')) {
-            quartos = parseInt(text) || 1;
-        } else if (icon.includes('bath') || text.includes('banh')) {
-            banheiros = parseInt(text) || 1;
-        } else if (icon.includes('car') || text.includes('vaga') || text.includes('garag')) {
-            vagas = parseInt(text) || 1;
+            quartos = parseInt(text, 10) || 0;
+        } else if (icon.includes('bath') || icon.includes('holidays') || text.includes('banh')) {
+            banheiros = parseInt(text, 10) || 0;
+        } else if (icon.includes('car') || icon.includes('vehicle') || text.includes('vaga') || text.includes('garag')) {
+            vagas = parseInt(text, 10) || 0;
         } else if (text.includes('m²')) {
             area = parseFloat(text.replace('m²', '').trim()) || 0;
         }

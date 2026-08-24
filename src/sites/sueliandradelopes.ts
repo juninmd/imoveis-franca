@@ -65,7 +65,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
       } else if (text.includes('vaga')) {
         vagas = value;
       } else if (text.includes('m²')) {
-        area = getFixValue(text.replace('m²', '').trim());
+        area = getFixValue(text.match(/([\d.,]+)\s*m²/)?.[1] || '0');
       }
     });
 

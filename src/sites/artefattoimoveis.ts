@@ -22,7 +22,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const qtd = 0;
   const imoveis: Imoveis[] = [];
 
-  $('.imovel-box').each((_i, el) => {
+  $('article.item').each((_i, el) => {
     const linkEl = $(el).find('a').first();
     const linkAttr = linkEl.attr('href') || '';
     const link = linkAttr.startsWith('http') ? linkAttr : `https://www.artefattoimoveis.com.br${linkAttr}`;

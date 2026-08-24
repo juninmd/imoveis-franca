@@ -33,8 +33,8 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const titulo = $(el).find('.titulo_novo').text().trim();
     if (!titulo) return;
 
-    const addressStr = $(el).find('.bairro_novo').text().trim();
-    const endereco = normalizeNeighborhoodName(addressStr || 'Centro');
+    const addressStr = $(el).find('.final_card').text().trim();
+    const endereco = normalizeNeighborhoodName(addressStr.split('-')[0].trim() || 'Centro');
 
     let valor = 0;
     $(el).find('.valor_novo').each((_j, valEl) => {
@@ -48,11 +48,11 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     if (valor <= 0) return;
 
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;
-    $(el).find('.icone_lista_novo').each((_k, featEl) => {
+    $(el).find('.detalhe_novo').each((_k, featEl) => {
        const text = $(featEl).text().toLowerCase().trim();
        if (text.includes('m²')) {
            area = parseFloat(text.replace('m²', '').replace(',', '.').trim()) || 0;
-       } else if (text.includes('dorm')) {
+       } else if (text.includes('dorm') || text.includes('quarto')) {
            quartos += parseInt(text) || 0;
        } else if (text.includes('banh')) {
            banheiros += parseInt(text) || 0;

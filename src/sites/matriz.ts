@@ -22,11 +22,11 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
   const imoveis: Imovel[] = [];
 
   const bodyText = $('body').text();
-  const qtdMatch = bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/(\d+)\s*resultados/i);
+  const qtdMatch = bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/(\d+)\s*resultados/i) || bodyText.match(/(\d+)\s*propriedades/i);
   let qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
 
   // Also parse html cards if data isn't in script tags
-  const items = $('.property-card, [class*="group hover:bg-background"]');
+  const items = $('.bento-card');
 
   items.each((_i, el) => {
     const $el = $(el);
@@ -46,7 +46,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
     }
     endereco = normalizeNeighborhoodName(endereco);
 
-    const valorText = $el.find('b:contains("R$"), span:contains("R$"), div:contains("R$")').text().trim() || $el.text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
+    const valorText = $el.find('p:contains("R$")').first().text().trim() || $el.text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
     const valor = parseFloat(valorText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;

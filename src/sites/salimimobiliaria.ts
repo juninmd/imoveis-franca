@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import { Imoveis as Imovel, Site } from '../types';
-import { normalizeNeighborhoodName } from '../utils';
+import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
@@ -21,52 +21,34 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
 
   const imoveis: Imovel[] = [];
 
+  const numText = $('.resultados .num').first().text().trim();
   const bodyText = $('body').text();
-  const qtdMatch = bodyText.match(/(\d+)\s*imóveis\s*encontrados/i) || bodyText.match(/(\d+)\s*resultados/i);
+  const qtdMatch = numText ? [null, numText] : (bodyText.match(/(\d+)\s*imóveis\s*encontrados/i) || bodyText.match(/(\d+)\s*resultados/i));
   let qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
 
-  const items = $('.imovel-card, .card-imovel, .col-md-4').filter((_, el) => {
-      const classNames = $(el).attr('class') || '';
-      return classNames.includes('imovel') || classNames.includes('col-md-4');
-  });
-
-  items.each((_i, el) => {
+  $('li.col-im-grid').each((_i, el) => {
     const $el = $(el);
-    const linkAttr = $el.find('a[href*="/imovel/"], a.imovel-link').first().attr('href') || $el.closest('a').attr('href');
+    const linkEl = $el.find('a.main').first();
+    const linkAttr = linkEl.attr('href');
     if (!linkAttr) return;
     const link = linkAttr.startsWith('http') ? linkAttr : `https://www.salimimobiliaria.com.br${linkAttr.startsWith('/') ? '' : '/'}${linkAttr}`;
 
-    const titulo = $el.find('h2, h3, .imovel-title, .titulo').first().text().trim();
+    const titulo = (linkEl.attr('title') || '').trim();
     if (!titulo) return;
 
-    let endereco = titulo;
-    const enderecoElem = $el.find('.imovel-address, .endereco, .bairro').first().text().trim();
-    if (enderecoElem) {
-        endereco = enderecoElem;
-    }
-    endereco = normalizeNeighborhoodName(endereco.replace('Franca - ', '').replace(' - Franca', ''));
+    const endereco = normalizeNeighborhoodName($el.find('.bairro').first().text().trim());
 
-    const valorText = $el.find('.imovel-price, .preco, .valor').text().trim() || $el.text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
-    const valor = parseFloat(valorText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
+    const precoText = ($el.find('.valor.por').first().text() || $el.find('.preco').first().text()).replace(/\s+/g, ' ').trim();
+    const valorMatch = precoText.match(/R\$\s*([\d.,]+)/);
+    const valor = valorMatch ? parseFloat(valorMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
 
-    let area = 0, quartos = 0, banheiros = 0, vagas = 0;
+    const area = getFixValue($el.find('.area-total em').first().text().trim());
+    const quartos = parseInt($el.find('.dorms em').first().text()) || 0;
+    const banheiros = parseInt($el.find('.bwcs em').first().text()) || 0;
+    const vagas = parseInt($el.find('.vagas em').first().text()) || 0;
 
-    const details = $el.text().toLowerCase();
-
-    const areaMatch = details.match(/(\d+)\s*m²/i);
-    if (areaMatch) area = parseFloat(areaMatch[1]);
-
-    const quartosMatch = details.match(/(\d+)\s*dorm/i) || details.match(/(\d+)\s*quarto/i);
-    if (quartosMatch) quartos = parseInt(quartosMatch[1]);
-
-    const banheirosMatch = details.match(/(\d+)\s*banh/i) || details.match(/(\d+)\s*suíte/i);
-    if (banheirosMatch) banheiros = parseInt(banheirosMatch[1]);
-
-    const vagasMatch = details.match(/(\d+)\s*vaga/i);
-    if (vagasMatch) vagas = parseInt(vagasMatch[1]);
-
-    const imgAttr = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src');
-    const imagens = imgAttr ? [imgAttr.startsWith('http') ? imgAttr : `https://www.salimimobiliaria.com.br${imgAttr.startsWith('/') ? '' : '/'}${imgAttr}`] : [];
+    const imgAttr = $el.find('figure img').first().attr('data-src') || $el.find('figure img').first().attr('src');
+    const imagens = imgAttr ? [imgAttr.startsWith('//') ? `https:${imgAttr}` : (imgAttr.startsWith('http') ? imgAttr : `https://www.salimimobiliaria.com.br${imgAttr.startsWith('/') ? '' : '/'}${imgAttr}`)] : [];
 
     if (valor > 0 && link && !imoveis.find(i => i.link === link)) {
         imoveis.push({

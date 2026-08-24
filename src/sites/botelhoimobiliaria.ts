@@ -65,7 +65,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const endereco = normalizeNeighborhoodName(locationStr);
 
     // Price
-    const priceText = $(el).find('.text-primary.font-black.text-2xl, .text-primary').first().text().replace(/[\n\t]/g, '').trim().split('/')[0].replace('location_on', '').trim();
+    const priceText = $(el).find('.text-primary.font-black.text-2xl, p.text-primary').first().text().replace(/[\n\t]/g, '').trim().split('/')[0].replace('location_on', '').trim();
     const valor = parseFloat(priceText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
     // Details

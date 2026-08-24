@@ -19,9 +19,9 @@ export default {
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);
 
-  const qtdText = $('.resultados').text();
-  const qtdMatch = qtdText.match(/(\d+)\s*imóvei[s]?/i) || $('.resultado').length;
-  const qtd = qtdMatch ? (typeof qtdMatch === 'number' ? qtdMatch : Number(qtdMatch[1])) : 0;
+  const qtdText = $('.quantidade').text();
+  const qtdMatch = qtdText.match(/(\d+)\s*imóve/i);
+  const qtd = qtdMatch ? Number(qtdMatch[1]) : $('.resultado').length;
 
   const imoveis: Imoveis[] = [];
 

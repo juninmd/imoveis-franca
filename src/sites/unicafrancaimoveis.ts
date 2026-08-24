@@ -6,23 +6,25 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const $ = cheerio.load(html);
   const imoveis: Imoveis[] = [];
 
-  const cards = $('[class*="card"]');
+  const cards = $('.imovelcard');
   const qtd = cards.length;
 
   cards.each((_, el) => {
     try {
       const linkEl = $(el).find('a').attr('href') ? $(el).find('a') : $(el);
-      const href = linkEl.attr('href');
+      const href = linkEl.attr('href') || $(el).attr('data-link');
 
       if (!href || !href.includes('/imovel/')) return;
 
       const fullLink = href.startsWith('http') ? href : `https://www.unicafrancaimoveis.com.br${href}`;
 
-      const titulo = $(el).find('.card-title, .titulo, h2').first().text().trim().toUpperCase();
-      const valorRaw = $(el).find('.card-price, .preco, .valor, [class*="price"]').text();
+      const tituloEl = $(el).find('.imovelcard__info__local');
+      const titulo = (tituloEl.length ? tituloEl : $(el).find('.card-title, .titulo, h2').first()).text().trim().toUpperCase();
+      const valorRaw = $(el).find('.imovelcard__valor__valor, .card-price, .preco, .valor, [class*="price"]').text();
       const valor = parseFloat(valorRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
 
-      const enderecoRaw = $(el).find('.card-address, .endereco, .bairro, [class*="address"]').text().trim();
+      const enderecoEl = $(el).find('.imovelcard__info__local');
+      const enderecoRaw = (enderecoEl.length ? enderecoEl : $(el).find('.card-address, .endereco, .bairro, [class*="address"]')).text().trim();
       const endereco = normalizeNeighborhoodName(enderecoRaw);
 
       const img = $(el).find('img').first().attr('src') || '';
