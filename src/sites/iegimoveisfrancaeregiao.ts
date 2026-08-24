@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.iegimoveisfrancaeregiao.com.br/imovel/venda',
   name: 'iegimoveisfrancaeregiao.com.br',
   driver: 'axios',

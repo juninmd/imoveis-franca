@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://grupohabitat.com.br/comprar/sp/franca/',
   name: 'grupohabitat.com.br',
   driver: 'axios',

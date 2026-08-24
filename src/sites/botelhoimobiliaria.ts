@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.botelhoimobiliaria.com.br/imoveis.php?negocio=venda',
   name: 'botelhoimobiliaria.com.br',
   driver: 'axios',

@@ -55,6 +55,7 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
 const nielsenimoveis: Site = {
   driver: 'axios',
   enabled: true,
+  tipo: 'venda',
   name: 'nielsenimoveis.com.br',
   url: 'https://www.nielsenimoveis.com.br/imoveis/a-venda/franca',
   itemsPerPage: 12,

@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.cintraimoveis.com.br/comprar/sp/franca/',
   name: 'cintraimoveis.com.br',
   driver: 'puppet',

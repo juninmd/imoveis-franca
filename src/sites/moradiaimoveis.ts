@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.moradiaimoveisfranca.com.br/imoveis/a-venda/pagina-1',
   name: 'moradiaimoveisfranca.com.br',
   driver: 'axios',

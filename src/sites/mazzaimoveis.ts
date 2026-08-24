@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://mazzaimoveis.com.br/imoveis/a-venda/casa/franca',
   name: 'mazzaimoveis.com.br',
   driver: 'axios',

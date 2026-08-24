@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.carlosimoveisfranca.com.br/imoveis/a-venda/',
   name: 'carlosimoveisfranca.com.br',
   driver: 'axios',

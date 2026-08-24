@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.parraimobiliaria.com.br/comprar/Franca/Casa',
   name: 'parraimobiliaria.com.br',
   driver: 'puppet',

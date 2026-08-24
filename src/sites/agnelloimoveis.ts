@@ -6,6 +6,7 @@ import { getFixValue } from '../utils';
 export default {
   driver: 'puppet',
   enabled: false,
+  tipo: 'venda',
   waitFor: '.pagination',
   name: 'agnelloimoveis.com.br',
   url: 'https://www.agnelloimoveis.com.br/pesquisa-de-imoveis/',

@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.unioconimobiliaria.com.br/buscar?availability=buy&direction=desc&order=most_relevant&search_type=properties_map',
   name: 'unioconimobiliaria.com.br',
   driver: 'puppet', // Imobzi is usually client side rendered (angular or similar), so puppet driver is better

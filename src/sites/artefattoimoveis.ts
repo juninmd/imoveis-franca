@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.artefattoimoveis.com.br/imoveis/a-venda',
   name: 'artefattoimoveis.com.br',
   driver: 'axios',

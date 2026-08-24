@@ -94,14 +94,16 @@ export const mpbComprar: Site = {
     ...common,
     name: 'imoveismpb.com.br - Comprar',
     url: 'https://imoveismpb.com.br/comprar/todos',
-    params: [{ tipo: 'comprar' }]
+    params: [{ tipo: 'comprar' }],
+    tipo: 'venda',
 } as any;
 
 export const mpbAlugar: Site = {
     ...common,
     name: 'imoveismpb.com.br - Alugar',
     url: 'https://imoveismpb.com.br/alugar/todos',
-    params: [{ tipo: 'alugar' }]
+    params: [{ tipo: 'alugar' }],
+    tipo: 'aluguel',
 } as any;
 
 export default [mpbComprar, mpbAlugar];

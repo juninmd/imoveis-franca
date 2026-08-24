@@ -55,6 +55,7 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
 const imperadorimoveis: Site = {
   driver: 'axios',
   enabled: true,
+  tipo: 'venda',
   name: 'imperadorimoveis.com.br',
   url: 'https://www.imperadorimoveis.com.br/imoveis/a-venda/franca',
   itemsPerPage: 12,

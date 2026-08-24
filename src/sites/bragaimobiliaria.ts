@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.bragaimobiliaria.com.br/imoveis/finalidade-2-comprar/cidade-FRANCA-franca/pagina-1',
   name: 'bragaimobiliaria.com.br',
   driver: 'axios',

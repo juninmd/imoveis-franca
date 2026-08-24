@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://faleirosimoveis.com.br/pesquisa-de-imoveis/?locacao_venda=V&id_cidade[]=63&id_tipo_imovel=12&finalidade=0',
   name: 'faleirosimoveis.com.br',
   driver: 'puppet',

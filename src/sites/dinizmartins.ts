@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://dinizmartins.com.br/imoveis?finalidade=venda',
   name: 'dinizmartins.com.br',
   driver: 'axios',

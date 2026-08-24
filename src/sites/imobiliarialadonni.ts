@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://imobiliarialadonni.com.br/imovel/?finalidade=venda',
   name: 'imobiliarialadonni.com.br',
   driver: 'axios',

@@ -1,0 +1,17 @@
+{
+  "issue": 49,
+  "slug": "49-plataforma-moderna-compra-aluguel",
+  "stage": "implement",
+  "pr": "https://github.com/juninmd/imoveis-franca/pull/50",
+  "branch": "feat/compra-aluguel-plataforma-moderna",
+  "artifacts": [
+    ".workflow/49-plataforma-moderna-compra-aluguel/research.md",
+    ".workflow/49-plataforma-moderna-compra-aluguel/prototype.md",
+    ".workflow/49-plataforma-moderna-compra-aluguel/plan.md",
+    ".workflow/49-plataforma-moderna-compra-aluguel/progress.md",
+    "https://claude.ai/code/artifact/d1bcb93d-3545-4dfe-b88a-aed019ba0dff",
+    "https://claude.ai/code/artifact/e0d372c0-0535-4375-931f-295b6493c776",
+    "https://claude.ai/code/artifact/ecc95f36-f608-44be-9829-68825d757968"
+  ],
+  "awaiting": "iterate"
+}

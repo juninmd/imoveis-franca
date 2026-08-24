@@ -38,6 +38,11 @@ app.get('/', (_req: Request, res: Response) => {
   res.sendFile(__dirname + '/../../client/dist/index.html');
 });
 
+// Health check para orquestradores (Docker, k8s) — não depende de Redis/scraping.
+app.get('/healthz', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
 // Rota para a API que gera a lista de imóveis
 app.get('/api/imoveis', async (req: Request, res: Response) => {
   try {

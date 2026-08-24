@@ -5,6 +5,7 @@ import axios from 'axios';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.imobiliariapimentafranca.com.br/imovel',
   name: 'imobiliariapimentafranca.com.br',
   driver: 'puppet',

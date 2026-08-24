@@ -17,8 +17,9 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   minBathrooms?: number;
   minVacancies?: number;
   address?: string[];
+  tipo?: 'venda' | 'aluguel';
 }) => {
-  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address } = queryParams;
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, tipo } = queryParams;
 
   return imoveis.filter(imovel => {
     const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
@@ -30,10 +31,11 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passBedRooom = !minBedrooms || imovel.quartos >= minBedrooms;
     const passMinBathroom = !minBathrooms || imovel.banheiros >= minBathrooms;
     const passMinVacancies = !minVacancies || imovel.vagas >= minVacancies;
+    const passTipo = !tipo || imovel.tipo === tipo || imovel.tipo === 'ambos';
 
     const endereco = !address || !!address.find(x => x === imovel.endereco);
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && endereco;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco;
   });
 };
 
@@ -133,7 +135,11 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     // but the main caching is now at the site list level.
     // await RedisConnection.setKey(`content-${link}`, html || json);
 
-    return { imoveis, qtd, page };
+    // Propaga a finalidade (venda/aluguel) do site para cada imóvel, respeitando um valor já
+    // definido pelo próprio adapter (inferência por anúncio) quando existir.
+    const imoveisComTipo = (imoveis || []).map(imovel => ({ ...imovel, tipo: imovel.tipo ?? site.tipo ?? 'ambos' }));
+
+    return { imoveis: imoveisComTipo, qtd, page };
   } catch (error) {
     if (retry > 2) {
       console.error(`Max retries reached for ${site.url} page ${page}`);
