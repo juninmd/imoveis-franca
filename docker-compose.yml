@@ -14,8 +14,8 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    # Sem publish de porta: só o serviço `app` precisa falar com o redis, via rede interna do
+    # compose (host `redis`). Evita conflito com um Redis já rodando na porta 6379 do host.
     volumes:
       - redis-data:/data
     healthcheck:
