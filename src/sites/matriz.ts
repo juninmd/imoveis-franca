@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://matriz.site/busca?finalidade=Venda',
   name: 'matriz.site',
   driver: 'axios',

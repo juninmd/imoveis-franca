@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.futuraimobiliariafranca.com.br/secao/venda',
   name: 'futuraimobiliariafranca.com.br',
   driver: 'axios',

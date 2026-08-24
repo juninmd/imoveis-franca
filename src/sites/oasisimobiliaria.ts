@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://oasisimobiliaria.com.br/?page_id=2675&finalidade=comprar',
   name: 'oasisimobiliaria.com.br',
   driver: 'axios',

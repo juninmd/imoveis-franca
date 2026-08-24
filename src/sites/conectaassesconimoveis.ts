@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.conectaassesconimoveis.com.br/imoveis/a-venda/franca-sp?order=mais_relevantes',
   name: 'conectaassesconimoveis.com.br',
   driver: 'puppet',

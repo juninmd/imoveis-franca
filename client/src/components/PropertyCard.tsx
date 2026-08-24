@@ -110,6 +110,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
 
           <div className="absolute top-3 left-3 flex flex-col gap-2 items-start pointer-events-none z-10">
+             {imovel.tipo === 'aluguel' && (
+               <div className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-emerald-400/50">
+                  Aluguel
+               </div>
+             )}
              {imovel.site && (
                <div className="bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
                   {imovel.site.replace('www.', '')}
@@ -132,7 +137,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end text-white z-10">
              <div className="flex flex-col">
                 <span className="text-2xl font-extrabold tracking-tight text-white drop-shadow-md">
-                   {formatCurrency(imovel.valor)}
+                   {formatCurrency(imovel.valor)}{imovel.tipo === 'aluguel' && <span className="text-sm font-semibold">/mês</span>}
                 </span>
                 {imovel.precoPorMetro > 0 && (
                   <span className="text-xs font-semibold text-emerald-300 drop-shadow-sm bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm inline-block mt-1 border border-white/10 w-fit">

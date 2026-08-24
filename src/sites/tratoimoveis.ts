@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.tratoimoveis.com.br/pesquisa-de-imoveis/?locacao_venda=V&id_cidade[]=63&finalidade=0',
   name: 'tratoimoveis.com.br',
   driver: 'puppet',

@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.transacaoimobiliaria.com.br/imobiliaria/franca-sp/imoveis/17',
   name: 'transacaoimobiliaria.com.br',
   driver: 'axios',

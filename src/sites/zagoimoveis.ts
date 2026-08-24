@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://zagoimoveisfranca.com.br/comprar',
   name: 'zagoimoveisfranca.com.br',
   driver: 'axios',

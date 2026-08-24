@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchImoveis } from './api';
+import { HeroSearch } from './components/HeroSearch';
 import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
@@ -45,6 +46,7 @@ const ItemContainer = ({ children, ...props }: React.HTMLAttributes<HTMLDivEleme
 
 export const Home = () => {
   const [filters, setFilters] = useState({
+    tipo: 'venda' as 'venda' | 'aluguel',
     minPrice: '',
     maxPrice: '',
     minBedrooms: '',
@@ -149,17 +151,20 @@ export const Home = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [debouncedFilters, sortOrder, showFavoritesOnly]);
 
-  const activeFiltersCount = Object.entries(filters).filter(([, value]) => {
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+     if (key === 'tipo') return false; // finalidade não conta como filtro avançado
      if (Array.isArray(value)) return value.length > 0;
      return value !== '';
   }).length;
 
   const clearFilters = () => {
-    setFilters({
+    // Mantém `tipo` (Comprar/Alugar): é a finalidade da busca, não um filtro avançado.
+    setFilters(prev => ({
+      tipo: prev.tipo,
       minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '',
       minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '',
       maxAreaTotal: '', address: []
-    });
+    }));
     addToast('Filtros limpos com sucesso.', 'info');
   };
 
@@ -269,7 +274,12 @@ export const Home = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 relative">
         <ScrollToTop />
-        <header className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
+        <HeroSearch
+          filters={filters}
+          setFilters={setFilters}
+          addresses={allAddresses}
+        />
+        <header id="resultados" className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -286,7 +296,7 @@ export const Home = () => {
                ) : (
                  <>
                     <Search size={18} className="text-gray-400" />
-                    {sortedImoveis.length} <span className="hidden sm:inline">Imóveis encontrados</span>
+                    {sortedImoveis.length} <span className="hidden sm:inline">imóveis para {filters.tipo === 'aluguel' ? 'alugar' : 'comprar'}</span>
                  </>
                )}
             </h2>

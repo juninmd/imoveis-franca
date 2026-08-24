@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface FilterSidebarProps {
   filters: {
+    tipo: 'venda' | 'aluguel';
     minPrice: string;
     maxPrice: string;
     minBedrooms: string;
@@ -122,7 +123,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
 
       {/* Price */}
       <CollapsibleSection
-        title={<><DollarSign size={14} className="text-emerald-500" /> Preço (R$)</>}
+        title={<><DollarSign size={14} className="text-emerald-500" /> {filters.tipo === 'aluguel' ? 'Aluguel mensal (R$)' : 'Preço (R$)'}</>}
         hasValue={!!filters.minPrice || !!filters.maxPrice}
         onReset={() => setFilters(prev => ({ ...prev, minPrice: '', maxPrice: '' }))}
       >

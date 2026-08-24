@@ -14,12 +14,14 @@ export interface Imoveis {
   precoPorMetro: number,
   entrada: number,
   valorMedioBairroPorAreaTotal?: number; // Novo atributo
+  tipo?: 'venda' | 'aluguel' | 'ambos', // Finalidade: comprar, alugar ou ambos
 };
 
 export interface Site {
   name: string,
   driver: 'axios' | 'puppet' | 'axios_rest',
   enabled: boolean,
+  tipo?: 'venda' | 'aluguel' | 'ambos', // Finalidade do site; default 'ambos' quando ausente
   method?: string,
   payload?: any,
   waitFor?: string | undefined,

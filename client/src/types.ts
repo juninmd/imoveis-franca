@@ -14,6 +14,7 @@ export interface Imovel {
   precoPorMetro: number;
   entrada: number;
   valorMedioBairroPorAreaTotal: number;
+  tipo: 'venda' | 'aluguel' | 'ambos';
 }
 
 export interface ApiParsedResponse {

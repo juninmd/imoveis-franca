@@ -1,0 +1,9 @@
+node_modules
+client/node_modules
+dist
+client/dist
+coverage
+.git
+.github
+.workflow
+*.log

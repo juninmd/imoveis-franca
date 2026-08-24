@@ -5,6 +5,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 describe('FilterSidebar', () => {
   const mockSetFilters = vi.fn();
   const defaultFilters = {
+    tipo: 'venda' as const,
     minPrice: '',
     maxPrice: '',
     minBedrooms: '',

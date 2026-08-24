@@ -4,6 +4,7 @@ import { Imoveis, Site } from '../types';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://imoveisfranca.com.br/comprar/comprar',
   name: 'imoveisfranca.com.br',
   driver: 'puppet',

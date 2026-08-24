@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://vtiimoveis.com.br/status/venda/?type=casa',
   name: 'vtiimoveis.com.br',
   driver: 'puppet',

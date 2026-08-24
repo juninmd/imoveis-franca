@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 export default {
   driver: 'axios_rest',
   enabled: true,
+  tipo: 'venda',
   name: 'espaconobreimoveis.com.br',
   url: 'https://espaconobreimoveis.com.br/busca/Imoveis',
   method: 'POST',

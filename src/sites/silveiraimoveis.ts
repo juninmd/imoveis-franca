@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://silveiraimoveis.com.br/busca/?finalidade=Venda',
   name: 'silveiraimoveis.com.br',
   driver: 'axios',

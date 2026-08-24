@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.boscoimoveis.com.br/imoveis/finalidade-2-comprar',
   name: 'boscoimoveis.com.br',
   driver: 'axios',

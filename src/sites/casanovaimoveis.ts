@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.casanovaimoveisfranca.com.br/imoveis/finalidade-2-venda',
   name: 'casanovaimoveisfranca.com.br',
   driver: 'axios',

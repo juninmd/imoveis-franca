@@ -6,6 +6,7 @@ import axios from 'axios';
 export default {
   driver: 'puppet',
   enabled: true,
+  tipo: 'venda',
   waitFor: undefined,
   name: 'aacosta.com.br',
   url: 'https://www.aacosta.com.br/listagem.jsp',

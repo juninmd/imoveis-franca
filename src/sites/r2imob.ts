@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://r2imob.com.br/busca?orst=dta&topr=1',
   name: 'r2imob.com.br',
   driver: 'axios',

@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.salimimobiliaria.com.br/venda/sao-paulo/franca/',
   name: 'salimimobiliaria.com.br',
   driver: 'axios',

@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.gpsnegociosimobiliarios.com.br/imoveis.php',
   name: 'gpsnegociosimobiliarios.com.br',
   driver: 'axios',

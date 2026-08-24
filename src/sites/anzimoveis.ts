@@ -4,6 +4,7 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://anzimoveis.com.br/busca?finalidade=venda',
   name: 'anzimoveis.com.br',
   driver: 'puppet',

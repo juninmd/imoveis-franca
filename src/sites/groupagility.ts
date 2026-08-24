@@ -3,6 +3,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://www.groupagility.com.br/imoveis/a-venda/franca-sp',
   name: 'groupagility.com.br',
   driver: 'axios',

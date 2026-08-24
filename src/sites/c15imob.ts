@@ -4,6 +4,7 @@ import { normalizeNeighborhoodName } from '../utils';
 
 export default {
   enabled: true,
+  tipo: 'venda',
   url: 'https://c15imob.com.br/venda',
   name: 'c15imob.com.br',
   driver: 'puppet',

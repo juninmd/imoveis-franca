@@ -56,6 +56,7 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
 const unicafrancaimoveis: Site = {
   driver: 'axios',
   enabled: true,
+  tipo: 'venda',
   name: 'unicafrancaimoveis.com.br',
   url: 'https://www.unicafrancaimoveis.com.br/imovel/?finalidade=venda',
   itemsPerPage: 12,
