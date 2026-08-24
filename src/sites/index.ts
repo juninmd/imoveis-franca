@@ -33,6 +33,7 @@ import nielsenimoveis from "./nielsenimoveis";
 import imobiliarialadonni from "./imobiliarialadonni";
 import pucciimobiliaria from "./pucciimobiliaria";
 import matriz from "./matriz";
+import imobiliarialemos from "./imobiliarialemos";
 import cintraimoveis from "./cintraimoveis";
 import tratoimoveis from "./tratoimoveis";
 import faleirosimoveis from "./faleirosimoveis";
@@ -47,14 +48,18 @@ import grupohabitat from "./grupohabitat";
 import habitesefranca from "./habitesefranca";
 
 export const sites: Site[] = [
+
+  oasisimobiliaria,
+  matriz as unknown as Site,
+  imobiliarialemos,
   c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,
   r2imob, artefattoimoveis, anzimoveis, zagoimoveis, bragaimobiliaria, groupagility,
   silveiraimoveis, sueliandradelopes, futuraimobiliariafranca, casanovaimoveis,
-  oasisimobiliaria, unicafrancaimoveis as unknown as Site, imperadorimoveis as unknown as Site, nielsenimoveis as unknown as Site,
-  imobiliarialadonni as unknown as Site, pucciimobiliaria as unknown as Site, matriz as unknown as Site,
+  unicafrancaimoveis as unknown as Site, imperadorimoveis as unknown as Site, nielsenimoveis as unknown as Site,
+  imobiliarialadonni as unknown as Site, pucciimobiliaria as unknown as Site,
   cintraimoveis as unknown as Site, tratoimoveis as unknown as Site, faleirosimoveis as unknown as Site, moradiaimoveis as unknown as Site, andresaborgesimoveis as unknown as Site,
   iegimoveisfrancaeregiao as unknown as Site, salimimobiliaria as unknown as Site, boscoimoveis as unknown as Site,
   famaimoveisfranca as unknown as Site, carlosimoveisfranca as unknown as Site,
