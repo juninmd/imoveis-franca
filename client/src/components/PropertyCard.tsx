@@ -52,7 +52,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.3 }}
         className={clsx(
-        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex border border-white/20 dark:border-gray-700/50 group/card h-full transform hover:-translate-y-1 hover:scale-[1.02]",
+        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex border border-white/20 dark:border-gray-700/50 group/card h-full transform hover:-translate-y-1 hover:scale-[1.015]",
         viewMode === 'list' ? "flex-col md:flex-row" : "flex-col"
       )}>
         <div
@@ -85,7 +85,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80" />
 
           <div className="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 group-hover/card:translate-x-0 transition-transform duration-300 z-10">
              <button

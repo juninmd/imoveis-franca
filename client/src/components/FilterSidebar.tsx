@@ -46,7 +46,7 @@ const CollapsibleSection = ({
                     <motion.div
                         initial={false}
                         animate={{ rotate: isOpen ? 90 : 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="text-gray-400 group-hover:text-blue-500"
                     >
                         ▶
@@ -336,6 +336,20 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
         </div>
       </CollapsibleSection>
 
+      <div className="mt-8">
+        <button
+          onClick={() => setFilters({
+            tipo: 'venda',
+            minPrice: '', maxPrice: '',
+            minBedrooms: '', minBathrooms: '', minVacancies: '',
+            minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '',
+            address: []
+          })}
+          className="w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+        >
+          Limpar Todos os Filtros
+        </button>
+      </div>
     </div>
   );
 };
