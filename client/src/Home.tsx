@@ -424,7 +424,7 @@ export const Home = () => {
                ))}
              </motion.div>
           ) : isError ? (
-            <EmptyState
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}><EmptyState
                 icon={AlertCircle}
                 title="Erro ao carregar imóveis"
                 description="Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
@@ -432,9 +432,9 @@ export const Home = () => {
                     label: 'Tentar novamente',
                     onClick: () => window.location.reload()
                 }}
-            />
+            /></motion.div>
           ) : sortedImoveis.length === 0 ? (
-             <EmptyState
+             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}><EmptyState
                 icon={Search}
                 title="Nenhum imóvel encontrado"
                 description={
@@ -447,7 +447,7 @@ export const Home = () => {
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
                     : undefined
                 }
-             />
+             /></motion.div>
           ) : (
             <VirtuosoGrid
               useWindowScroll
