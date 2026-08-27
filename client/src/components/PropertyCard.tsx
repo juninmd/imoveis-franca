@@ -15,7 +15,7 @@ interface PropertyCardProps {
 }
 
 const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => {
-  const displayValue = value > 0 ? `${value}${suffix}` : '-';
+  const displayValue = (value && value > 0) ? `${value}${suffix}` : '-';
   return (
     <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50/80 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/80 transition-colors h-full border border-gray-100 dark:border-gray-700/50 backdrop-blur-sm">
        <Icon size={18} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
