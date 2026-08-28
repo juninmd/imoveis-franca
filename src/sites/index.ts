@@ -50,11 +50,13 @@ import locallizegoldimob from "./locallizegoldimob";
 import habitesefranca from "./habitesefranca";
 import mercadoimoveisfranca from "./mercadoimoveisfranca";
 import rochacoimbraimoveis from "./rochacoimbraimoveis";
+import aferreiraimoveis from "./aferreiraimoveis";
 
 export const sites: Site[] = [
 
   mercadoimoveisfranca,
   rochacoimbraimoveis,
+  aferreiraimoveis,
   oasisimobiliaria,
   matriz as unknown as Site,
   imobiliarialemos,
