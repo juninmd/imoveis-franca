@@ -319,8 +319,9 @@ export const Home = () => {
 
              <button
                 onClick={() => setDarkMode(!darkMode)}
-                className="p-2.5 rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm"
+
                 title={darkMode ? "Modo Claro" : "Modo Escuro"}
+                className="p-2.5 rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm hover:scale-105 active:scale-95"
              >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
              </button>
@@ -329,7 +330,7 @@ export const Home = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={clsx(
-                    "p-1.5 rounded-md transition-all",
+                    "p-1.5 rounded-md transition-all hover:-translate-y-1 hover:scale-105 active:scale-95",
                     viewMode === 'grid'
                       ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -341,7 +342,7 @@ export const Home = () => {
                 <button
                   onClick={() => setViewMode('list')}
                   className={clsx(
-                    "p-1.5 rounded-md transition-all",
+                    "p-1.5 rounded-md transition-all hover:-translate-y-1 hover:scale-105 active:scale-95",
                     viewMode === 'list'
                       ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
