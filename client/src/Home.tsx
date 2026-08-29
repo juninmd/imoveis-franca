@@ -281,12 +281,17 @@ export const Home = () => {
         />
         <header id="resultados" className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden text-gray-600 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Menu size={24} />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden text-gray-600 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+              >
+                <Menu size={24} />
+                {activeFiltersCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
+                )}
+              </button>
+            </div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                {isLoading ? (
                  <span className="flex items-center gap-2 text-gray-500">
