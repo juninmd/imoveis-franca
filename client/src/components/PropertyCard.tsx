@@ -101,11 +101,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
               </button>
              <button
                 onClick={handleShare}
-                className="p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
+                className="group p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
                 title="Compartilhar"
                 aria-label="Compartilhar"
               >
-                 <Share2 size={18} />
+                 <Share2 size={18} className="transition-transform group-hover:rotate-12" />
               </button>
           </div>
 
@@ -125,7 +125,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                  <motion.div
                    initial={{ opacity: 0, x: -10 }}
                    animate={{ opacity: 1, x: 0 }}
-                   className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-lg uppercase tracking-wider flex items-center gap-1.5 border border-emerald-400/50"
+                   className="bg-gradient-to-r from-emerald-500 to-teal-500 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-lg uppercase tracking-wider flex items-center gap-1.5 border border-emerald-400/50"
                  >
                    <TrendingDown size={12} strokeWidth={3} className="animate-bounce" />
                    Oportunidade
@@ -178,7 +178,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              href={imovel.link}
              target="_blank"
              rel="noopener noreferrer"
-             className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600/90 dark:bg-blue-500/90 backdrop-blur-md text-white rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-all font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.25)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.98] mt-2 group/btn relative overflow-hidden border border-blue-500/50"
+             className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 backdrop-blur-md text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.25)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.98] mt-2 group/btn relative overflow-hidden border border-blue-500/50"
            >
              <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
                Ver Detalhes
