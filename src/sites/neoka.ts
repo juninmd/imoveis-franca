@@ -41,7 +41,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
     const endereco = normalizeNeighborhoodName(bairro);
 
-    let valorStr = $(el).find('.price').text().replace(/R\$/g, '').replace(/\./g, '').trim();
+    const valorStr = $(el).find('.price').text().replace(/R\$/g, '').replace(/\./g, '').trim();
     const valor = getFixValue(valorStr);
 
     let quartos = 0, banheiros = 0, vagas = 0;
