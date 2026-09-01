@@ -24,7 +24,7 @@ jobs:
       - name: Run lint
         run: npm run lint
       - name: Run frontend tests
-        run: cd client && npm run test:coverage
+        run: cd client && npm install && npm run test:coverage
       - name: Run build
         run: npm run build
       - name: Run backend test coverage
