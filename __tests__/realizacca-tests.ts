@@ -1,8 +1,8 @@
 import { adapter } from '../src/sites/realizacca';
 
 describe('Realiza CCA Adapter', () => {
-  it('should get correct paginate params', () => {
-    const site = require('../src/sites/realizacca').default;
+  it('should get correct paginate params', async () => {
+    const site = (await import('../src/sites/realizacca')).default;
     expect(site.getPaginateParams(2)).toEqual({ url: 'https://realizacca.com.br/comprar/franca-sp?page=2' });
   });
 
