@@ -1,8 +1,9 @@
 import { adapter } from '../src/sites/cidadenovaimoveis';
 
 describe('Cidade Nova Imoveis Adapter', () => {
-  it('should get correct paginate params', async () => {
-    const site = (await import('../src/sites/cidadenovaimoveis')).default;
+  it('should get correct paginate params', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const site = require('../src/sites/cidadenovaimoveis').default;
     expect(site.getPaginateParams(2)).toEqual({ url: 'https://cidadenovaimoveis.com.br/imoveis/franca/compra?page=2' });
   });
 
