@@ -345,7 +345,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '',
             address: []
           })}
-          className="w-full py-2.5 px-4 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-3 px-4 bg-red-100/50 text-red-700 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-95"
         >
           Limpar Todos os Filtros
         </button>

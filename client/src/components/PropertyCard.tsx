@@ -124,12 +124,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              <AnimatePresence>
                {isBelowAverage && (
                  <motion.div
-                   initial={{ opacity: 0, x: -10 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   className="bg-gradient-to-r from-emerald-500 to-teal-500 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-lg uppercase tracking-wider flex items-center gap-1.5 border border-emerald-400/50"
+                   initial={{ opacity: 0, scale: 0.9 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   className="bg-gradient-to-r from-green-600 to-emerald-600 backdrop-blur-sm text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-1.5 border border-green-400/50"
                  >
-                   <TrendingDown size={12} strokeWidth={3} className="animate-bounce" />
-                   Oportunidade
+                   <TrendingDown size={14} strokeWidth={3} className="animate-pulse" />
+                   Abaixo da Média
                  </motion.div>
                )}
              </AnimatePresence>

@@ -53,10 +53,14 @@ import rochacoimbraimoveis from "./rochacoimbraimoveis";
 import aferreiraimoveis from "./aferreiraimoveis";
 import andrecaetano from "./andrecaetano";
 import neoka from "./neoka";
+import cidadenovaimoveis from "./cidadenovaimoveis";
+import realizacca from "./realizacca";
 
 export const sites: Site[] = [
   andrecaetano,
   neoka,
+  cidadenovaimoveis as unknown as Site,
+  realizacca as unknown as Site,
   mercadoimoveisfranca,
   rochacoimbraimoveis,
   aferreiraimoveis,
