@@ -155,12 +155,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
         </div>
 
-        <div className="p-5 flex flex-col flex-1 gap-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+        <div className="p-5 flex flex-col flex-1 gap-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10">
           <div>
              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 min-h-[3.5rem] group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors" title={imovel.titulo}>
                {imovel.titulo}
              </h3>
-             <div className="flex items-start mt-3 text-gray-500 dark:text-gray-400 text-sm gap-2">
+             <div className="flex items-start mt-3 text-gray-500 dark:text-gray-400 text-sm gap-2 group-hover/card:text-gray-700 dark:group-hover/card:text-gray-300 transition-colors">
                <MapPin size={16} className="mt-0.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                <span className="line-clamp-2 font-medium">{imovel.endereco || "Endereço não informado"}</span>
              </div>
