@@ -115,11 +115,11 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     );
   }, [addresses, addressSearch]);
 
-  const inputClass = "w-full p-2.5 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all hover:border-gray-300 dark:hover:border-gray-500";
-  const labelClass = "text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block cursor-pointer";
+  const inputClass = "w-full p-2.5 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all hover:border-gray-300 dark:hover:border-gray-500 focus:bg-white dark:focus:bg-gray-700 shadow-inner";
+  const labelClass = "text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-1.5 block cursor-pointer";
 
   return (
-    <div className="p-5">
+    <div className="p-5 space-y-2">
 
       {/* Price */}
       <CollapsibleSection
@@ -336,7 +336,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
         </div>
       </CollapsibleSection>
 
-      <div className="mt-8">
+      <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700/50">
         <button
           onClick={() => setFilters({
             tipo: 'venda',
@@ -345,8 +345,9 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '',
             address: []
           })}
-          className="w-full py-3 px-4 bg-red-100/50 text-red-700 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-95"
+          className="w-full py-3 px-4 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.98] border border-red-100 dark:border-red-900/30"
         >
+          <X size={16} strokeWidth={2.5} className="group-hover:rotate-90 transition-transform duration-300" />
           Limpar Todos os Filtros
         </button>
       </div>

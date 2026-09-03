@@ -274,6 +274,18 @@ export const Home = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 relative">
         <ScrollToTop />
+
+        {/* Floating Dark Mode Toggle for Hero */}
+        <div className="absolute top-4 right-4 z-20 hidden lg:block">
+            <button
+               onClick={() => setDarkMode(!darkMode)}
+               title={darkMode ? "Modo Claro" : "Modo Escuro"}
+               className="p-2.5 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/20 transition-all shadow-lg hover:scale-105 active:scale-95"
+            >
+               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+        </div>
+
         <HeroSearch
           filters={filters}
           setFilters={setFilters}
