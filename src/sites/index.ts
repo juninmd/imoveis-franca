@@ -1,3 +1,4 @@
+import casabellafranca from "./casabellafranca";
 import boscoimoveis from "./boscoimoveis";
 import oasisimobiliaria from "./oasisimobiliaria";
 import gpsnegociosimobiliarios from './gpsnegociosimobiliarios';
@@ -59,6 +60,7 @@ import imobfranca from "./imobfranca";
 import quintareimoveis from "./quintareimoveis";
 
 export const sites: Site[] = [
+  casabellafranca as unknown as Site,
   andrecaetano,
   neoka,
   cidadenovaimoveis as unknown as Site,
