@@ -59,8 +59,12 @@ import realizacca from "./realizacca";
 import imobfranca from "./imobfranca";
 import quintareimoveis from "./quintareimoveis";
 
+import casafacilimobiliaria from "./casafacilimobiliaria";
+import comerianimoveis from "./comerianimoveis";
 export const sites: Site[] = [
   casabellafranca as unknown as Site,
+  casafacilimobiliaria as unknown as Site,
+  comerianimoveis as unknown as Site,
   andrecaetano,
   neoka,
   cidadenovaimoveis as unknown as Site,
