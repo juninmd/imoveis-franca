@@ -138,7 +138,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end text-white z-10">
              <div className="flex flex-col">
                 <span className="text-2xl font-extrabold tracking-tight text-white drop-shadow-md">
-                   {formatCurrency(imovel.valor)}{imovel.tipo === 'aluguel' && <span className="text-sm font-semibold">/mês</span>}
+                   {imovel.valor > 0 ? (
+                     <>
+                       {formatCurrency(imovel.valor)}{imovel.tipo === 'aluguel' && <span className="text-sm font-semibold">/mês</span>}
+                     </>
+                   ) : (
+                     <span className="text-xl">Consulte</span>
+                   )}
                 </span>
                 {imovel.precoPorMetro > 0 && (
                   <span className="text-xs font-semibold text-emerald-300 drop-shadow-sm bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm inline-block mt-1 border border-white/10 w-fit">

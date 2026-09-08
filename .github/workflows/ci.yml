@@ -22,10 +22,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Run lint
-        run: npm run lint
+        run: pnpm run lint
       - name: Run frontend tests
-        run: cd client && npm install && npm run test:coverage
+        run: cd client && pnpm install && pnpm run test:coverage
       - name: Run build
-        run: npm run build
+        run: pnpm run build
       - name: Run backend test coverage
-        run: npm run test:coverage
+        run: pnpm run test:coverage
