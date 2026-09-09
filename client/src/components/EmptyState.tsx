@@ -20,10 +20,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
       className="text-center py-20 text-gray-500 dark:text-gray-400 flex flex-col items-center max-w-md mx-auto"
     >
       <motion.div
-        whileHover={{ rotate: 5, scale: 1.1 }}
-        animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
-        transition={{ y: { repeat: Infinity, duration: 2, ease: 'easeInOut' }, scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' } }}
-        className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-6 shadow-[0_0_35px_rgba(59,130,246,0.3)] dark:shadow-[0_0_30px_rgba(59,130,246,0.15)] ring-2 ring-gray-200/50 dark:ring-gray-700/50 transition-shadow hover:shadow-[0_0_40px_rgba(59,130,246,0.4)]"
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        whileHover={{ scale: 1.05, y: -2 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-6 shadow-[0_0_35px_rgba(59,130,246,0.3)] dark:shadow-[0_0_30px_rgba(59,130,246,0.15)] ring-2 ring-gray-200/50 dark:ring-gray-700/50 transition-all hover:shadow-[0_0_40px_rgba(59,130,246,0.4)]"
       >
           <Icon size={48} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
       </motion.div>

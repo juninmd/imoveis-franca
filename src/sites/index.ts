@@ -61,10 +61,14 @@ import quintareimoveis from "./quintareimoveis";
 
 import casafacilimobiliaria from "./casafacilimobiliaria";
 import comerianimoveis from "./comerianimoveis";
+import luanaimoveis from "./luanaimoveis";
+import wi7imobiliaria from "./wi7imobiliaria";
 export const sites: Site[] = [
   casabellafranca as unknown as Site,
   casafacilimobiliaria as unknown as Site,
   comerianimoveis as unknown as Site,
+  luanaimoveis as unknown as Site,
+  wi7imobiliaria as unknown as Site,
   andrecaetano,
   neoka,
   cidadenovaimoveis as unknown as Site,
