@@ -38,10 +38,29 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
   const isBelowAverage = (imovel.valorMedioBairroPorAreaTotal || 0) > 0 && imovel.precoPorMetro < ((imovel.valorMedioBairroPorAreaTotal || 0) / imovel.areaTotal);
 
-  const handleShare = (e: React.MouseEvent) => {
+  // No mobile o menu nativo de compartilhamento é o que o usuário espera; no desktop cai para
+  // a área de transferência. `writeText` rejeita fora de contexto seguro ou sem permissão —
+  // antes o toast dizia "copiado" mesmo quando nada era copiado.
+  const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(imovel.link);
-    addToast('Link copiado para a área de transferência!', 'success');
+    const shareData = { title: imovel.titulo, text: `${imovel.titulo} — ${imovel.endereco}`, url: imovel.link };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        // Cancelar o menu nativo não é erro: sai sem avisar nada.
+        if ((error as DOMException)?.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(imovel.link);
+      addToast('Link copiado para a área de transferência!', 'success');
+    } catch {
+      addToast('Não foi possível copiar o link.', 'error');
+    }
   };
 
   return (
@@ -101,7 +120,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                  <Heart size={18} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
               </button>
              <button
-                onClick={handleShare}
+                onClick={(e) => { void handleShare(e); }}
                 className="group p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
                 title="Compartilhar"
                 aria-label="Compartilhar"
