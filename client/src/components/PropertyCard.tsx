@@ -151,7 +151,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                 title="Compartilhar"
                 aria-label="Compartilhar"
               >
-                 <Share2 size={18} className="transition-transform group-hover:rotate-12" />
+                 <Share2 size={18} className="transition-transform group-hover:rotate-12 group-active:scale-90" />
               </button>
           </div>
 
@@ -207,7 +207,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
         </div>
 
         <div className="p-5 flex flex-col flex-1 gap-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10">
-          <div>
+          <div className="flex flex-col h-full">
              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 min-h-[3.5rem] group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors" title={imovel.titulo}>
                {imovel.titulo}
              </h3>
