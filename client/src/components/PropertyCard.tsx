@@ -14,9 +14,10 @@ interface PropertyCardProps {
   viewMode?: 'grid' | 'list';
 }
 
-// O servidor ja descarta anuncio com link nao-http(s), mas uma resposta gravada no cache antes
-// deste deploy ainda chega aqui. O React ja neutraliza um `href` `javascript:` sozinho; o que
-// falta e nao prometer ao usuario um "Ver Detalhes" que nao abre nada.
+// O servidor ja descarta anuncio com link nao-http(s) (inclusive o que vem do cache), entao
+// isto e defesa em profundidade: a API nao e o unico produtor possivel deste campo e o React
+// so neutraliza `javascript:`, nao `data:`/`vbscript:`. O ganho principal aqui e nao prometer
+// ao usuario um "Ver Detalhes" que nao abre nada.
 // A base e mantida de proposito: adapters que devolvem link relativo continuam validos.
 const isSafeUrl = (raw: string): boolean => {
   if (!raw) {

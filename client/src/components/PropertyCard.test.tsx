@@ -25,9 +25,8 @@ describe('PropertyCard', () => {
   });
 
   it('não renderiza href para um link com esquema perigoso', () => {
-    // O servidor já descarta esses anúncios, mas uma resposta gravada no cache antes deste
-    // deploy ainda chega aqui. O React neutraliza o `javascript:` sozinho — o que se corrige
-    // aqui é prometer um "Ver Detalhes" que não abre nada.
+    // Defesa em profundidade: o servidor já descarta esses anúncios, mas o React só neutraliza
+    // `javascript:` e o que se corrige aqui é prometer um "Ver Detalhes" que não abre nada.
     renderCard({ link: 'javascript:alert(1)' });
 
     expect(screen.queryByRole('link', { name: /Ver Detalhes/ })).not.toBeInTheDocument();

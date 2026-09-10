@@ -77,6 +77,9 @@ export const getQuantizedParams = (filters: QueryFilters): BaseQueryParams => ({
   // O teto entra aqui (e so aqui) para limitar o espaco de chaves de cache.
   minPrice: Math.floor(clamp(filters.minPrice, 0, MAX_PRICE) / PRICE_STEP) * PRICE_STEP,
   maxPrice: Math.ceil(clamp(filters.maxPrice || undefined, 2000000, MAX_PRICE) / PRICE_STEP) * PRICE_STEP,
+  // Invariante: `quartos` nao entra na chave de cache nem em nenhum request de site
+  // (nenhum `translateParams` o mapeia), por isso nao tem teto. Se algum site passar a
+  // mapea-lo, ele vira um eixo da chave e precisa do mesmo clamp de preco/area.
   quartos: filters.minBedrooms || 2,
   minArea: Math.floor(clamp(filters.minArea, 0, MAX_AREA) / AREA_STEP) * AREA_STEP,
   maxArea: Math.ceil(clamp(filters.maxArea || undefined, 500, MAX_AREA) / AREA_STEP) * AREA_STEP,

@@ -30,9 +30,9 @@ Web scraper de imóveis em Franca/SP. Coleta dados de anúncios de imóveis para
 | Parâmetro | Tipo | Observação |
 |---|---|---|
 | `tipo` | `venda` \| `aluguel` | outros valores são ignorados |
-| `minPrice`, `maxPrice` | número | inteiro ≥ 0 |
-| `minArea`, `maxArea`, `minAreaTotal`, `maxAreaTotal` | número | inteiro ≥ 0, em m² |
-| `minBedrooms`, `minBathrooms`, `minVacancies` | número | inteiro ≥ 0 |
+| `minPrice`, `maxPrice` | número | finito ≥ 0 |
+| `minArea`, `maxArea`, `minAreaTotal`, `maxAreaTotal` | número | finito ≥ 0, em m² |
+| `minBedrooms`, `minBathrooms`, `minVacancies` | número | finito ≥ 0 |
 | `address` | string ou lista | até 30 bairros, 120 caracteres cada |
 
 Valores inválidos são descartados em vez de gerarem erro. Os filtros são aplicados em
