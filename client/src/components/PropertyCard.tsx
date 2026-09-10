@@ -14,7 +14,14 @@ interface PropertyCardProps {
   viewMode?: 'grid' | 'list';
 }
 
+// O servidor ja descarta anuncio com link nao-http(s), mas uma resposta gravada no cache antes
+// deste deploy ainda chega aqui. O React ja neutraliza um `href` `javascript:` sozinho; o que
+// falta e nao prometer ao usuario um "Ver Detalhes" que nao abre nada.
+// A base e mantida de proposito: adapters que devolvem link relativo continuam validos.
 const isSafeUrl = (raw: string): boolean => {
+  if (!raw) {
+    return false;
+  }
   try {
     const { protocol } = new URL(raw, window.location.origin);
     return protocol === 'https:' || protocol === 'http:';
@@ -38,6 +45,7 @@ const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.El
 };
 
 export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavorite, onToggleFavorite, viewMode = 'grid' }) => {
+  const linkIsSafe = isSafeUrl(imovel.link);
   const [showImages, setShowImages] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { addToast } = useToast();
@@ -55,7 +63,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
     // O link vem de HTML de terceiro. O React ja bloqueia um `javascript:` no href, mas a area
     // de transferencia e o menu de compartilhamento nao tem essa protecao.
-    if (!isSafeUrl(imovel.link)) {
+    if (!linkIsSafe) {
       addToast('Link do anúncio indisponível.', 'error');
       return;
     }
@@ -218,13 +226,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
 
           <a
-             href={imovel.link}
+             href={linkIsSafe ? imovel.link : undefined}
              target="_blank"
              rel="noopener noreferrer"
+             aria-disabled={!linkIsSafe}
              className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 backdrop-blur-md text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.25)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.98] mt-2 group/btn relative overflow-hidden border border-blue-500/50"
            >
              <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
-               Ver Detalhes
+               {linkIsSafe ? 'Ver Detalhes' : 'Link indisponível'}
                <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
              </span>
              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-out" />

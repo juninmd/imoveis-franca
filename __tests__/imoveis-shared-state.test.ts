@@ -157,6 +157,18 @@ describe('normalização da lista', () => {
     expect(sortImoveis(lista).map(i => i.link)).toEqual(['c', 'b', 'a']);
   });
 
+  it('ordena sem NaN mesmo sem passar por sanitizeImoveis antes', () => {
+    // `sortImoveis` é export público: não pode depender de outra função ter rodado antes.
+    const ordenado = sortImoveis([
+      imovel({ link: 'a', precoPorMetro: Number.POSITIVE_INFINITY }),
+      imovel({ link: 'b', precoPorMetro: Number.POSITIVE_INFINITY }),
+      imovel({ link: 'c', precoPorMetro: NaN }),
+      imovel({ link: 'd', precoPorMetro: 1000 }),
+    ]);
+    expect(ordenado[0].link).toBe('d');
+    expect(ordenado).toHaveLength(4);
+  });
+
   it('ordena de forma estável quando VARIOS imóveis não têm preço por metro', () => {
     // Com `Infinity` dos dois lados o comparador devolvia `Infinity - Infinity` = NaN, e um
     // comparador que devolve NaN deixa a ordem indefinida justamente no caso comum.
@@ -170,6 +182,27 @@ describe('normalização da lista', () => {
     expect(ordenado[0].link).toBe('c');
     expect(ordenado.slice(1).map(i => i.link).sort()).toEqual(['a', 'b', 'd']);
     expect(sortImoveis(lista).map(i => i.link)).toEqual(ordenado.map(i => i.link));
+  });
+
+  it('descarta anúncio cujo link tem esquema perigoso', () => {
+    // Não é defesa contra XSS (o React já neutraliza): é descartar anúncio cujo link não abre
+    // nada, em vez de mostrar um card com um "Ver Detalhes" morto.
+    const out = sanitizeImoveis([
+      imovel({ link: 'https://ok/1' }),
+      imovel({ link: 'javascript:alert(1)' }),
+      imovel({ link: 'java	script:alert(1)' }),
+      imovel({ link: ' javascript:alert(1)' }),
+      imovel({ link: 'data:text/html,<script>' }),
+      imovel({ link: 'vbscript:msgbox' }),
+    ]);
+    expect(out.map(i => i.link)).toEqual(['https://ok/1']);
+  });
+
+  it('mantém link relativo e anúncio sem link', () => {
+    // Relativo resolve no próprio host — inútil, mas não perigoso; descartá-lo seria perda
+    // de dado real, porque vários adapters devolvem href relativo.
+    const out = sanitizeImoveis([imovel({ link: '/anuncio/1' }), imovel({ link: '' })]);
+    expect(out).toHaveLength(2);
   });
 
   it('remove o mesmo anúncio repetido entre páginas/params', () => {

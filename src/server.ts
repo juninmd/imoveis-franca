@@ -16,7 +16,13 @@ const port = Number(process.env.PORT) || 3000;
 // exigimos a contagem exata de saltos via env — nunca `true`, que confia em qualquer
 // X-Forwarded-For enviado pelo cliente.
 if (process.env.TRUST_PROXY) {
-  app.set('trust proxy', Number(process.env.TRUST_PROXY));
+  const hops = Number(process.env.TRUST_PROXY);
+  // `Number('true')` e NaN, e o Express compila NaN para "nao confia em ninguem": a config
+  // errada passava despercebida e o rate limit voltava a ser global sem nenhum sinal.
+  if (!Number.isInteger(hops) || hops < 0) {
+    throw new Error('TRUST_PROXY deve ser a quantidade de proxies na frente (inteiro >= 0)');
+  }
+  app.set('trust proxy', hops);
 }
 const clientDir = path.join(__dirname, '..', '..', 'client', 'dist');
 const indexHtml = path.join(clientDir, 'index.html');

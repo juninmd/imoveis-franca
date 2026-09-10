@@ -48,8 +48,32 @@ const MAX_PAGES = 200;
 
 const finiteOrZero = (value: number): number => (Number.isFinite(value) ? value : 0);
 
+/**
+ * O link vem do HTML de sites que nao controlamos.
+ *
+ * Nao e uma defesa contra XSS: o React ja troca um `href` `javascript:` por uma URL que so
+ * lanca se clicada (verificado no react-dom 19.2), entao nada executa. O ponto e outro — um
+ * anuncio cujo link nao e http(s) e artefato de scraping: o card ofereceria um botao "Ver
+ * Detalhes" que nao leva a lugar nenhum. Sai da lista aqui, na origem, em vez de cada
+ * consumidor ter que se defender.
+ */
+export const isSafeLink = (link: string): boolean => {
+  if (!link) {
+    return true; // sem link nao ha nada para o navegador abrir
+  }
+  try {
+    // O construtor de URL ja remove espacos e caracteres de controle antes de ler o esquema.
+    const { protocol } = new URL(link);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return true; // relativo: resolve no proprio host, sem esquema perigoso
+  }
+};
+
 export const sanitizeImoveis = (imoveis: Imoveis[]): Imoveis[] =>
-  imoveis.map(imovel => ({ ...imovel, precoPorMetro: finiteOrZero(imovel.precoPorMetro) }));
+  imoveis
+    .filter(imovel => isSafeLink(imovel.link))
+    .map(imovel => ({ ...imovel, precoPorMetro: finiteOrZero(imovel.precoPorMetro) }));
 
 // O mesmo anúncio aparece repetido quando um site é varrido por vários conjuntos de params
 // (ex.: venda + aluguel) ou quando a paginação se sobrepõe.
@@ -69,8 +93,22 @@ export const sortImoveis = (imoveis: Imoveis[]) => {
   // Sem preço por metro conhecido o imóvel vai para o fim, e não para o topo como "mais barato".
   // `Infinity - Infinity` e NaN, e um comparador que devolve NaN deixa a ordem indefinida
   // justamente quando ha varios imoveis sem preco por metro — que e o caso comum.
-  const rank = (imovel: Imoveis) => (imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.MAX_SAFE_INTEGER);
+  const rank = (imovel: Imoveis) =>
+    (Number.isFinite(imovel.precoPorMetro) && imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.MAX_SAFE_INTEGER);
   return imoveis.filter(q => q.valor > 0).sort((a, b) => rank(a) - rank(b));
+};
+
+/** O que destes `baseQueryParams` de fato chega a este site. Fonte unica para a requisicao
+ *  e para a chave de cache: se as duas divergirem, buscas diferentes passam a compartilhar a
+ *  mesma entrada de cache. */
+const relevantBaseParams = (site: Site, baseQueryParams: BaseQueryParams): Record<string, unknown> => {
+  const relevant: Record<string, unknown> = {};
+  for (const param of Object.keys(site.translateParams || {})) {
+    if (site.translateParams[param]) {
+      relevant[param] = baseQueryParams[param];
+    }
+  }
+  return relevant;
 };
 
 /**
@@ -82,15 +120,8 @@ export const sortImoveis = (imoveis: Imoveis[]) => {
  * nova custava um scraping completo dos ~60 sites — um cliente remoto conseguia transformar
  * requisicoes baratas em trabalho ilimitado de rede e memoria de Redis.
  */
-export const cacheKeyFor = (site: Site, baseQueryParams: BaseQueryParams): string => {
-  const relevant: Record<string, unknown> = {};
-  for (const param of Object.keys(site.translateParams || {})) {
-    if (site.translateParams[param]) {
-      relevant[param] = baseQueryParams[param];
-    }
-  }
-  return `${site.name}-${JSON.stringify(relevant)}`;
-};
+export const cacheKeyFor = (site: Site, baseQueryParams: BaseQueryParams): string =>
+  `${site.name}-${JSON.stringify(relevantBaseParams(site, baseQueryParams))}`;
 
 export const generateList = async (query) => {
   const filters = parseFilters(query);
@@ -144,12 +175,9 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     let requestParams = params ? { ...params } : params;
 
     if (requestParams && site.translateParams) {
-      Object.keys(site.translateParams).forEach((param => {
-        const paramName = site.translateParams[param];
-        if (paramName) {
-          requestParams[paramName] = baseQueryParams[param];
-        }
-      }));
+      for (const [param, value] of Object.entries(relevantBaseParams(site, baseQueryParams))) {
+        requestParams[site.translateParams[param]] = value;
+      }
     }
 
     const paginateParams = site.getPaginateParams(page);

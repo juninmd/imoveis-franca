@@ -30,12 +30,15 @@ Web scraper de imóveis em Franca/SP. Coleta dados de anúncios de imóveis para
 | Parâmetro | Tipo | Observação |
 |---|---|---|
 | `tipo` | `venda` \| `aluguel` | outros valores são ignorados |
-| `minPrice`, `maxPrice` | número | limitado a 20.000.000 |
-| `minArea`, `maxArea`, `minAreaTotal`, `maxAreaTotal` | número | limitado a 10.000 m² |
-| `minBedrooms`, `minBathrooms`, `minVacancies` | número | limitado a 50 |
+| `minPrice`, `maxPrice` | número | inteiro ≥ 0 |
+| `minArea`, `maxArea`, `minAreaTotal`, `maxAreaTotal` | número | inteiro ≥ 0, em m² |
+| `minBedrooms`, `minBathrooms`, `minVacancies` | número | inteiro ≥ 0 |
 | `address` | string ou lista | até 30 bairros, 120 caracteres cada |
 
-Valores inválidos são descartados em vez de gerarem erro. A rota está limitada a 60
+Valores inválidos são descartados em vez de gerarem erro. Os filtros são aplicados em
+memória sobre o conjunto coletado: os tetos de preço (R$ 20.000.000) e área (10.000 m²)
+limitam apenas a chave de cache, não o resultado — pedir `maxPrice=30000000` devolve os
+imóveis acima de R$ 20 M normalmente. A rota está limitada a 60
 requisições por minuto por IP (`429` com `Retry-After` acima disso), porque cada miss de
 cache dispara um scraping completo.
 
@@ -49,6 +52,7 @@ cache dispara um scraping completo.
 | `REDIS_HOST` | `redis.databases.svc.cluster.local` | host do Redis |
 | `REDIS_PORT` | `6379` | porta do Redis |
 | `REDIS_PASSWORD` | — | senha, quando houver |
+| `TRUST_PROXY` | — | quantidade de proxies na frente da aplicação (inteiro). **Obrigatório atrás de proxy/ingress**: sem ele o `req.ip` é o endereço do proxy e todos os clientes compartilham o mesmo balde de rate limit. Nunca use `true` — valor inválido derruba o boot de propósito, em vez de falhar em silêncio |
 
 O Redis é opcional: se estiver fora do ar a API continua respondendo, só sem cache.
 
