@@ -23,6 +23,35 @@ Web scraper de imóveis em Franca/SP. Coleta dados de anúncios de imóveis para
 - **Lint:** ESLint
 - **CI/CD:** GitHub Actions
 
+## API
+
+`GET /api/imoveis` — devolve `{ data: Imovel[], total: number }`.
+
+| Parâmetro | Tipo | Observação |
+|---|---|---|
+| `tipo` | `venda` \| `aluguel` | outros valores são ignorados |
+| `minPrice`, `maxPrice` | número | limitado a 20.000.000 |
+| `minArea`, `maxArea`, `minAreaTotal`, `maxAreaTotal` | número | limitado a 10.000 m² |
+| `minBedrooms`, `minBathrooms`, `minVacancies` | número | limitado a 50 |
+| `address` | string ou lista | até 30 bairros, 120 caracteres cada |
+
+Valores inválidos são descartados em vez de gerarem erro. A rota está limitada a 60
+requisições por minuto por IP (`429` com `Retry-After` acima disso), porque cada miss de
+cache dispara um scraping completo.
+
+`GET /healthz` — health check para orquestradores, sem dependência de Redis.
+
+## Variáveis de ambiente
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `PORT` | `3000` | porta do servidor |
+| `REDIS_HOST` | `redis.databases.svc.cluster.local` | host do Redis |
+| `REDIS_PORT` | `6379` | porta do Redis |
+| `REDIS_PASSWORD` | — | senha, quando houver |
+
+O Redis é opcional: se estiver fora do ar a API continua respondendo, só sem cache.
+
 ## Instalação
 
 ```bash
