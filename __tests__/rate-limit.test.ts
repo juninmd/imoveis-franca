@@ -33,15 +33,30 @@ describe('FixedWindowRateLimit', () => {
     expect(limiter.check('ip').allowed).toBe(true);
   });
 
-  it('não deixa a tabela crescer sem limite com chaves novas', () => {
-    const limiter = new FixedWindowRateLimit(1, 60_000, clock, 3);
+  it('no teto de chaves recusa as novas em vez de zerar os contadores existentes', () => {
+    // Antes isso era um `clear()`: um atacante gerando chaves novas resetava o contador de
+    // todo cliente honesto — a tabela do limitador virava recurso compartilhado alcançável.
+    const limiter = new FixedWindowRateLimit(2, 60_000, clock, 3);
+
+    expect(limiter.check('honesto').allowed).toBe(true); // conta 1
+
     for (let i = 0; i < 10; i++) {
-      expect(limiter.check(`ip-${i}`).allowed).toBe(true);
+      limiter.check(`atacante-${i}`);
     }
-    // A chave recente segue contabilizada...
-    expect(limiter.check('ip-9').allowed).toBe(false);
-    // ...e as antigas foram descartadas: memória limitada, precisão aproximada.
-    expect(limiter.check('ip-0').allowed).toBe(true);
+
+    // O contador do cliente honesto sobreviveu: segunda chamada passa, terceira não.
+    expect(limiter.check('honesto').allowed).toBe(true);
+    expect(limiter.check('honesto').allowed).toBe(false);
+  });
+
+  it('libera as chaves novas de volta quando a janela expira', () => {
+    const limiter = new FixedWindowRateLimit(1, 60_000, clock, 2);
+    limiter.check('a');
+    limiter.check('b');
+    expect(limiter.check('c').allowed).toBe(false);
+
+    now += 60_001;
+    expect(limiter.check('c').allowed).toBe(true);
   });
 
   it('usa Date.now por padrão', () => {

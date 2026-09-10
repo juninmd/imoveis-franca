@@ -59,8 +59,15 @@ export const parseSearch = (search: string): SearchState => {
   };
 };
 
-export const buildSearch = (state: SearchState): string => {
+const OWNED_KEYS = new Set<string>([...NUMERIC_FILTER_KEYS, 'tipo', 'address', 'sort', 'view', 'favoritos']);
+
+export const buildSearch = (state: SearchState, currentSearch = ''): string => {
   const params = new URLSearchParams();
+  // Preserva o que nao e nosso (utm_*, gclid, parametros de campanha): reescrever a URL no
+  // mount descartava esses valores antes mesmo de o usuario interagir.
+  new URLSearchParams(currentSearch).forEach((value, key) => {
+    if (!OWNED_KEYS.has(key)) params.append(key, value);
+  });
   if (state.filters.tipo === 'aluguel') params.set('tipo', 'aluguel');
   for (const key of NUMERIC_FILTER_KEYS) {
     if (state.filters[key]) params.set(key, state.filters[key]);
@@ -81,8 +88,9 @@ export const useSearchState = () => {
   const [state, setState] = useState<SearchState>(() => parseSearch(window.location.search));
 
   useEffect(() => {
-    const search = buildSearch(state);
-    window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname);
+    const search = buildSearch(state, window.location.search);
+    const base = search ? `?${search}` : window.location.pathname;
+    window.history.replaceState(null, '', `${base}${window.location.hash}`);
   }, [state]);
 
   useEffect(() => {

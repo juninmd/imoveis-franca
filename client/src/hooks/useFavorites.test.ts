@@ -68,6 +68,19 @@ describe('useFavorites', () => {
     expect(result.current.items).toHaveLength(1);
   });
 
+  it('o contador nunca promete mais do que a lista consegue mostrar', () => {
+    // Migrados da v1 ainda sem os dados do anúncio não são renderáveis; contá-los devolvia
+    // "Favoritos (3)" com a tela vazia — o mesmo descasamento que este hook existe para acabar.
+    localStorage.setItem('favorites', JSON.stringify(['https://exemplo/1', 'https://exemplo/2', 'https://exemplo/3']));
+    const { result } = renderHook(() => useFavorites());
+
+    expect(result.current.count).toBe(result.current.items.length);
+
+    act(() => { result.current.sync([imovel()]); });
+    expect(result.current.count).toBe(1);
+    expect(result.current.count).toBe(result.current.items.length);
+  });
+
   it('sobrevive a um storage corrompido', () => {
     localStorage.setItem('favorites:v2', '{nao é json');
     const { result } = renderHook(() => useFavorites());

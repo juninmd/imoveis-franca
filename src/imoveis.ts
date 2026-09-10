@@ -44,6 +44,8 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
 // `precoPorMetro` vem de divisões feitas nos adapters e pode chegar NaN/Infinity (área zero).
 // NaN em comparador de sort faz o Array.prototype.sort devolver uma ordem arbitrária e
 // contamina toda a lista, não só o item inválido — por isso normalizamos antes de ordenar.
+const MAX_PAGES = 200;
+
 const finiteOrZero = (value: number): number => (Number.isFinite(value) ? value : 0);
 
 export const sanitizeImoveis = (imoveis: Imoveis[]): Imoveis[] =>
@@ -65,8 +67,29 @@ export const dedupeImoveis = (imoveis: Imoveis[]): Imoveis[] => {
 
 export const sortImoveis = (imoveis: Imoveis[]) => {
   // Sem preço por metro conhecido o imóvel vai para o fim, e não para o topo como "mais barato".
-  const rank = (imovel: Imoveis) => (imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.POSITIVE_INFINITY);
+  // `Infinity - Infinity` e NaN, e um comparador que devolve NaN deixa a ordem indefinida
+  // justamente quando ha varios imoveis sem preco por metro — que e o caso comum.
+  const rank = (imovel: Imoveis) => (imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.MAX_SAFE_INTEGER);
   return imoveis.filter(q => q.valor > 0).sort((a, b) => rank(a) - rank(b));
+};
+
+/**
+ * Chave de cache com o minimo que muda a resposta daquele site.
+ *
+ * Antes a chave carregava todos os `baseQueryParams`, mas so 5 dos ~60 sites usam
+ * `translateParams` (e apenas para preco e pagina): area e quartos nunca chegam a lugar
+ * nenhum. O produto cartesiano de todos os campos dava ~3e11 chaves possiveis, e CADA chave
+ * nova custava um scraping completo dos ~60 sites — um cliente remoto conseguia transformar
+ * requisicoes baratas em trabalho ilimitado de rede e memoria de Redis.
+ */
+export const cacheKeyFor = (site: Site, baseQueryParams: BaseQueryParams): string => {
+  const relevant: Record<string, unknown> = {};
+  for (const param of Object.keys(site.translateParams || {})) {
+    if (site.translateParams[param]) {
+      relevant[param] = baseQueryParams[param];
+    }
+  }
+  return `${site.name}-${JSON.stringify(relevant)}`;
 };
 
 export const generateList = async (query) => {
@@ -77,8 +100,7 @@ export const generateList = async (query) => {
   let lista: Imoveis[] = [];
 
   const promises = sites.filter(q => q.enabled).map(async (site) => {
-    // Include baseQueryParams in cache key to ensure cache respects filters
-    const cacheKeyString = `${site.name}-${JSON.stringify(baseQueryParams)}`;
+    const cacheKeyString = cacheKeyFor(site, baseQueryParams);
     const cacheValue: Imoveis[] = await RedisConnection.getKey(cacheKeyString);
 
     if (cacheValue) {
@@ -240,7 +262,10 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
         lista.push(...imoveis);
     }
 
-    const pages = qtd ? Math.ceil(qtd / site.itemsPerPage) : 1;
+    // `qtd` e extraido do HTML/JSON de um site que nao controlamos. Sem teto, um total absurdo
+    // (ou lixo) monta o array de promises inteiro ANTES do pLimit throttlar qualquer coisa.
+    const rawPages = qtd > 0 && site.itemsPerPage > 0 ? Math.ceil(qtd / site.itemsPerPage) : 1;
+    const pages = Math.min(rawPages, baseQueryParams.maxPages || MAX_PAGES);
     console.info(`------- ${site.name} possuí ${pages} páginas. Initial fetch: ${imoveis?.length || 0} items.`);
 
     if (pages <= 1 || (baseQueryParams.maxPages && page >= baseQueryParams.maxPages)) {
@@ -250,11 +275,8 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     const limit = pLimit(5); // Limit to 5 concurrent requests per site
     const promises: Promise<any>[] = [];
 
+    // `pages` ja embute `maxPages` e MAX_PAGES, entao nao ha segundo corte aqui.
     for (let currentPage = 2; currentPage <= pages; currentPage++) {
-      if (baseQueryParams.maxPages && currentPage > baseQueryParams.maxPages) {
-        break;
-      }
-
       promises.push(limit(async () => {
         const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
         console.info(`------- ${site.name} página ${page} de ${pages}`);

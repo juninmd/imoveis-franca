@@ -18,10 +18,14 @@ describe('parseFilters', () => {
     expect(parseFilters({ address: ['x'.repeat(500)] }).address[0]).toHaveLength(120);
   });
 
-  it('limita valores numéricos ao teto para não explodir o espaço de chaves de cache', () => {
-    expect(parseFilters({ minPrice: 1e12 }).minPrice).toBe(20_000_000);
-    expect(parseFilters({ minArea: 999999 }).minArea).toBe(10_000);
-    expect(parseFilters({ minBedrooms: 999 }).minBedrooms).toBe(50);
+  it('preserva o valor pedido pelo usuário no filtro, sem teto', () => {
+    // O teto vale só para a chave de cache. Aplicá-lo aqui tornava a busca MAIS restrita do
+    // que o pedido: `?maxAreaTotal=50000` (chácara) virava 10000 e escondia todo lote acima
+    // de 1 ha que o master devolvia.
+    expect(parseFilters({ maxAreaTotal: 50000 }).maxAreaTotal).toBe(50000);
+    expect(parseFilters({ maxArea: 20000 }).maxArea).toBe(20000);
+    expect(parseFilters({ maxPrice: 25_000_000 }).maxPrice).toBe(25_000_000);
+    expect(parseFilters({ minBedrooms: 999 }).minBedrooms).toBe(999);
   });
 
   it('ignora números inválidos, negativos e vazios', () => {
@@ -57,6 +61,14 @@ describe('getQuantizedParams', () => {
     expect(getQuantizedParams(parseFilters({}))).toEqual({
       minPrice: 0, maxPrice: 2000000, quartos: 2, minArea: 0, maxArea: 500, maxPages: undefined,
     });
+  });
+
+  it('aplica o teto ao quantizar, limitando o espaço de chaves de cache', () => {
+    const base = getQuantizedParams(parseFilters({ minPrice: 1e12, maxPrice: 1e12, minArea: 999999, maxArea: 999999 }));
+    expect(base.minPrice).toBe(20_000_000);
+    expect(base.maxPrice).toBe(20_000_000);
+    expect(base.minArea).toBe(10_000);
+    expect(base.maxArea).toBe(10_000);
   });
 
   it('gera a mesma chave para buscas próximas (cache hit)', () => {

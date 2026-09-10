@@ -14,6 +14,15 @@ interface PropertyCardProps {
   viewMode?: 'grid' | 'list';
 }
 
+const isSafeUrl = (raw: string): boolean => {
+  try {
+    const { protocol } = new URL(raw, window.location.origin);
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
+
 const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => {
   const isMissing = !value || value <= 0;
   const displayValue = !isMissing ? `${value}${suffix}` : '-';
@@ -43,6 +52,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
   // antes o toast dizia "copiado" mesmo quando nada era copiado.
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // O link vem de HTML de terceiro. O React ja bloqueia um `javascript:` no href, mas a area
+    // de transferencia e o menu de compartilhamento nao tem essa protecao.
+    if (!isSafeUrl(imovel.link)) {
+      addToast('Link do anúncio indisponível.', 'error');
+      return;
+    }
+
     const shareData = { title: imovel.titulo, text: `${imovel.titulo} — ${imovel.endereco}`, url: imovel.link };
 
     if (navigator.share) {

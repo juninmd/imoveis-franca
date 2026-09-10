@@ -9,6 +9,15 @@ import { FixedWindowRateLimit } from './infra/rate-limit';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+
+// `req.ip` e o endereco do socket a menos que o Express saiba quantos proxies ha na frente.
+// Atras de um ingress sem isto, TODO cliente compartilha a mesma chave de rate limit e um
+// abusador devolve 429 para a base inteira. Deixamos desligado por padrao (deploy direto) e
+// exigimos a contagem exata de saltos via env — nunca `true`, que confia em qualquer
+// X-Forwarded-For enviado pelo cliente.
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY));
+}
 const clientDir = path.join(__dirname, '..', '..', 'client', 'dist');
 const indexHtml = path.join(clientDir, 'index.html');
 
@@ -84,16 +93,26 @@ app.get('/api/imoveis', async (req: Request, res: Response) => {
 });
 
 // SPA: qualquer rota não-API cai no index.html (deep link, refresh em /favoritos, etc).
-app.get(/^(?!\/api\/).*/, sendIndex);
+// `/assets/` fica de fora: um bundle com hash que não existe mais precisa devolver 404, e não
+// um HTML que o navegador tenta executar como JavaScript — justamente o sintoma pós-deploy
+// que o `index: false` acima existe para evitar.
+app.get(/^(?!\/api(\/|$)|\/assets\/).*/, sendIndex);
 
 // Iniciar o servidor
 const server = app.listen(port, () => {
   console.log(`Servidor rodando http://localhost:${port}`);
 });
 
+const SHUTDOWN_TIMEOUT_MS = 15_000;
+
 const shutdown = async (signal: string) => {
   console.log(`${signal} recebido, encerrando...`);
-  server.close();
+  // Uma resposta de /api/imoveis com cache frio leva dezenas de segundos; sair sem drenar
+  // corta a requisicao do usuario no meio. Com teto, para nao travar o deploy.
+  await Promise.race([
+    new Promise<void>(resolve => server.close(() => resolve())),
+    new Promise<void>(resolve => setTimeout(resolve, SHUTDOWN_TIMEOUT_MS).unref()),
+  ]);
   await browser.close().catch(() => undefined);
   process.exit(0);
 };
