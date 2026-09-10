@@ -151,7 +151,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                 title="Compartilhar"
                 aria-label="Compartilhar"
               >
-                 <Share2 size={18} className="transition-transform group-hover:rotate-12" />
+                 <Share2 size={18} className="transition-transform group-hover:rotate-12 group-active:scale-90" />
               </button>
           </div>
 

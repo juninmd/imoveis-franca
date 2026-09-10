@@ -6,7 +6,7 @@ import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List, ArrowUp } from 'lucide-react';
+import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Imovel } from './types';
@@ -61,15 +61,6 @@ export const Home = () => {
   const debouncedFilters = useDebounce(filters, 500);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Fechar com Esc é o mínimo esperado de um painel sobreposto no mobile.
   useEffect(() => {
@@ -505,22 +496,6 @@ export const Home = () => {
           )}
         </div>
       </main>
-
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.5, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.5, y: 20 }}
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg z-50 transition-colors focus:ring-4 focus:ring-blue-500/50 outline-none flex items-center justify-center"
-            title="Voltar ao topo"
-            aria-label="Voltar ao topo"
-          >
-            <ArrowUp size={24} />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
