@@ -1,10 +1,12 @@
-import qs from 'qs';
+import { stringify as stringifyQuery } from 'qs';
 import axios from 'axios';
 import pLimit from 'p-limit';
 import { sites } from './sites';
 import browser from './infra/browser';
 import RedisConnection from './infra/redis';
-import { Imoveis, Site } from './types';
+import singleFlight from './infra/single-flight';
+import { getQuantizedParams, parseFilters } from './query';
+import { BaseQueryParams, Imoveis, Site } from './types';
 
 export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   maxPrice?: number;
@@ -39,42 +41,38 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   });
 };
 
-export const sortImoveis = (imoveis: Imoveis[]) => {
-  return imoveis.filter(q => q.valor > 0).sort((a, b) => a.precoPorMetro - b.precoPorMetro);
+// `precoPorMetro` vem de divisões feitas nos adapters e pode chegar NaN/Infinity (área zero).
+// NaN em comparador de sort faz o Array.prototype.sort devolver uma ordem arbitrária e
+// contamina toda a lista, não só o item inválido — por isso normalizamos antes de ordenar.
+const finiteOrZero = (value: number): number => (Number.isFinite(value) ? value : 0);
+
+export const sanitizeImoveis = (imoveis: Imoveis[]): Imoveis[] =>
+  imoveis.map(imovel => ({ ...imovel, precoPorMetro: finiteOrZero(imovel.precoPorMetro) }));
+
+// O mesmo anúncio aparece repetido quando um site é varrido por vários conjuntos de params
+// (ex.: venda + aluguel) ou quando a paginação se sobrepõe.
+export const dedupeImoveis = (imoveis: Imoveis[]): Imoveis[] => {
+  const seen = new Set<string>();
+  return imoveis.filter(imovel => {
+    const key = imovel.link || `${imovel.site}|${imovel.titulo}|${imovel.valor}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 };
 
-interface BaseQueryParams {
-  minPrice: number,
-  maxPrice: number,
-  quartos: number,
-  minArea: number,
-  maxArea: number,
-  maxPages?: number,
-}
-
-const PRICE_STEP = 50000;
-const AREA_STEP = 50;
-
-const getQuantizedParams = (query: any): BaseQueryParams => {
-  const rawMinPrice = Number(query.minPrice) || 0;
-  const rawMaxPrice = Number(query.maxPrice) || 2000000;
-  const rawMinArea = Number(query.minArea) || 0;
-  const rawMaxArea = Number(query.maxArea) || 500;
-
-  return {
-    // Quantize down for min, up for max to ensure superset
-    minPrice: Math.floor(rawMinPrice / PRICE_STEP) * PRICE_STEP,
-    maxPrice: Math.ceil(rawMaxPrice / PRICE_STEP) * PRICE_STEP,
-    quartos: Number(query.minBedrooms) || 2,
-    minArea: Math.floor(rawMinArea / AREA_STEP) * AREA_STEP,
-    maxArea: Math.ceil(rawMaxArea / AREA_STEP) * AREA_STEP,
-    maxPages: undefined,
-  };
+export const sortImoveis = (imoveis: Imoveis[]) => {
+  // Sem preço por metro conhecido o imóvel vai para o fim, e não para o topo como "mais barato".
+  const rank = (imovel: Imoveis) => (imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.POSITIVE_INFINITY);
+  return imoveis.filter(q => q.valor > 0).sort((a, b) => rank(a) - rank(b));
 };
 
 export const generateList = async (query) => {
+  const filters = parseFilters(query);
   // Use quantized params for fetching/caching to improve cache hit rate
-  const baseQueryParams = getQuantizedParams(query);
+  const baseQueryParams = getQuantizedParams(filters);
 
   let lista: Imoveis[] = [];
 
@@ -87,21 +85,28 @@ export const generateList = async (query) => {
       return cacheValue;
     }
 
-    const fetched = await retrieImoveisSite(site, baseQueryParams);
-    // Cache o resultado, inclusive quando vazio ("cache negativo"): sem isso, um site
-    // permanentemente fora do ar (domínio morto, 404/410, timeout) fazia CADA requisição a
-    // /api/imoveis esperar de novo pelas 3 tentativas x até 30s dele, deixando a API lenta
-    // (minutos) em toda chamada sem cache. TTL curto para vazio permite recuperação rápida
-    // caso o site volte a funcionar.
-    const ttl = fetched && fetched.length > 0 ? 3600 : 300;
-    await RedisConnection.setKey(cacheKeyString, fetched, ttl);
-    return fetched;
+    // Coalesce: com o cache frio, N requisições simultâneas disparavam N scrapings completos
+    // do mesmo site (cada um com Chromium e dezenas de páginas) antes de qualquer uma gravar
+    // no Redis. Agora a segunda em diante espera a primeira.
+    return singleFlight.run(cacheKeyString, async () => {
+      const fetched = await retrieImoveisSite(site, baseQueryParams);
+      // Cache o resultado, inclusive quando vazio ("cache negativo"): sem isso, um site
+      // permanentemente fora do ar (domínio morto, 404/410, timeout) fazia CADA requisição a
+      // /api/imoveis esperar de novo pelas 3 tentativas x até 30s dele, deixando a API lenta
+      // (minutos) em toda chamada sem cache. TTL curto para vazio permite recuperação rápida
+      // caso o site volte a funcionar.
+      const ttl = fetched && fetched.length > 0 ? 3600 : 300;
+      await RedisConnection.setKey(cacheKeyString, fetched, ttl);
+      return fetched;
+    });
   });
 
   const results = await Promise.all(promises);
   lista = results.flat();
 
-  lista = filterImoveis(lista, query);
+  lista = sanitizeImoveis(lista);
+  lista = dedupeImoveis(lista);
+  lista = filterImoveis(lista, filters);
   lista = sortImoveis(lista);
   lista = calcularValorMedioBairroPorAreaTotal(lista);
   return lista;
@@ -109,27 +114,35 @@ export const generateList = async (query) => {
 
 export async function getImoveis(site: Site, params = undefined, baseQueryParams: BaseQueryParams, page: number, retry = 0) {
   try {
-    if (params && site.translateParams) {
+    // `params` e `site.payload` são objetos do módulo, compartilhados por TODAS as requisições
+    // e por todas as páginas em voo (pLimit roda 5 em paralelo). Mutá-los fazia as páginas
+    // concorrentes sobrescreverem o `skip`/`page` umas das outras — buscando a mesma página
+    // várias vezes e pulando outras — e deixava o filtro de preço de um usuário grudado na
+    // configuração do site para o próximo. Daqui pra frente só trabalhamos com cópias locais.
+    let requestParams = params ? { ...params } : params;
+
+    if (requestParams && site.translateParams) {
       Object.keys(site.translateParams).forEach((param => {
         const paramName = site.translateParams[param];
         if (paramName) {
-          params[paramName] = baseQueryParams[param];
+          requestParams[paramName] = baseQueryParams[param];
         }
       }));
     }
 
     const paginateParams = site.getPaginateParams(page);
+    let requestPayload = site.payload;
     if (site.payload) {
-      site.payload = { ...site.payload, ...paginateParams.payload };
-    } else if (params) {
-      params = { ...params, ...paginateParams.params };
+      requestPayload = { ...site.payload, ...paginateParams.payload };
+    } else if (requestParams) {
+      requestParams = { ...requestParams, ...paginateParams.params };
     }
 
-    const link = `${site.url}?${params ? qs.stringify(params) : ''}`;
+    const link = `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
-    const content = await retrieveContent(link, site, params);
+    const content = await retrieveContent(link, site, requestParams, requestPayload);
 
     const { imoveis, qtd } = (await site.adapter(content));
 
@@ -152,30 +165,39 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
   }
 }
 
-export async function retrieveContent(url: string, site: Site, params = undefined) {
+export async function retrieveContent(url: string, site: Site, params = undefined, payload = undefined) {
   if (site.driver === 'puppet') {
     const page = await browser.getNewPage();
 
-    await page.goto(url.trim(), { timeout: 30000, waitUntil: 'networkidle0' });
+    // `page.goto` estoura por timeout com frequência (30s, ~47 sites, 3 tentativas cada).
+    // Sem o finally, a aba ficava aberta para sempre: cada falha vazava um processo de
+    // renderização do Chromium até o container morrer por memória.
+    try {
+      await page.goto(url.trim(), { timeout: 30000, waitUntil: 'networkidle0' });
 
-    if (site.waitFor) {
+      if (site.waitFor) {
+        try {
+          await page.waitForSelector(site.waitFor, { timeout: 10000 });
+        } catch (e) {
+          console.warn(`Timeout waiting for selector ${site.waitFor} on ${url}`);
+        }
+      }
+
+      return await page.content();
+    } finally {
       try {
-        await page.waitForSelector(site.waitFor, { timeout: 10000 });
-      } catch (e) {
-        console.warn(`Timeout waiting for selector ${site.waitFor} on ${url}`);
+        await page.close();
+      } catch (closeError) {
+        console.warn(`Falha ao fechar a aba de ${url}`);
       }
     }
-
-    const html = await page.content();
-    await page.close();
-    return html;
   } else if (site.driver === 'axios') {
     const { data: html } = await axios.get(url, { responseEncoding: 'utf8', timeout: 30000 } as any);
     if (site.waitFor == undefined || (html as any).indexOf(site.waitFor) >= 0) {
       return html;
     }
   } else if (site.driver === 'axios_rest') {
-    const { data: html } = await axios.request({ url, method: site.method, data: site.payload, params, timeout: 30000 });
+    const { data: html } = await axios.request({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000 });
     return html;
   }
 

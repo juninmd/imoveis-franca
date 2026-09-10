@@ -51,6 +51,16 @@ class BrowserSingleton {
     });
     return page;
   }
+
+  // Sem isto, um SIGTERM (deploy, `docker compose down`, reciclagem do pod) deixava o
+  // processo do Chromium órfão segurando memória.
+  public async close(): Promise<void> {
+    if (this.browser) {
+      const browser = this.browser;
+      this.browser = null;
+      await browser.close();
+    }
+  }
 }
 
 export default BrowserSingleton.getInstance();

@@ -52,7 +52,13 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
     }
     endereco = normalizeNeighborhoodName(endereco);
 
-    const valorText = $el.find('b:contains("R$"), span:contains("R$"), div:contains("R$"), p:contains("R$")').text().trim() || $el.text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
+    // `div:contains("R$")` casa também com os ancestrais do card e, sem `.first()`, o `.text()`
+    // concatenava todos os preços num só número impossível de parsear. Vai do mais específico
+    // para o mais genérico, com a regex sobre o texto do card como último recurso.
+    const valorText = $el.find('p:contains("R$")').first().text().trim()
+      || $el.find('b:contains("R$"), span:contains("R$")').first().text().trim()
+      || $el.text().match(/R\$\s*[\d.,]+/)?.[0]
+      || '0';
     const valor = parseFloat(valorText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;
