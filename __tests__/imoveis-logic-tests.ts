@@ -189,14 +189,27 @@ describe('Imoveis Logic', () => {
     });
 
     it('should handle pagination', async () => {
-        // qtd: 20, itemsPerPage: 10 -> 2 pages
-        mockAdapter.mockResolvedValue({ imoveis: [mockImovel], qtd: 20 });
+        // qtd: 20, itemsPerPage: 10 -> 2 pages, cada uma com um anúncio distinto
+        mockAdapter
+          .mockResolvedValueOnce({ imoveis: [mockImovel], qtd: 20 })
+          .mockResolvedValueOnce({ imoveis: [{ ...mockImovel, link: 'http://link/2' }], qtd: 20 });
 
         const result = await generateList({ minPrice: 0 });
 
         // Page 1 + Page 2
         expect(mockAdapter).toHaveBeenCalledTimes(2);
         expect(result).toHaveLength(2);
+    });
+
+    it('deduplica o mesmo anúncio devolvido em páginas diferentes', async () => {
+        // Paginação sobreposta é comum nos portais: sem dedupe o mesmo imóvel aparecia
+        // repetido na listagem final.
+        mockAdapter.mockResolvedValue({ imoveis: [mockImovel], qtd: 20 });
+
+        const result = await generateList({ minPrice: 0 });
+
+        expect(mockAdapter).toHaveBeenCalledTimes(2);
+        expect(result).toHaveLength(1);
     });
 
     it('should retry on failure', async () => {

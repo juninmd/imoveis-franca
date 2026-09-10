@@ -118,3 +118,36 @@ describe('Imoveis Missing Coverage', () => {
     });
   });
 });
+
+describe('vazamento de abas do Puppeteer', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const puppetSite = { driver: 'puppet' } as unknown as Site;
+
+  it('fecha a aba mesmo quando o goto estoura por timeout', async () => {
+    // Sem o finally, cada timeout (30s x ~47 sites x 3 tentativas) deixava um processo de
+    // renderização do Chromium vivo até o container morrer por memória.
+    const close = jest.fn().mockResolvedValue(undefined);
+    (BrowserSingleton.getNewPage as jest.Mock).mockResolvedValue({
+      goto: jest.fn().mockRejectedValue(new Error('Navigation timeout')),
+      content: jest.fn(),
+      close,
+    });
+
+    await expect(retrieveContent('http://lento.test', puppetSite)).rejects.toThrow('Navigation timeout');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('não deixa a falha ao fechar a aba mascarar o conteúdo obtido', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    (BrowserSingleton.getNewPage as jest.Mock).mockResolvedValue({
+      goto: jest.fn().mockResolvedValue(undefined),
+      content: jest.fn().mockResolvedValue('<html>ok</html>'),
+      close: jest.fn().mockRejectedValue(new Error('já fechada')),
+    });
+
+    await expect(retrieveContent('http://ok.test', puppetSite)).resolves.toBe('<html>ok</html>');
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Falha ao fechar a aba'));
+    consoleWarnSpy.mockRestore();
+  });
+});
