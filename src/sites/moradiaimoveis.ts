@@ -19,17 +19,16 @@ export default {
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);
 
-  const qtdText = $('.resultados').text();
-  const qtdMatch = qtdText.match(/(\d+)\s*imóvei[s]?/i) || $('.resultado').length;
-  const qtd = qtdMatch ? (typeof qtdMatch === 'number' ? qtdMatch : Number(qtdMatch[1])) : 0;
+  const qtdText = $('.quantidade').text();
+  const qtdMatch = qtdText.match(/(\d+)\s*imóve/i);
+  const qtd = qtdMatch ? Number(qtdMatch[1]) : $('.resultado').length;
 
   const imoveis: Imoveis[] = [];
 
   $('.info_imoveis').each((_, el) => {
     const parent = $(el).parent();
     const linkAttr = parent.find('.foto a').first().attr('href');
-    const isRental = linkAttr && linkAttr.includes('/alugar/');
-    if (isRental) return;
+    const isRental = !!(linkAttr && linkAttr.includes('/alugar/'));
 
     const tipo = $(el).find('.tipo').text().trim();
     const bairro = $(el).find('.bairro').text().trim();
@@ -80,7 +79,8 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
             vagas,
             precoPorMetro: area > 0 ? valor / area : 0,
             site: 'moradiaimoveisfranca.com.br',
-            entrada: valor * 0.20
+            entrada: valor * 0.20,
+            tipo: isRental ? 'aluguel' : 'venda',
         });
     }
   });

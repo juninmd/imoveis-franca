@@ -14,6 +14,23 @@ interface PropertyCardProps {
   viewMode?: 'grid' | 'list';
 }
 
+// O servidor ja descarta anuncio com link nao-http(s) (inclusive o que vem do cache), entao
+// isto e defesa em profundidade: a API nao e o unico produtor possivel deste campo e o React
+// so neutraliza `javascript:`, nao `data:`/`vbscript:`. O ganho principal aqui e nao prometer
+// ao usuario um "Ver Detalhes" que nao abre nada.
+// A base e mantida de proposito: adapters que devolvem link relativo continuam validos.
+const isSafeUrl = (raw: string): boolean => {
+  if (!raw) {
+    return false;
+  }
+  try {
+    const { protocol } = new URL(raw, window.location.origin);
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
+
 const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.ElementType, value: number, label: string, suffix?: string }) => {
   const isMissing = !value || value <= 0;
   const displayValue = !isMissing ? `${value}${suffix}` : '-';
@@ -29,6 +46,7 @@ const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.El
 };
 
 export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavorite, onToggleFavorite, viewMode = 'grid' }) => {
+  const linkIsSafe = isSafeUrl(imovel.link);
   const [showImages, setShowImages] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { addToast } = useToast();
@@ -38,10 +56,37 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
   const isBelowAverage = (imovel.valorMedioBairroPorAreaTotal || 0) > 0 && imovel.precoPorMetro < ((imovel.valorMedioBairroPorAreaTotal || 0) / imovel.areaTotal);
 
-  const handleShare = (e: React.MouseEvent) => {
+  // No mobile o menu nativo de compartilhamento é o que o usuário espera; no desktop cai para
+  // a área de transferência. `writeText` rejeita fora de contexto seguro ou sem permissão —
+  // antes o toast dizia "copiado" mesmo quando nada era copiado.
+  const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(imovel.link);
-    addToast('Link copiado para a área de transferência!', 'success');
+
+    // O link vem de HTML de terceiro. O React ja bloqueia um `javascript:` no href, mas a area
+    // de transferencia e o menu de compartilhamento nao tem essa protecao.
+    if (!linkIsSafe) {
+      addToast('Link do anúncio indisponível.', 'error');
+      return;
+    }
+
+    const shareData = { title: imovel.titulo, text: `${imovel.titulo} — ${imovel.endereco}`, url: imovel.link };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        // Cancelar o menu nativo não é erro: sai sem avisar nada.
+        if ((error as DOMException)?.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(imovel.link);
+      addToast('Link copiado para a área de transferência!', 'success');
+    } catch {
+      addToast('Não foi possível copiar o link.', 'error');
+    }
   };
 
   return (
@@ -101,7 +146,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                  <Heart size={18} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
               </button>
              <button
-                onClick={handleShare}
+                onClick={(e) => { void handleShare(e); }}
                 className="group p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
                 title="Compartilhar"
                 aria-label="Compartilhar"
@@ -182,13 +227,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
           </div>
 
           <a
-             href={imovel.link}
+             href={linkIsSafe ? imovel.link : undefined}
              target="_blank"
              rel="noopener noreferrer"
+             aria-disabled={!linkIsSafe}
              className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 backdrop-blur-md text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.25)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.98] mt-2 group/btn relative overflow-hidden border border-blue-500/50"
            >
              <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
-               Ver Detalhes
+               {linkIsSafe ? 'Ver Detalhes' : 'Link indisponível'}
                <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
              </span>
              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-out" />

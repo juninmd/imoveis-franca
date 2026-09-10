@@ -5,14 +5,14 @@ import { normalizeNeighborhoodName } from '../utils';
 export default {
   enabled: true,
   tipo: 'venda',
-  url: 'https://www.unioconimobiliaria.com.br/buscar?availability=buy&direction=desc&order=most_relevant&search_type=properties_map',
+  url: 'https://www.unioconimobiliaria.com.br/imoveis',
   name: 'unioconimobiliaria.com.br',
-  driver: 'puppet', // Imobzi is usually client side rendered (angular or similar), so puppet driver is better
-  itemsPerPage: 15, // Let's guess
+  driver: 'puppet', // client side rendered listing widget, so puppet driver is better
+  itemsPerPage: 18, // Let's guess
   params: [],
   getPaginateParams: (page: number) => {
-    if (page === 1) return { url: 'https://www.unioconimobiliaria.com.br/buscar?availability=buy&direction=desc&order=most_relevant&search_type=properties_map' };
-    return { url: `https://www.unioconimobiliaria.com.br/buscar?availability=buy&direction=desc&order=most_relevant&page=${page}&search_type=properties_map` };
+    if (page === 1) return { url: 'https://www.unioconimobiliaria.com.br/imoveis' };
+    return { url: `https://www.unioconimobiliaria.com.br/imoveis?page=${page}` };
   },
   adapter,
 } as Site;
@@ -20,60 +20,43 @@ export default {
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);
 
-  const qtdText = $('body').text().match(/(\d+)\s*Imóveis encontrados/i);
-  const qtd = qtdText ? Number(qtdText[1]) : 0;
+  const qtdText = $('.ListaImovelTotal').first().text().trim() || $('body').text().match(/(\d+)\s*Im[oó]veis[^\d]*encontrados/i)?.[1];
+  const qtd = qtdText ? Number(qtdText) : 0;
 
   const imoveis: Imoveis[] = [];
 
-  const items = $('imobzi-property-card, .property-card, [class*="PropertyCard"]');
+  const items = $('.LI_Imovel');
 
   items.each((_i, el) => {
-    const titulo = $(el).find('h2, h3').first().text().trim();
+    const titulo = $(el).find('a.Title').first().text().trim();
     if (!titulo) return;
 
     // Address
-    let endereco = titulo;
-    if (titulo.includes(' - ')) {
-        const parts = titulo.split(' - ');
-        endereco = parts[0].replace(/.* em /i, '').trim();
-    } else if (titulo.includes(' no bairro ')) {
-        const parts = titulo.split(' no bairro ');
-        endereco = parts[parts.length - 1].trim();
-    }
-    endereco = normalizeNeighborhoodName(endereco);
+    const endereco = normalizeNeighborhoodName($(el).find('.Endereco .Bairro').first().text().trim() || titulo);
 
     // Price
-    const priceText = $(el).find('b:contains("R$")').text().trim() || $(el).text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
+    const priceText = $(el).find('.ImovelValor .value').first().text().trim() || '0';
     const valor = parseFloat(priceText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
     // Details
-    const detailsText = $(el).text();
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;
 
-    if (detailsText.match(/(\d+)\s*m²/)) {
-        area = parseFloat(detailsText.match(/(\d+)\s*m²/)?.[1] || '0');
-    }
+    const areaText = $(el).find('.ResumoItem.AREA_USEFUL .val').first().text().trim() || $(el).find('.ResumoItem.AREA_GROUND .val').first().text().trim();
+    if (areaText) area = parseFloat(areaText.replace(/\D/g, '') || '0');
 
-    if (detailsText.match(/bed\s*(\d+)/)) {
-        quartos = parseInt(detailsText.match(/bed\s*(\d+)/)?.[1] || '0');
-    } else if (detailsText.match(/(\d+)\s*quartos/i)) {
-        quartos = parseInt(detailsText.match(/(\d+)\s*quartos/i)?.[1] || '0');
-    }
+    const quartosText = $(el).find('.ResumoItem.BEDROOM .val').first().text().trim();
+    if (quartosText) quartos = parseInt(quartosText || '0');
 
-    if (detailsText.match(/bathtub\s*(\d+)/)) {
-        banheiros = parseInt(detailsText.match(/bathtub\s*(\d+)/)?.[1] || '0');
-    }
+    const banheirosText = $(el).find('.ResumoItem.BATHROOM .val').first().text().trim();
+    if (banheirosText) banheiros = parseInt(banheirosText || '0');
 
-    if (detailsText.match(/directions_car\s*(\d+)/)) {
-        vagas = parseInt(detailsText.match(/directions_car\s*(\d+)/)?.[1] || '0');
-    } else if (detailsText.match(/(\d+)\s*vagas/i)) {
-        vagas = parseInt(detailsText.match(/(\d+)\s*vagas/i)?.[1] || '0');
-    }
+    const vagasText = $(el).find('.ResumoItem.GARAGE .val').first().text().trim();
+    if (vagasText) vagas = parseInt(vagasText || '0');
 
-    const linkAttr = $(el).find('a').first().attr('href');
+    const linkAttr = $(el).find('a.Title').first().attr('href') || $(el).find('.ImageSide a.Image').first().attr('href');
     const link = linkAttr ? (linkAttr.startsWith('http') ? linkAttr : `https://www.unioconimobiliaria.com.br${linkAttr}`) : '';
 
-    const imgRel = $(el).find('img').attr('src');
+    const imgRel = $(el).find('img.BannerImage').first().attr('src');
     const imagens = imgRel ? [imgRel.startsWith('http') ? imgRel : `https://www.unioconimobiliaria.com.br${imgRel}`] : [];
 
     if (link && valor > 0) {

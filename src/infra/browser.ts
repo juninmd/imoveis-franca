@@ -20,7 +20,12 @@ class BrowserSingleton {
 
   public async getBrowser(): Promise<Browser> {
     if (!this.browser) {
-      this.browser = await puppeteerExtra.launch();
+      // --no-sandbox é necessário quando o Chromium roda como root (caso do container Docker,
+      // que não define um usuário não-root); sem isso o launch falha com
+      // "Running as root without --no-sandbox is not supported".
+      this.browser = await puppeteerExtra.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
     }
     return this.browser;
   }
@@ -45,6 +50,16 @@ class BrowserSingleton {
       }
     });
     return page;
+  }
+
+  // Sem isto, um SIGTERM (deploy, `docker compose down`, reciclagem do pod) deixava o
+  // processo do Chromium órfão segurando memória.
+  public async close(): Promise<void> {
+    if (this.browser) {
+      const browser = this.browser;
+      this.browser = null;
+      await browser.close();
+    }
   }
 }
 

@@ -10,46 +10,46 @@ describe('Imobiliaria Pimenta Franca Adapter', () => {
 
   it('should parse HTML and fetch details correctly', async () => {
     const listHtml = `
-      <div class="cabecalho">
-        <div><strong>2 Imóveis</strong></div>
-      </div>
-
-      <div class="item-lista"> <!-- Loop Element -->
-
-        <div>Spacer 1</div>
-
-        <!-- This is div:nth-child(2) of Loop Element -->
-        <!-- It must have class 'item-lista' to match title selector -->
-        <div class="item-lista">
-
-          <!-- Address Selector: div:nth-child(2) > a:nth-child(1) > h3 -->
-          <!-- This 'a' is the first child of this div -->
-          <a href="#">
-             <h3>Centro, Franca</h3>
-          </a>
-
-          <!-- Title Selector: div.item-lista:nth-child(2) > div:nth-child(2) > a:nth-child(1) > small:nth-child(2) -->
-          <!-- We need a 2nd child div here -->
-          <div> <!-- div:nth-child(2) of the inner item-lista -->
-             <a href="#">
-               <small>Prefix</small>
-               <small>Casa Padrão</small>
-             </a>
+      <script>var count = 2;</script>
+      <div id="listar_grade">
+        <div class="imovel-item">
+          <div class="item_info">
+            <h3><a href="/imovel/123/casa-padrao">Casa Padrão</a></h3>
+            <div class="item_address">
+              <p>Rua Teste, 100</p>
+              <p>Bairro: Centro</p>
+              <p>Cidade: Franca - SP</p>
+            </div>
+            <div class="main-characteristics-list">
+              <div><span>
+                <svg viewBox="0 0 512 512"><path d="M174.9 494.1c-18.7 18.7-49.1 18.7-67.9 0"></path></svg>
+                <span class="carac-name-list">200 m²</span>
+              </span></div>
+              <div><span>
+                <svg viewBox="0 0 640 512"><path d="M32 32c17.7 0 32 14.3 32 32V320H288V160c0-17.7 14.3-32 32-32H544"></path></svg>
+                <span class="carac-name-list">3</span>
+              </span></div>
+              <div><span>
+                <svg viewBox="0 0 448 512"><path d="M24 0C10.7 0 0 10.7 0 24S10.7 48 24 48h8V196.9c-1.9 1.4"></path></svg>
+                <span class="carac-name-list">2</span>
+              </span></div>
+              <div><span>
+                <svg viewBox="0 0 515 515"><path d="M135.2 117.4L109.1 192H402.9l-26.1-74.6"></path></svg>
+                <span class="carac-name-list">1</span>
+              </span></div>
+            </div>
+            <div class="item_prices">
+              <dl><dt>Venda (R$)</dt><dd>500.000,00</dd></dl>
+            </div>
           </div>
-
         </div>
-
-        <div class="desc-item-lista">
-          <ul></ul>
-          <ul><a href="#"><li>R$ 500.000,00</li></a></ul>
+      </div>
+      <div id="listar_lista">
+        <div class="imovel-item">
+          <div class="item_info">
+            <h3><a href="/imovel/123/casa-padrao">Casa Padrão (lista)</a></h3>
+          </div>
         </div>
-        <div class="icones ico2">
-          <a data-tooltip="Área">200 m²</a>
-          <a data-tooltip="Dormitórios">3</a>
-          <a data-tooltip="Banheiros">2</a>
-          <a data-tooltip="Vagas">1</a>
-        </div>
-        <a class="btver cor0" href="/imovel/123">Ver</a>
       </div>
     `;
 
@@ -70,15 +70,34 @@ describe('Imobiliaria Pimenta Franca Adapter', () => {
 
     expect(result.qtd).toBe(2);
 
-    // We expect the valid property to be found
+    // Only the #listar_grade item is extracted (the #listar_lista duplicate must not be counted)
+    expect(result.imoveis).toHaveLength(1);
+
     const validImovel = result.imoveis.find(i => i.titulo === 'Casa Padrão');
     expect(validImovel).toBeDefined();
 
     if (validImovel) {
-        expect(validImovel.valor).toBe(500000);
-        expect(validImovel.endereco).toBe('CENTRO');
-        expect(validImovel.quartos).toBe(3);
-        expect(validImovel.imagens).toContain('img1.jpg');
+      expect(validImovel.valor).toBe(500000);
+      expect(validImovel.endereco).toBe('CENTRO');
+      expect(validImovel.area).toBe(200);
+      expect(validImovel.quartos).toBe(3);
+      expect(validImovel.banheiros).toBe(2);
+      expect(validImovel.vagas).toBe(1);
+      expect(validImovel.link).toBe('https://www.imobiliariapimentafranca.com.br/imovel/123/casa-padrao');
+      expect(validImovel.imagens).toContain('img1.jpg');
     }
+  });
+
+  it('should return no imoveis when the listing grid is empty', async () => {
+    const listHtml = `
+      <script>var count = 0;</script>
+      <div id="listar_grade"></div>
+    `;
+
+    const result = await adapter(listHtml);
+
+    expect(result.qtd).toBe(0);
+    expect(result.imoveis).toEqual([]);
+    expect(axios.get).not.toHaveBeenCalled();
   });
 });

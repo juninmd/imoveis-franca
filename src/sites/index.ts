@@ -77,7 +77,7 @@ export const sites: Site[] = [
   oasisimobiliaria,
   matriz as unknown as Site,
   imobiliarialemos,
-  c15imob, aacosta, agnelloimoveis, imoveisfranca, espaconobreimoveis,
+  c15imob, ...aacosta as unknown as Site[], agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,

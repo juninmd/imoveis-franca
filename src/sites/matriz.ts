@@ -22,12 +22,12 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
   const imoveis: Imovel[] = [];
 
   const bodyText = $('body').text();
-  const qtdMatch = bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/(\d+)\s*resultados/i) || bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/Encontrados\s*(\d+)/i);
+  const qtdMatch = bodyText.match(/(\d+)\s*imóveis/i) || bodyText.match(/(\d+)\s*resultados/i) || bodyText.match(/(\d+)\s*propriedades/i) || bodyText.match(/Encontrados\s*(\d+)/i);
   let qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
 
   // Find cards using attribute that seems common based on initial tests
   // Matriz uses a container with .grid.grid-cols-1.sm:grid-cols-2
-  const items = $('div[class*="group hover:bg-background"], a[class*="group hover:bg-background"], .border.rounded-lg, div.card-imovel, .property-card, a[href*="/imovel/"]');
+  const items = $('div[class*="group hover:bg-background"], a[class*="group hover:bg-background"], .border.rounded-lg, div.card-imovel, .property-card, .bento-card, a[href*="/imovel/"]');
 
   items.each((_i, el) => {
     const $el = $(el);
@@ -52,7 +52,13 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
     }
     endereco = normalizeNeighborhoodName(endereco);
 
-    const valorText = $el.find('b:contains("R$"), span:contains("R$"), div:contains("R$"), p:contains("R$")').text().trim() || $el.text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
+    // `div:contains("R$")` casa também com os ancestrais do card e, sem `.first()`, o `.text()`
+    // concatenava todos os preços num só número impossível de parsear. Vai do mais específico
+    // para o mais genérico, com a regex sobre o texto do card como último recurso.
+    const valorText = $el.find('p:contains("R$")').first().text().trim()
+      || $el.find('b:contains("R$"), span:contains("R$")').first().text().trim()
+      || $el.text().match(/R\$\s*[\d.,]+/)?.[0]
+      || '0';
     const valor = parseFloat(valorText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;

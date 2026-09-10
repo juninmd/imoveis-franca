@@ -15,14 +15,16 @@ export default {
   },
   adapter,
 } as Site;
+// Nota: `locacao_venda=L` (tentativa de variante "alugar") foi testado e descartado — o site
+// ignora o parâmetro e retorna um feed de imóveis À VENDA de outras cidades (ex.: Formosa-GO),
+// não aluguéis de Franca. Ver .workflow/49-plataforma-moderna-compra-aluguel/progress.md.
 
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);
   const imoveis: Imoveis[] = [];
 
-  const qtdText = $('h1').text();
-  const qtdMatch = qtdText.match(/(\d+)\s+imóveis/i);
-  const qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
+  // Site não expõe mais texto de contagem em <h1>; usa a quantidade de cards encontrados.
+  const qtd = $('.row.imovel').length;
 
   $('.row.imovel').each((_i, el) => {
     let link = '';

@@ -36,7 +36,8 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const li = $(el).closest('li');
     if (li.length === 0) return;
 
-    let titulo = li.find('h2, h3').first().text().trim();
+    let titulo = li.find('h2 span:not(.d-none)').last().text().trim();
+    if (!titulo) titulo = li.find('h2, h3').first().text().trim();
     if (!titulo) titulo = li.text().split('R$')[0].trim().substring(0, 50); // Fallback
 
     // Address - extract from link
@@ -72,14 +73,20 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const areaMatch = detailsText.match(/(\d+)\s*m²/);
     if (areaMatch) area = parseInt(areaMatch[1]);
 
+    // Bedrooms/bathrooms/parking are rendered as bare numbers next to icon fonts (no text label)
+    const iconValue = (testid: string): number => {
+        const val = li.find(`i[data-testid="${testid}"]`).first().next().text().replace(/\D/g, '');
+        return val ? parseInt(val) : 0;
+    };
+
     const quartosMatch = detailsText.match(/(\d+)\s*quarto/);
-    if (quartosMatch) quartos = parseInt(quartosMatch[1]);
+    quartos = quartosMatch ? parseInt(quartosMatch[1]) : iconValue('fa-bed');
 
     const banheirosMatch = detailsText.match(/(\d+)\s*banheiro/);
-    if (banheirosMatch) banheiros = parseInt(banheirosMatch[1]);
+    banheiros = banheirosMatch ? parseInt(banheirosMatch[1]) : iconValue('fa-shower');
 
     const vagasMatch = detailsText.match(/(\d+)\s*vaga/);
-    if (vagasMatch) vagas = parseInt(vagasMatch[1]);
+    vagas = vagasMatch ? parseInt(vagasMatch[1]) : iconValue('fa-car');
 
     if (link && valor > 0) {
         imoveis.push({

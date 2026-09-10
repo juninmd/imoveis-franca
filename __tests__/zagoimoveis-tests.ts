@@ -11,7 +11,7 @@ describe('Zago Imoveis Adapter', () => {
   it('should extract correct number of items', async () => {
     const html = `
       <body>
-        <div>12 Imóveis</div>
+        <h1 class="titulo_busca">Imóveis à venda  - <b id="count">12</b><span> resultados encontrados.</span></h1>
         <div class="resultado">
             <a href="/comprar/sp/franca/jardim/apartamento/123"></a>
             <div class="dados">

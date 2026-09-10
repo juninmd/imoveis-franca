@@ -9,8 +9,11 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import type { Imovel } from './types';
 import { useToast } from './components/ToastContext';
 import { VirtuosoGrid } from 'react-virtuoso';
+import { useSearchState } from './hooks/useSearchState';
+import { useFavorites } from './hooks/useFavorites';
 
 const FilterSidebar = React.lazy(() => import('./components/FilterSidebar').then(module => ({ default: module.FilterSidebar })));
 
@@ -45,27 +48,29 @@ const ItemContainer = ({ children, ...props }: React.HTMLAttributes<HTMLDivEleme
 );
 
 export const Home = () => {
-  const [filters, setFilters] = useState({
-    tipo: 'venda' as 'venda' | 'aluguel',
-    minPrice: '',
-    maxPrice: '',
-    minBedrooms: '',
-    minBathrooms: '',
-    minVacancies: '',
-    minArea: '',
-    maxArea: '',
-    minAreaTotal: '',
-    maxAreaTotal: '',
-    address: [] as string[],
-  });
+  // Estado da busca vive na URL: a pesquisa fica compartilhável, sobrevive ao refresh e
+  // acompanha o botão "voltar" do navegador.
+  const {
+    filters, setFilters,
+    sortOrder, setSortOrder,
+    viewMode, setViewMode,
+    showFavoritesOnly, setShowFavoritesOnly,
+  } = useSearchState();
 
   const { addToast } = useToast();
   const debouncedFilters = useDebounce(filters, 500);
 
-  const [sortOrder, setSortOrder] = useState('price_asc');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Fechar com Esc é o mínimo esperado de um painel sobreposto no mobile.
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isSidebarOpen]);
 
   // Dark Mode
   const [darkMode, setDarkMode] = useState(() => {
@@ -86,38 +91,26 @@ export const Home = () => {
     }
   }, [darkMode]);
 
-  // Favorites
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    const saved = localStorage.getItem('favorites');
-    try {
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { isFavorite, toggle: toggleFavoriteInStore, sync: syncFavorites, items: favoriteItems, count: favoritesCount } = useFavorites();
 
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
-
-  const toggleFavorite = (link: string) => {
-    const isAdding = !favorites.includes(link);
-    setFavorites(prev =>
-      prev.includes(link) ? prev.filter(l => l !== link) : [...prev, link]
-    );
+  const toggleFavorite = (imovel: Imovel) => {
+    const isAdding = toggleFavoriteInStore(imovel);
     addToast(
       isAdding ? 'Imóvel salvo nos favoritos!' : 'Imóvel removido dos favoritos.',
       isAdding ? 'success' : 'info'
     );
   };
 
-  const { data: imoveis, isLoading, isError } = useQuery({
+  const { data: imoveis, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['imoveis', debouncedFilters],
-    queryFn: () => fetchImoveis(debouncedFilters),
+    queryFn: () => fetchImoveis({ ...debouncedFilters }),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Completa favoritos antigos (salvos quando só guardávamos o link) com os dados do anúncio.
+  useEffect(() => {
+    if (imoveis) syncFavorites(imoveis);
+  }, [imoveis, syncFavorites]);
 
   // Extract unique addresses for the filter
   const allAddresses = useMemo(() => imoveis
@@ -125,12 +118,12 @@ export const Home = () => {
     : [], [imoveis]);
 
   const sortedImoveis = useMemo(() => {
-    if (!imoveis) return [];
-    let list = [...imoveis];
-
-    if (showFavoritesOnly) {
-        list = list.filter(i => favorites.includes(i.link));
-    }
+    // Os favoritos vêm do armazenamento local, não do resultado da busca: antes eles sumiam
+    // da tela ao trocar de "Comprar" para "Alugar" ou ao mexer em qualquer filtro, enquanto o
+    // contador continuava mostrando o total salvo.
+    const source = showFavoritesOnly ? favoriteItems : imoveis;
+    if (!source) return [];
+    const list = [...source];
 
     switch (sortOrder) {
       case 'price_asc':
@@ -144,7 +137,7 @@ export const Home = () => {
       default:
         return list;
     }
-  }, [imoveis, sortOrder, showFavoritesOnly, favorites]);
+  }, [imoveis, sortOrder, showFavoritesOnly, favoriteItems]);
 
   // Scroll to top when filters or sort change
   useEffect(() => {
@@ -227,7 +220,7 @@ export const Home = () => {
               Imóveis Franca
             </h1>
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 text-primary-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+          <button onClick={() => setIsSidebarOpen(false)} aria-label="Fechar filtros" className="lg:hidden p-2 text-primary-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
             <X size={20} />
           </button>
         </div>
@@ -297,14 +290,16 @@ export const Home = () => {
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="lg:hidden text-gray-600 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+                aria-label={activeFiltersCount > 0 ? `Abrir filtros (${activeFiltersCount} ativos)` : 'Abrir filtros'}
+                aria-expanded={isSidebarOpen}
               >
                 <Menu size={24} />
                 {activeFiltersCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" aria-hidden="true" />
                 )}
               </button>
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2" aria-live="polite">
                {isLoading ? (
                  <span className="flex items-center gap-2 text-gray-500">
                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -321,7 +316,8 @@ export const Home = () => {
 
           <div className="flex items-center gap-3">
              <button
-                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                onClick={() => setShowFavoritesOnly(prev => !prev)}
+                aria-pressed={showFavoritesOnly}
                 className={clsx(
                   "p-2.5 rounded-lg transition-all flex items-center gap-2 text-sm font-medium border shadow-sm",
                   showFavoritesOnly
@@ -331,7 +327,7 @@ export const Home = () => {
                 title="Mostrar apenas favoritos"
               >
                 <Heart size={18} className={showFavoritesOnly ? "fill-current" : ""} />
-                <span className="hidden sm:inline">Favoritos ({favorites.length})</span>
+                <span className="hidden sm:inline">Favoritos ({favoritesCount})</span>
               </button>
 
              <button
@@ -370,13 +366,16 @@ export const Home = () => {
                 </button>
              </div>
 
-            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+            {/* Ordenação também no mobile: estava atrás de `hidden sm:flex`, ou seja, a maior
+                parte do tráfego não conseguia ordenar a lista. */}
+            <div className="flex items-center gap-2 sm:pl-2 sm:border-l border-gray-200 dark:border-gray-700">
+                <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:flex items-center gap-1" aria-hidden="true">
                     <ArrowUpDown size={14} />
                 </span>
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value)}
+                  onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
+                  aria-label="Ordenar resultados"
                   className="py-2 pl-2 pr-8 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
                 >
                   <option value="price_asc">Menor Preço</option>
@@ -447,8 +446,8 @@ export const Home = () => {
                 title="Erro ao carregar imóveis"
                 description="Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
                 action={{
-                    label: 'Tentar novamente',
-                    onClick: () => window.location.reload()
+                    label: isFetching ? 'Tentando...' : 'Tentar novamente',
+                    onClick: () => { void refetch(); }
                 }}
             /></motion.div>
           ) : sortedImoveis.length === 0 ? (
@@ -486,8 +485,8 @@ export const Home = () => {
                    >
                     <PropertyCard
                       imovel={imovel}
-                      isFavorite={favorites.includes(imovel.link)}
-                      onToggleFavorite={() => toggleFavorite(imovel.link)}
+                      isFavorite={isFavorite(imovel.link)}
+                      onToggleFavorite={() => toggleFavorite(imovel)}
                       viewMode={viewMode}
                     />
                   </motion.div>

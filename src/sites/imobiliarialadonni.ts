@@ -21,7 +21,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
 
   const imoveis: Imovel[] = [];
 
-  const items = $('.caixa-imovel, .bximovel');
+  const items = $('.item-lista, .bximovel');
 
   items.each((_i, el) => {
     const $el = $(el);
@@ -37,7 +37,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imovel[], qtd: n
     }
     endereco = normalizeNeighborhoodName(endereco);
 
-    const valorText = $el.find('b:contains("R$"), strong:contains("R$"), .valor:contains("R$"), span:contains("R$")').text().trim() || $el.text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
+    const valorText = $el.find('b:contains("R$"), strong:contains("R$"), .valor:contains("R$"), span:contains("R$"), li:contains("R$")').first().text().trim() || $el.find('ul').text().match(/R\$\s*[\d.,]+/)?.[0] || '0';
     const valor = parseFloat(valorText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim() || '0');
 
     let area = 0, quartos = 0, banheiros = 0, vagas = 0;

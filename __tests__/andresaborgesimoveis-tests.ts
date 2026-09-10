@@ -42,21 +42,33 @@ describe('andresaborgesimoveis.com.br adapter', () => {
     expect(result.imoveis[0].banheiros).toBe(2);
     expect(result.imoveis[0].endereco).toBe('JARDIM CONSOLACAO');
     expect(result.imoveis[0].imagens).toEqual(['img1.jpg', 'img2.jpg']);
+    expect(result.imoveis[0].tipo).toBe('venda');
   });
 
-  it('should ignore rentals and missing titles', async () => {
+  it('should skip cards with no title', async () => {
      const html = `
         <div class="c49-property-card">
            <h2 class="c49-property-card_title"></h2>
         </div>
-        <div class="c49-property-card">
-           <header class="c49-property-card_header" onclick="window.open('link', '_self')">
-               <h2 class="c49-property-card_title">Casa para locação</h2>
-           </header>
-        </div>
      `;
      const result = await adapter(html);
      expect(result.imoveis.length).toBe(0);
+  });
+
+  it('should tag rental listings as tipo=aluguel instead of discarding them', async () => {
+     const html = `
+        <div class="c49-property-card">
+           <header class="c49-property-card_header" onclick="window.open('https://example.com/rent1', '_self')">
+               <h2 class="c49-property-card_title">Casa para locação</h2>
+           </header>
+           <div class="c49-property-card_address">Centro, Franca - SP</div>
+           <div class="c49-property-card_rent-price">R$ 2.500,00</div>
+        </div>
+     `;
+     const result = await adapter(html);
+     expect(result.imoveis.length).toBe(1);
+     expect(result.imoveis[0].valor).toBe(2500);
+     expect(result.imoveis[0].tipo).toBe('aluguel');
   });
 
   it('should handle missing values correctly', async () => {

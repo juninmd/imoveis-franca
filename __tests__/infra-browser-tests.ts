@@ -97,3 +97,26 @@ describe('BrowserSingleton', () => {
     expect(mockRequest.continue).toHaveBeenCalled();
   });
 });
+
+describe('BrowserSingleton.close', () => {
+  it('fecha o Chromium e permite relançar depois', async () => {
+    jest.resetModules();
+    const puppeteerExtra = require('puppeteer-extra').default;
+    const BrowserSingleton = require('../src/infra/browser').default;
+
+    const close = jest.fn().mockResolvedValue(undefined);
+    (puppeteerExtra.launch as jest.Mock).mockResolvedValue({ newPage: jest.fn(), close });
+
+    await BrowserSingleton.getBrowser();
+    await BrowserSingleton.close();
+    expect(close).toHaveBeenCalledTimes(1);
+
+    // Um SIGTERM sem browser aberto não pode estourar.
+    await BrowserSingleton.close();
+    expect(close).toHaveBeenCalledTimes(1);
+
+    // E o singleton volta a lançar um browser novo se ainda for usado.
+    await BrowserSingleton.getBrowser();
+    expect(puppeteerExtra.launch).toHaveBeenCalledTimes(2);
+  });
+});

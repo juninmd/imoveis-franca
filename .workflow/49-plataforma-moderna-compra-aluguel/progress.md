@@ -104,14 +104,227 @@ Branch: `feat/compra-aluguel-plataforma-moderna`
   tipos no `setFilters` repassado ao `FilterSidebar`. `FilterSidebar.test.tsx` atualizado com
   `tipo: 'venda'` no `defaultFilters` de teste.
 
-### Docker (bloqueado neste ambiente)
-- `docker version`/`docker compose version` funcionam, mas o **daemon do Docker Desktop não está
-  rodando nesta máquina** (`failed to connect to the docker API ... dockerDesktopLinuxEngine`).
-  Não iniciei o Docker Desktop por conta própria (ação de sistema fora do escopo de "implementar
-  código"). `docker-compose.yml`, `.dockerignore` e o `Dockerfile` (Chromium + healthcheck) estão
-  prontos e revisados, mas **`docker compose up --build` não foi executado nem verificado nesta
-  sessão** — pendente de o usuário rodar localmente com o Docker Desktop ativo, ou pedir para eu
-  verificar numa sessão com o daemon disponível.
+### Docker — verificado (rodada local a pedido do usuário)
+- Docker Desktop foi iniciado e `docker compose up --build -d` rodou com sucesso.
+- **Bug real encontrado e corrigido**: o Chromium falhava dentro do container
+  (`Running as root without --no-sandbox is not supported`) porque a imagem roda como root e o
+  Puppeteer não passava `--no-sandbox`. Corrigido em `src/infra/browser.ts`
+  (`args: ['--no-sandbox', '--disable-setuid-sandbox']`), coberto pelos testes existentes
+  (`infra-browser-tests.ts` já invoca `getBrowser()` de verdade com `puppeteer-extra` mockado) —
+  100% de cobertura mantido.
+- **Bug de ambiente encontrado e corrigido**: `docker-compose.yml` publicava a porta 6379 do
+  redis no host, conflitando com um Redis de outro projeto já rodando ali. Removido o publish
+  (o `app` fala com o `redis` pela rede interna do compose; publicar a porta nunca foi necessário
+  para o funcionamento).
+- `curl http://localhost:3000/healthz` → `{"status":"ok"}`.
+- `curl http://localhost:3000/api/imoveis?tipo=venda` → **200, 2368 imóveis reais** (a maioria de
+  `imoveisfranca.com.br` e `aacosta.com.br`; boa parte dos outros 43 sites voltou vazia nesta
+  rodada — falha de rede/anti-bot pontual do ambiente, não do código: `filterImoveis`/`tipo`
+  funcionaram corretamente sobre o que voltou).
+- `curl http://localhost:3000/api/imoveis?tipo=aluguel` → **200, 0 imóveis** nesta rodada — reforça
+  a limitação já documentada (só `imoveismpb.com.br` tem finalidade aluguel hoje) e, adicionalmente,
+  esse site específico não retornou dados nesta execução (mesma causa de rede/anti-bot).
+- Screenshot com dados reais capturado contra o app rodando em Docker (não mockado) — enviado ao
+  usuário via `SendUserFile`.
+- Stack deixada rodando (`docker compose up -d`) para o usuário navegar em
+  http://localhost:3000 diretamente.
+
+### Bug real encontrado ao navegar (fora do escopo original, corrigido a pedido do usuário)
+- Usuário perguntou por que as fotos não apareciam nos cards. Diagnóstico: `imoveisfranca.com.br`
+  (site com mais volume, 1870 de 2368 imóveis) trocou o markup do carrossel de fotos de
+  `div.item` para `div.carousel-item` (atualização de Bootstrap do lado deles); o seletor do
+  adapter (`src/sites/imoveis-franca.ts`) ficou desatualizado e sempre retornava `imagens: []`,
+  mesmo o site tendo as fotos. Confirmado inspecionando o HTML real renderizado dentro do
+  container.
+- Corrigido o seletor para `div.carousel-inner > div.carousel-item > img`; fixture de teste
+  (`__tests__/imoveis-franca-tests.ts`) atualizada para o markup real + novo caso de carrossel
+  vazio. `pnpm test:coverage` → 53 suítes / **174 testes**, 100% mantido.
+- Confirmado ao vivo: novo scrape (após `FLUSHALL` no Redis do compose) trouxe imagens em 2367 de
+  2368 imóveis (`aacosta.com.br` já funcionava; agora `imoveisfranca.com.br` também). Screenshot
+  `docker-live-comprar-images-fixed.png` mostra fotos reais nos cards.
+
+## Pedido do usuário: "revise todos os seletores de todos os sites"
+
+### Auditoria inicial
+- Script de auditoria (`retrieImoveisSite` por site, `maxPages:1`) rodado contra os 47 `Site`
+  dentro do container: **42 sites retornaram 0 itens**, 4 "ok", 1 desabilitado
+  (`agnelloimoveis`). Nenhum erro de rede/HTTP na maioria — sinal de seletor desatualizado.
+- Capturado o HTML/JSON real de cada site (`retrieveContent` direto, sem passar pelo adapter) —
+  39 sites responderam com conteúdo real; 6 tiveram falha de conexão dura (não é seletor):
+  `espaconobreimoveis` (404, endpoint mudou), `mazzaimoveis` (404), `imobiliariaplano` (timeout de
+  navegação), `silveiraimoveis` (ECONNREFUSED), `imperadorimoveis` (domínio não resolve/DNS),
+  `nielsenimoveis` (410 Gone); `pucciimobiliaria` devolveu um erro 500 do próprio backend PHP
+  deles (site fora do ar do lado deles).
+
+### Correção em paralelo (7 agentes, 34 sites)
+Disparados 7 subagentes em paralelo, cada um com ~5 sites: ler o adapter, ler o HTML/JSON real
+capturado, diagnosticar a causa raiz, aplicar o fix mínimo no seletor, reescrever a fixture do
+teste para o markup real, e rodar o teste do arquivo. Resultado (16 adapters corrigidos, 20
+arquivos de teste tocados/criados):
+
+| Site | Causa raiz | 
+|---|---|
+| artefattoimoveis | Container `.imovel-box` → `article.item` |
+| botelhoimobiliaria | Fallback de preço pegava um ícone antes do preço real |
+| cintraimoveis | `.bairro_novo` sumiu (endereço sempre "Centro"); ícones renomeados |
+| salimimobiliaria | Markup inteiro reescrito (`li.col-im-grid`, lazy-load `data-src`) |
+| sueliandradelopes | Sufixo "Útil" no texto de área zerava `area` |
+| tratoimoveis | `qtd` lia um `<h1>` que não existe mais |
+| unicafrancaimoveis | Migrou para classes BEM (`.imovelcard`) |
+| unioconimobiliaria | Rota `/buscar` virou 404; site migrou para `/imoveis` com markup novo |
+| zagoimoveis | `qtd` pegava o dropdown de itens-por-página em vez do total real |
+| conectaassesconimoveis | Título concatenava 3 `<span>`; quartos/banheiros/vagas viraram ícones `data-testid` sem texto |
+| dinizmartins | Ícones `fa-bed/fa-bath/fa-car` → `flaticon-*`; `\|\| 1` mascarava zeros |
+| faleirosimoveis | Template inteiro trocado (`.item` → `dl.gridTypeList`) |
+| imobiliarialadonni | `.bximovel` não existe mais; cards reais são `.item-lista` |
+| imobiliariapimentafranca | Site migrou para SPA Angular; características viraram ícones SVG |
+| matriz | `.property-card` nunca existiu; cards reais são `.bento-card` |
+| moradiaimoveis | `qtd` lia `.resultados`, classe real é `.quantidade` |
+
+Sites investigados sem bug real encontrado (seletores já corretos contra o HTML real —
+resultado baixo era filtro de preço "Consulte-nos" funcionando como projetado, não bug):
+andresaborgesimoveis, boscoimoveis, bragaimobiliaria, carlosimoveisfranca, casanovaimoveis,
+famaimoveisfranca, futuraimobiliariafranca, gpsnegociosimobiliarios, groupagility, grupohabitat,
+habitesefranca, iegimoveisfrancaeregiao, oasisimobiliaria, parraimobiliaria, r2imob,
+transacaoimobiliaria, vtiimoveis. `c15imob` e `anzimoveis` ficaram sinalizados como "não
+corrigível a partir do HTML estático" (conteúdo injetado por JS/AJAX pós-carregamento, ou
+fixture era uma página de erro).
+
+Validação conjunta: `tsc --noEmit` limpo, `eslint` limpo, `jest --coverage` → **58 suítes / 187
+testes, 100% cobertura**.
+
+### A causa raiz de verdade: bug de orquestração, não de seletor
+Ao reconstruir o container com os 16 fixes e testar de verdade (`docker compose up --build` +
+`FLUSHALL` + chamada real à API), **os números não mudaram nada** — ainda só 2 sites
+contribuindo. Investigação revelou o bug real, em `src/imoveis.ts` (`retrieImoveisSite`):
+
+```js
+if (site.params) {              // [] (array vazio) é TRUTHY em JS
+  for (const params of site.params) { ... }   // 0 iterações → nenhum fetch, nenhum log
+}
+```
+
+**35 dos 47 `Site` têm `params: []`** (array vazio, não `undefined`) — um padrão usado nos
+arquivos para "este site não precisa de query params". Como array vazio é truthy, o código
+entrava no `if` mas o `for...of` nunca rodava: **nenhuma requisição era feita, nenhum log,
+nenhum erro — silêncio total**. Isso explica por que a auditoria original via `retrieImoveisSite`
+achou "0 itens" em sites cujo HTML, quando buscado diretamente, provou estar 100% correto: os
+seletores nunca chegavam a rodar porque o site nunca era buscado.
+
+Fix em `src/imoveis.ts` (`retrieImoveisSite`): quando `params` é um array vazio e não há
+`payload`, faz uma busca única sem params (em vez de pular a busca inteira em silêncio). Mantido
+o comportamento original para `params` malformado/não-array (ainda lança erro e loga
+"Erro ao consultar o site X", coberto por teste pré-existente) e para `params: undefined` sem
+`payload` (ainda retorna `[]` sem tentar buscar, também coberto por teste pré-existente). Novo
+teste: `__tests__/imoveis-empty-params.test.ts`.
+
+**Resultado real, medido em produção (container Docker, `FLUSHALL` + nova busca completa):**
+
+| | Antes (só selectors OK) | Depois (fix de orquestração) |
+|---|---|---|
+| Sites contribuindo dados | 2 (`aacosta`, `imoveisfranca`) | **29+** |
+| Imóveis (venda) | 2368 | **7292** |
+| Imóveis (aluguel) | 0 | **12** (`imoveismpb.com.br - Alugar`, confirmado em cache) |
+
+`node_modules/.bin/jest --coverage` após o fix: **58 suítes / 187 testes, 100% cobertura**.
+`tsc --noEmit` e `eslint` limpos.
+
+### Achado adicional (backlog, não corrigido nesta sessão)
+`getImoveis` (`src/imoveis.ts`) só mescla `paginateParams.params`/`.payload` na URL de paginação
+— vários adapters retornam `getPaginateParams: (page) => ({ url: ... })` (uma URL pronta, não um
+objeto `params`), que hoje é **ignorada silenciosamente**: a página 2+ desses sites refaz o fetch
+da página 1. Não corrigido agora por risco de quebrar testes que já fixam esse comportamento em
+vários arquivos — fica documentado como próximo passo de alto valor.
+
+Também observado: sites permanentemente fora do ar (`mazzaimoveis`, `r2imob`,
+`imobiliariaplano`, DNS morto de `imperadorimoveis`, etc.) fazem `generateList` esperar até 3
+tentativas × 30s por página em CADA requisição, sem cache negativo — deixa `/api/imoveis` lento
+em toda chamada sem cache. Vale um circuit-breaker/cache de falha como melhoria futura.
+
+## Pedido do usuário: "precisa agora corrigir a listagem dos aluguéis"
+
+Partindo de 0 imóveis de aluguel reais (só `imoveismpb.com.br - Alugar`, que não retornou dados
+nas últimas rodadas por instabilidade de rede do site). Investigação site a site:
+
+### Ganhos confirmados (dados reais, verificados um a um)
+- **andresaborgesimoveis.com.br** (`src/sites/andresaborgesimoveis.ts`): o adapter já detectava
+  `isRental` (título contém "locação"/"alugar") e **descartava** o item (`if (isRental) return`).
+  A página `imoveis.php` retorna venda E aluguel misturados. Removido o descarte; `tipo` agora é
+  `'aluguel'` ou `'venda'` por item, conforme detectado. **50 imóveis de aluguel reais**
+  (comerciais, valores plausíveis R$4.000–15.000/mês, endereços de Franca).
+- **moradiaimoveisfranca.com.br** (`src/sites/moradiaimoveis.ts`): mesmo padrão — `isRental`
+  detectado pelo link (`/alugar/`) e descartado. Mesma correção. **8 imóveis de aluguel reais**
+  (R$1.500–7.500/mês, endereços de Franca).
+- **aacosta.com.br** (`src/sites/aacosta.ts`): o `Site` já tinha o parâmetro de aluguel
+  **comentado** (`// negociacao: 1, // aluguel`). Testado ao vivo: endpoint funciona e retorna um
+  catálogo de aluguel genuíno e diferente do de venda. Site dividido em `aacostaComprar`/
+  `aacostaAlugar` (mesmo padrão já usado em `imoveismpb.ts`), cada um com seu próprio `tipo`.
+  **171 imóveis de aluguel reais** (R$900–1.300/mês, apartamentos em Franca).
+
+### Tentativa descartada por qualidade de dado ruim
+- **tratoimoveis.com.br**: testei a URL com `locacao_venda=L` (em vez de `V`) — respondia 200 e
+  retornava 46 itens com o mesmo seletor. Ao inspecionar os dados: **títulos diziam "à venda"/
+  "para Venda", valores de R$200.000–11.000.000 (preço de compra, não aluguel mensal), e vários
+  endereços eram de Formosa-GO, não Franca-SP**. O parâmetro `locacao_venda=L` não filtra
+  aluguel nesse site — ele é ignorado e retorna um feed nacional de vendas de outra franquia.
+  **Revertido** (`tratoimoveis.ts` voltou a ter só a variante de venda, com nota no código
+  explicando por quê). Não vale a pena expor um filtro "Alugar" com dado errado só para engordar
+  o número.
+
+### Tentativa inconclusiva, não aplicada
+- **imoveisfranca.com.br** (maior site, 1870 itens de venda): testei trocar `IDFinalidade=2` por
+  `IDFinalidade=1`. O total de "Ofertas" retornado (1875) é quase idêntico ao de venda, e os
+  preços vieram vazios/"Consulte" nos primeiros itens — não deu pra confirmar com segurança que é
+  um catálogo de aluguel de verdade e não apenas o parâmetro sendo ignorado (mesmo padrão do
+  trato). Não apliquei sem confirmação; fica de backlog investigar com mais profundidade
+  (ex.: comparar os IDs retornados entre `IDFinalidade=1` e `=2`).
+- **espaconobreimoveis.com.br**: o adapter já tem lógica ciente de `comercializacao.locacao` no
+  JSON, mas o endpoint `busca/Imoveis` está retornando 404 mesmo para venda (falha de conexão já
+  documentada antes) — sem o endpoint básico funcionando, não há como testar a variante aluguel.
+- **faleirosimoveis.com.br**: `locacao_venda=L` retornou 404 (mesmo problema de Franca não ser
+  mais atendida pelo site, já documentado).
+- **agnelloimoveis.com.br**: tem parâmetro de aluguel comentado no código, mas o site está
+  `enabled: false` (desabilitado por outro motivo) — fora de escopo mexer aqui agora.
+
+### Resultado medido em produção (docker compose local, cache limpo + nova busca completa)
+
+| | Antes desta correção | Depois |
+|---|---|---|
+| Imóveis para alugar | 0 | **229** |
+| Sites contribuindo aluguel | 0 (`imoveismpb - Alugar` instável na hora) | 3 (`aacosta`, `andresaborgesimoveis`, `moradiaimoveis`) |
+
+Todos os 229 itens inspecionados manualmente por amostragem: endereços de Franca, valores
+mensais plausíveis, títulos condizentes com aluguel — sem dado incorreto misturado (ao contrário
+da tentativa descartada do tratoimoveis).
+
+Novo teste: `__tests__/sites-aluguel-coverage.test.ts` (garante que as novas variantes de aluguel
+estão registradas em `sites` com `tipo` correto). Testes de `andresaborgesimoveis-tests.ts` e
+`moradiaimoveis-tests.ts` atualizados para cobrir a captura de aluguel em vez do descarte.
+
+`jest --coverage`: 59 suítes / 190 testes, 100% cobertura mantida. `tsc`/`eslint` limpos.
+
+### Achado extra corrigido: cache negativo (`src/imoveis.ts`, `generateList`)
+Ao tentar tirar um screenshot da aba Alugar populada, a página ficou "Carregando..." por mais
+de 8 minutos mesmo com o cache Redis dos sites que funcionam já quente. Causa: `generateList`
+só gravava no cache o resultado de um site quando `fetched.length > 0` — sites permanentemente
+fora do ar (domínio morto, 404/410, timeout) refaziam as 3 tentativas × até 30s **em toda
+requisição**, sem cache, deixando `/api/imoveis` levar minutos toda vez que o cache expirava.
+Corrigido: agora sempre grava no cache, inclusive resultado vazio, com TTL curto (5 min) para
+falha vs. 1h para sucesso — permite recuperação rápida se o site voltar a funcionar sem penalizar
+toda requisição no meio tempo.
+
+**Medido**: primeira chamada (cache frio) → 3min09s. Segunda chamada, imediatamente depois
+(cache quente, inclusive para os sites que falham) → **79ms**. Screenshot
+`docker-live-aluguel-real.png` mostra a aba Alugar carregada com 229 imóveis reais, fotos,
+badge "ALUGUEL" e preços em R$/mês.
+
+### Screenshots finais
+`docker-live-all-sites-fixed.png` — tentativa de screenshot com o app real após o fix; o
+carregamento inicial (sem cache) demorou mais que os testes de screenshot suportavam por causa do
+achado acima (sites mortos atrasando `Promise.all`); a prova definitiva do resultado é a
+contagem real via API/Redis documentada na tabela acima (dump em
+`.workflow/49-plataforma-moderna-compra-aluguel/screenshots/../../../scratchpad` durante a
+sessão, não commitado por ser artefato temporário de verificação).
 
 ### Screenshots de UI/UX
 Capturados via Playwright (`scripts/generate-preview.ts`, estendido com `OUT`/`DARK`/`VIEWPORT`/
