@@ -54,5 +54,11 @@
 		"lint": "eslint . --ext .ts --ext .mts",
 		"lint:fix": "eslint . --ext .ts --ext .mts --fix",
 		"test:coverage": "jest --coverage"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild",
+			"puppeteer"
+		]
 	}
 }
