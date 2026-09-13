@@ -457,7 +457,14 @@ export const Home = () => {
                 description={
                   showFavoritesOnly
                      ? "Você ainda não adicionou nenhum imóvel aos favoritos."
-                     : "Tente ajustar os filtros para encontrar o que você procura."
+                     : activeFiltersCount > 0
+                     ? "Nenhum imóvel combina com os filtros atuais."
+                     : "Nenhum imóvel encontrado no momento. Tente novamente mais tarde."
+                }
+                tips={
+                  activeFiltersCount > 0 && !showFavoritesOnly
+                     ? ["Tente ajustar a faixa de preço", "Remova filtros de quartos ou vagas", "Selecione menos bairros"]
+                     : undefined
                 }
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly

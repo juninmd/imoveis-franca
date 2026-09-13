@@ -24,12 +24,6 @@
     "tailwind-merge": "^3.4.0",
     "vite-plugin-pwa": "^1.2.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "puppeteer"
-    ]
-  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -51,5 +45,11 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
     "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "puppeteer"
+    ]
   }
 }
