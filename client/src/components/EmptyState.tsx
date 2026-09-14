@@ -10,9 +10,10 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
+  tips?: string[];
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action, tips }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -28,9 +29,16 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
           <Icon size={48} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
       </motion.div>
       <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200 tracking-tight">{title}</h3>
-      <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+      <p className="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
          {description}
       </p>
+      {tips && tips.length > 0 && (
+          <ul className="text-sm text-gray-500 dark:text-gray-400 text-left list-disc list-inside mb-8 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50">
+              {tips.map((tip, idx) => (
+                  <li key={idx} className="mb-1 last:mb-0">{tip}</li>
+              ))}
+          </ul>
+      )}
       {action && (
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
