@@ -47,18 +47,12 @@
   "scripts": {
     "start": "node dist/src/index.js",
     "clean": "rimraf coverage build tmp",
-    "build": "cd client && npm install && npm run build && cd .. && tsc -p tsconfig.json",
+    "build": "cd client && pnpm install && pnpm run build && cd .. && tsc -p tsconfig.json",
     "test": "jest",
     "build:watch": "tsc -w -p tsconfig.json",
     "build:release": "npm run clean && tsc -p tsconfig.release.json",
     "lint": "eslint . --ext .ts --ext .mts",
     "lint:fix": "eslint . --ext .ts --ext .mts --fix",
     "test:coverage": "jest --coverage"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "puppeteer"
-    ]
   }
 }
