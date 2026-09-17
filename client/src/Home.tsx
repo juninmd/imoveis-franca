@@ -189,6 +189,20 @@ export const Home = () => {
     });
   };
 
+  const getEmptyStateTips = () => {
+    const tips = [];
+    if (filters.address && filters.address.length > 0) {
+      tips.push('Tente remover alguns bairros para ampliar a busca.');
+    }
+    if (filters.minPrice || filters.maxPrice) {
+      tips.push('Considere aumentar a faixa de preço.');
+    }
+    if (filters.minBedrooms || filters.minBathrooms || filters.minVacancies) {
+      tips.push('Reduza a quantidade mínima de quartos, banheiros ou vagas.');
+    }
+    return tips;
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       {/* Mobile Sidebar Overlay */}
@@ -459,6 +473,7 @@ export const Home = () => {
                      ? "Você ainda não adicionou nenhum imóvel aos favoritos."
                      : "Tente ajustar os filtros para encontrar o que você procura."
                 }
+                tips={!showFavoritesOnly ? getEmptyStateTips() : undefined}
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
