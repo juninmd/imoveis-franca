@@ -6,7 +6,7 @@ import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import {  Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List , ArrowUp } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Imovel } from './types';
@@ -58,6 +58,21 @@ export const Home = () => {
   } = useSearchState();
 
   const { addToast } = useToast();
+
+  const [showScroll, setShowScroll] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScroll(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const debouncedFilters = useDebounce(filters, 500);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -496,6 +511,22 @@ export const Home = () => {
           )}
         </div>
       </main>
+
+      <AnimatePresence>
+        {showScroll && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors z-50 flex items-center justify-center"
+            title="Voltar ao topo"
+            aria-label="Voltar ao topo"
+          >
+            <ArrowUp size={24} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
