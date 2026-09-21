@@ -459,6 +459,15 @@ export const Home = () => {
                      ? "Você ainda não adicionou nenhum imóvel aos favoritos."
                      : "Tente ajustar os filtros para encontrar o que você procura."
                 }
+                tips={
+                  !showFavoritesOnly && activeFiltersCount > 0
+                    ? [
+                        "Remova alguns filtros para ver mais resultados.",
+                        "Amplie a faixa de preço desejada.",
+                        "Tente buscar em outras regiões ou bairros."
+                      ]
+                    : undefined
+                }
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
