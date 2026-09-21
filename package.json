@@ -2,6 +2,12 @@
 	"name": "imoveis-baratos-franca",
 	"version": "0.0.0",
 	"description": "Minimalistic boilerplate to quick-start Node.js development in TypeScript.",
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild",
+			"puppeteer"
+		]
+	},
 	"engines": {
 		"node": ">= 20.9"
 	},
