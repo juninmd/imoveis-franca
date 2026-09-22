@@ -44,6 +44,12 @@
 		"tsx": "^4.23.12",
 		"typescript": "~5.3.3"
 	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild",
+			"puppeteer"
+		]
+	},
 	"scripts": {
 		"start": "node dist/src/index.js",
 		"clean": "rimraf coverage build tmp",
