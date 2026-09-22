@@ -130,10 +130,14 @@ export const Home = () => {
         return list.sort((a, b) => a.valor - b.valor);
       case 'price_desc':
         return list.sort((a, b) => b.valor - a.valor);
+      case 'area_asc':
+        return list.sort((a, b) => a.area - b.area);
       case 'area_desc':
         return list.sort((a, b) => b.area - a.area);
       case 'price_per_m_asc':
         return list.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
+      case 'price_per_m_desc':
+        return list.sort((a, b) => b.precoPorMetro - a.precoPorMetro);
       default:
         return list;
     }
@@ -380,8 +384,10 @@ export const Home = () => {
                 >
                   <option value="price_asc">Menor Preço</option>
                   <option value="price_desc">Maior Preço</option>
+                  <option value="area_asc">Menor Área</option>
                   <option value="area_desc">Maior Área</option>
                   <option value="price_per_m_asc">Menor Preço/m²</option>
+                  <option value="price_per_m_desc">Maior Preço/m²</option>
                 </select>
             </div>
           </div>

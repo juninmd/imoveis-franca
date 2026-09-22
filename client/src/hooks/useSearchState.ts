@@ -14,7 +14,7 @@ export interface Filters {
   address: string[];
 }
 
-export type SortOrder = 'price_asc' | 'price_desc' | 'area_desc' | 'price_per_m_asc';
+export type SortOrder = 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc' | 'price_per_m_asc' | 'price_per_m_desc';
 export type ViewMode = 'grid' | 'list';
 
 export const NUMERIC_FILTER_KEYS = [
@@ -22,7 +22,7 @@ export const NUMERIC_FILTER_KEYS = [
   'minArea', 'maxArea', 'minAreaTotal', 'maxAreaTotal',
 ] as const;
 
-const SORT_ORDERS: SortOrder[] = ['price_asc', 'price_desc', 'area_desc', 'price_per_m_asc'];
+const SORT_ORDERS: SortOrder[] = ['price_asc', 'price_desc', 'area_asc', 'area_desc', 'price_per_m_asc', 'price_per_m_desc'];
 
 export const emptyFilters = (tipo: 'venda' | 'aluguel' = 'venda'): Filters => ({
   tipo,
