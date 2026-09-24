@@ -17,9 +17,6 @@ importers:
       '@types/helmet':
         specifier: ^0.0.48
         version: 0.0.48
-      axios:
-        specifier: ^1.6.7
-        version: 1.18.1
       cheerio:
         specifier: ^1.0.0-rc.12
         version: 1.2.0
@@ -87,6 +84,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ~6.15
         version: 6.15.0(eslint@8.56.0)(typescript@5.3.3)
+      axios:
+        specifier: ^1.6.7
+        version: 1.18.1
       eslint:
         specifier: ~8.56
         version: 8.56.0
