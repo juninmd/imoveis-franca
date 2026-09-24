@@ -47,7 +47,7 @@ const site: Site = {
             if (txt.includes('vaga') || txt.includes('garagem')) vagas = val;
             if (txt.includes('banheiro') || txt.includes('suite') || txt.includes('suíte')) banheiros = val;
             if (txt.includes('m²') || txt.includes('area')) {
-                 const match = txt.match(/([\d\.,]+)/);
+                 const match = txt.match(/([\d.,]+)/);
                  if (match) area = getFixValue(match[1]);
             }
         });

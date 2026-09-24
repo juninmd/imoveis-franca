@@ -29,20 +29,20 @@ const site: Site = {
         const link = href.startsWith('http') ? href : `https://www.agessani.com${href.startsWith('/') ? '' : '/'}${href}`;
 
         const text = $(el).text().replace(/\s+/g, ' ');
-        const priceMatches = text.match(/R\$\s*[\d\.]+,,?\d{0,2}/g) || text.match(/R\$\s*[\d\.]+,?\d{2}/g);
+        const priceMatches = text.match(/R\$\s*[\d.]+,,?\d{0,2}/g) || text.match(/R\$\s*[\d.]+,?\d{2}/g);
         let valor = 0;
         if (priceMatches && priceMatches.length > 0) {
             valor = parsePrice(priceMatches[priceMatches.length - 1]);
         }
 
         let area = 0;
-        let areaMatch = text.match(/([\d\.]+)\s*m²/i);
+        const areaMatch = text.match(/([\d.]+)\s*m²/i);
         if (areaMatch) {
             area = getFixValue(areaMatch[1]);
         }
 
         let titulo = '';
-        let titleMatch = text.match(/^(.*?)\s*Ref:/);
+        const titleMatch = text.match(/^(.*?)\s*Ref:/);
         if (titleMatch) {
             titulo = titleMatch[1].trim();
         } else {
