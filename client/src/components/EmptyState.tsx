@@ -6,13 +6,14 @@ interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  tips?: string[];
   action?: {
     label: string;
     onClick: () => void;
   };
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, tips, action }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -28,9 +29,24 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
           <Icon size={48} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
       </motion.div>
       <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200 tracking-tight">{title}</h3>
-      <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+      <p className="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
          {description}
       </p>
+
+      {tips && tips.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-5 mb-8 text-left w-full max-w-sm border border-gray-100 dark:border-gray-700/50">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Dicas para melhorar a busca:</h4>
+          <ul className="space-y-2">
+            {tips.map((tip, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-blue-500 dark:text-blue-400 mt-0.5 text-lg leading-none">•</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {action && (
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
