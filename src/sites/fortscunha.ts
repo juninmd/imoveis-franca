@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import { Site, Imoveis } from '../types';
-import { getFixValue, normalizeNeighborhoodName as cleanTitle } from '../utils';
+import { getFixValue, cleanTitle } from '../utils';
 
 const site: Site = {
   name: 'fortscunha',
@@ -8,7 +8,7 @@ const site: Site = {
   enabled: true,
   url: 'https://www.fortscunha.com.br/imoveis',
   itemsPerPage: 1000,
-  getPaginateParams: (_page) => ({}),
+  getPaginateParams: (/* page */) => ({}),
   adapter: async (html: string) => {
     const $ = cheerio.load(html);
 

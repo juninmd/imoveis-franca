@@ -1,6 +1,9 @@
 import { adapter as cintraAdapter } from '../src/sites/cintraimoveis';
 import { adapter as tratoAdapter } from '../src/sites/tratoimoveis';
 import { adapter as faleirosAdapter } from '../src/sites/faleirosimoveis';
+import wi7imobiliaria from '../src/sites/wi7imobiliaria';
+import fortscunha from '../src/sites/fortscunha';
+import luanaimoveis from '../src/sites/luanaimoveis';
 
 describe('Novos sites', () => {
   it('cintraimoveis', async () => {
@@ -65,10 +68,6 @@ describe('Novos sites', () => {
   });
 });
 
-import wi7imobiliaria from '../src/sites/wi7imobiliaria';
-import fortscunha from '../src/sites/fortscunha';
-import luanaimoveis from '../src/sites/luanaimoveis';
-
 describe('Mais Novos Sites', () => {
     it('wi7imobiliaria parses correctly', async () => {
        const html = `
@@ -91,7 +90,7 @@ describe('Mais Novos Sites', () => {
        const res = await wi7imobiliaria.adapter(html);
        expect(res.qtd).toBe(24);
        expect(res.imoveis.length).toBe(1);
-       expect(res.imoveis[0].titulo).toBe('BARRACAO EM JARDIM LUIZA II'); // cleanTitle faz uppercase
+       expect(res.imoveis[0].titulo).toBe('Barracão em Jardim Luiza II');
        expect(res.imoveis[0].valor).toBe(1700);
        expect(res.imoveis[0].quartos).toBe(3);
     });
@@ -141,7 +140,7 @@ describe('Mais Novos Sites', () => {
        `;
        const res = await fortscunha.adapter(html);
        expect(res.imoveis.length).toBe(1);
-       expect(res.imoveis[0].titulo).toBe('CASA LINDA EM CENTRO');
+       expect(res.imoveis[0].titulo).toBe('Casa Linda em Centro');
        expect(res.imoveis[0].valor).toBe(300000);
        expect(res.imoveis[0].area).toBe(150);
        expect(res.imoveis[0].quartos).toBe(3);

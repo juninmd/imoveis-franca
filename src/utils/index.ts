@@ -44,3 +44,7 @@ export function normalizeNeighborhoodName(name: string = ''): string {
 
   return normalized.toUpperCase();
 }
+
+export function cleanTitle(title: string = ''): string {
+   return title.replace(/\s+/g, ' ').trim();
+}

@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import { Site, Imoveis } from '../types';
-import { getFixValue, normalizeNeighborhoodName as cleanTitle } from '../utils';
+import { getFixValue, cleanTitle } from '../utils';
 
 const site: Site = {
   name: 'wi7imobiliaria',
@@ -58,7 +58,7 @@ const site: Site = {
        box.find('.flaticon-square').parent().each((_j, a) => { areaInfo += $(a).text() + " "; });
        const area = getFixValue(areaInfo.replace(/[^0-9,]/g, '')) || 0;
 
-       let img = box.find('img').first().attr('src') || box.find('img').first().attr('data-src') || box.find('img').first().attr('data-original') || '';
+       const img = box.find('img').first().attr('src') || box.find('img').first().attr('data-src') || box.find('img').first().attr('data-original') || '';
 
        if (valor > 0) {
            imoveis.push({
