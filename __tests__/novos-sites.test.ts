@@ -1,10 +1,10 @@
-import { adapter as cintraAdapter } from '../src/sites/cintraimoveis';
-import { adapter as tratoAdapter } from '../src/sites/tratoimoveis';
-import { adapter as faleirosAdapter } from '../src/sites/faleirosimoveis';
 import wi7imobiliaria from '../src/sites/wi7imobiliaria';
 import fortscunha from '../src/sites/fortscunha';
 import luanaimoveis from '../src/sites/luanaimoveis';
 
+import { adapter as cintraAdapter } from '../src/sites/cintraimoveis';
+import { adapter as tratoAdapter } from '../src/sites/tratoimoveis';
+import { adapter as faleirosAdapter } from '../src/sites/faleirosimoveis';
 describe('Novos sites', () => {
   it('cintraimoveis', async () => {
     const html = `<h1 class="list-total">1 imóveis à venda encontrados</h1>
