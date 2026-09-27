@@ -64,3 +64,115 @@ describe('Novos sites', () => {
     expect(res.qtd).toBe(1);
   });
 });
+
+import wi7imobiliaria from '../src/sites/wi7imobiliaria';
+import fortscunha from '../src/sites/fortscunha';
+import luanaimoveis from '../src/sites/luanaimoveis';
+
+describe('Mais Novos Sites', () => {
+    it('wi7imobiliaria parses correctly', async () => {
+       const html = `
+       <div class="pagination"><a>1</a><a>2</a><a>3</a></div>
+       <div class="col-md-3">
+          <div class="recent-properties-box">
+             <a href="https://www.wi7imobiliaria.com.br/imovel/vende/sp/jardim-luiza-ii/franca/barracao/83023"></a>
+             <div class="location">Jardim Luiza II</div>
+             <div class="price">R$ 1.700,00</div>
+             <ul>
+               <li>3 Quarto(s)</li>
+               <li>2 Banheiro(s)</li>
+               <li>1 Garagem</li>
+             </ul>
+             <span><i class="flaticon-square"></i> 100 m²</span>
+             <img src="foto.jpg" />
+          </div>
+       </div>
+       `;
+       const res = await wi7imobiliaria.adapter(html);
+       expect(res.qtd).toBe(24);
+       expect(res.imoveis.length).toBe(1);
+       expect(res.imoveis[0].titulo).toBe('BARRACAO EM JARDIM LUIZA II'); // cleanTitle faz uppercase
+       expect(res.imoveis[0].valor).toBe(1700);
+       expect(res.imoveis[0].quartos).toBe(3);
+    });
+
+    it('wi7imobiliaria no link', async () => {
+       const html = `
+       <div class="pagination"><a href="#">0</a></div>
+       <div class="col-md-3">
+          <div class="recent-properties-box">
+          </div>
+       </div>
+       `;
+       const res = await wi7imobiliaria.adapter(html);
+       expect(res.qtd).toBe(0);
+       expect(res.imoveis.length).toBe(0);
+    });
+
+    it('wi7imobiliaria no value', async () => {
+       const html = `
+       <div class="pagination"><a href="#">0</a></div>
+       <div class="col-md-3">
+          <div class="recent-properties-box">
+             <a href="https://www.wi7imobiliaria.com.br/imovel/vende/sp/jardim-luiza-ii/franca/barracao/83023"></a>
+             <div class="location">Jardim Luiza II</div>
+             <div class="price">Consulte</div>
+          </div>
+       </div>
+       `;
+       const res = await wi7imobiliaria.adapter(html);
+       expect(res.imoveis.length).toBe(0);
+    });
+
+    it('fortscunha parses correctly', async () => {
+       const html = `
+       <div class="single-project">
+           <div class="lower-content">
+               <h5><a href="https://www.fortscunha.com.br/imoveis/1/vende-se-casa">Casa Linda</a></h5>
+               Franca - Centro
+               <div class="valor-pacote">R$ 300.000,00</div>
+               <div class="valores-imovel"><i class="fa fa-arrows"></i> 150 m²</div>
+               <div class="valores-imovel"><i class="fa fa-bed"></i> 3</div>
+               <div class="valores-imovel"><i class="fa fa-bath"></i> 2</div>
+               <div class="valores-imovel"><i class="fa fa-car"></i> 1</div>
+           </div>
+           <img src="foto2.jpg" />
+       </div>
+       `;
+       const res = await fortscunha.adapter(html);
+       expect(res.imoveis.length).toBe(1);
+       expect(res.imoveis[0].titulo).toBe('CASA LINDA EM CENTRO');
+       expect(res.imoveis[0].valor).toBe(300000);
+       expect(res.imoveis[0].area).toBe(150);
+       expect(res.imoveis[0].quartos).toBe(3);
+       expect(res.imoveis[0].banheiros).toBe(2);
+       expect(res.imoveis[0].vagas).toBe(1);
+    });
+
+    it('fortscunha filter out aluguel or 0', async () => {
+       const html = `
+       <div class="single-project">
+           <div class="lower-content">
+               <h5><a href="https://www.fortscunha.com.br/imoveis/1/aluga-se-casa">Casa Linda</a></h5>
+               Franca - Centro
+               <div class="valor-pacote">R$ 3.000,00</div>
+           </div>
+       </div>
+       <div class="single-project">
+           <div class="lower-content">
+               <h5><a href="https://www.fortscunha.com.br/imoveis/1/vende-se-casa">Casa Linda 2</a></h5>
+               Franca - Centro
+               <div class="valor-pacote">Consulte</div>
+           </div>
+       </div>
+       `;
+       const res = await fortscunha.adapter(html);
+       expect(res.imoveis.length).toBe(0);
+    });
+
+    it('luanaimoveis stub', async () => {
+       const res = await luanaimoveis.adapter('');
+       expect(res.imoveis.length).toBe(0);
+       expect(luanaimoveis.getPaginateParams(1)).toEqual({});
+    });
+});
