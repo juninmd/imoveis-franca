@@ -14,7 +14,7 @@ interface EmptyStateProps {
   tips?: string[];
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action, tips }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, tips, action }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -33,13 +33,18 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
       <p className="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
          {description}
       </p>
+
       {tips && tips.length > 0 && (
-          <ul className="text-sm text-gray-500 dark:text-gray-400 text-left list-disc list-inside mb-8 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50">
-              {tips.map((tip, idx) => (
-                  <li key={idx} className="mb-1 last:mb-0">{tip}</li>
-              ))}
-          </ul>
+        <div className="mb-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 w-full text-left">
+           <p className="font-medium text-blue-800 dark:text-blue-300 mb-2 text-sm">Dicas para melhorar sua busca:</p>
+           <ul className="list-disc list-inside text-sm text-blue-700/80 dark:text-blue-200/80 space-y-1">
+             {tips.map((tip, idx) => (
+               <li key={idx}>{tip}</li>
+             ))}
+           </ul>
+        </div>
       )}
+
       {action && (
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
