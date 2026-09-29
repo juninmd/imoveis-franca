@@ -505,6 +505,13 @@ export const Home = () => {
                       ]
                     : undefined
                 }
+                tips={
+                  !showFavoritesOnly ? [
+                    'Tente remover ou alterar alguns filtros.',
+                    'Limpe os filtros de preço para ampliar a busca.',
+                    'Experimente outras opções de tipos ou localizações.'
+                  ] : undefined
+                }
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly
                     ? { label: 'Limpar Filtros', onClick: clearFilters }

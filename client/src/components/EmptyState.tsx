@@ -35,14 +35,17 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
       </p>
 
       {tips && tips.length > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 text-left p-4 rounded-xl border border-blue-100 dark:border-blue-800/50 mb-8 w-full">
-              <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 text-sm">Dicas:</h4>
-              <ul className="list-disc pl-5 text-sm text-blue-700 dark:text-blue-400 space-y-1">
-                  {tips.map((tip, idx) => (
-                      <li key={idx}>{tip}</li>
-                  ))}
-              </ul>
-          </div>
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-5 mb-8 text-left w-full max-w-sm border border-gray-100 dark:border-gray-700/50">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Dicas para melhorar a busca:</h4>
+          <ul className="space-y-2">
+            {tips.map((tip, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-blue-500 dark:text-blue-400 mt-0.5 text-lg leading-none">•</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {action && (

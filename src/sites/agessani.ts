@@ -1,98 +1,88 @@
-import { Site } from '../types';
 import * as cheerio from 'cheerio';
-import { getFixValue } from '../utils';
+import { Imoveis, Site } from '../types';
+import { normalizeNeighborhoodName, getFixValue } from '../utils';
 
-const site: Site = {
-  name: 'agessani',
-  url: 'https://www.agessani.com',
-  driver: 'axios',
+export default {
   enabled: true,
-  itemsPerPage: 15,
+  tipo: 'venda',
+  url: 'https://www.agessani.com/imoveis',
+  name: 'agessani.com',
+  driver: 'axios',
+  itemsPerPage: 12,
+  params: [],
   getPaginateParams: (page: number) => {
-    return {
-      path: `/imovel/?finalidade=venda&pag=${page}`,
-    };
+    return { url: `https://www.agessani.com/imoveis?page=${page}` };
   },
-  adapter: async (html: string) => {
-    const $ = cheerio.load(html);
-    const imoveis: any[] = [];
+  adapter,
+} as Site;
 
-    const parsePrice = (priceStr: string) => {
-        const cleaned = priceStr.replace(/R\$/gi, '').replace(/\./g, '').replace(/,/g, '.').trim();
-        return parseFloat(cleaned) || 0;
-    };
+export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
+  const imoveis: Imoveis[] = [];
+  const $ = cheerio.load(html);
 
-    $('.item-lista').each((_i, el) => {
-        const linkElem = $(el).find('a');
-        const href = linkElem.attr('href');
-        if (!href) return;
-        const link = href.startsWith('http') ? href : `https://www.agessani.com${href.startsWith('/') ? '' : '/'}${href}`;
+  let qtd = 0;
+  // Estimate max total items based on pagination links if available
+  const paginations = $('.pagination a').map((_i, el) => {
+    const p = parseInt($(el).text());
+    return isNaN(p) ? 0 : p;
+  }).get();
+  if (paginations.length > 0) {
+    qtd = Math.max(...paginations) * 12;
+  } else {
+    qtd = 50; // fallback
+  }
 
-        const text = $(el).text().replace(/\s+/g, ' ');
-        const priceMatches = text.match(/R\$\s*[0-9.]+,,?\d{0,2}/g) || text.match(/R\$\s*[0-9.]+,?\d{2}/g);
-        let valor = 0;
-        if (priceMatches && priceMatches.length > 0) {
-            valor = parsePrice(priceMatches[priceMatches.length - 1]);
-        }
+  $('.recent-properties-box').each((_i, el) => {
+    let link = $(el).find('a').first().attr('href');
+    if (!link) return;
+    if (link.startsWith('/')) link = `https://www.agessani.com${link}`;
 
-        let area = 0;
-        const areaMatch = text.match(/([0-9.]+)\s*m²/i);
-        if (areaMatch) {
-            area = getFixValue(areaMatch[1]);
-        }
+    const tag = $(el).find('.tag-s, .tag-f').text().toLowerCase();
+    if(tag && !tag.includes('vend')) return;
 
-        let titulo = '';
-        const titleMatch = text.match(/^(.*?)\s*Ref:/);
-        if (titleMatch) {
-            titulo = titleMatch[1].trim();
-        } else {
-            titulo = $(el).find('h2').text().trim() || 'Imóvel';
-        }
+    const titulo = $(el).find('.title a').text().trim();
+    const loc = $(el).find('.location').text().trim();
+    const bairro = loc.split(',')[0] || 'Franca';
+    const endereco = normalizeNeighborhoodName(bairro);
 
-        let quartos = 0;
-        let vagas = 0;
-        let banheiros = 0;
+    const valorStr = $(el).find('.price').text().replace(/R\$/g, '').replace(/\./g, '').trim();
+    const valor = getFixValue(valorStr);
 
-        $(el).find('.info-2 span').each((_idx, span) => {
-            const spanHtml = $(span).html() || '';
-            const val = parseInt($(span).text().trim(), 10) || 0;
-            if (spanHtml.includes('bed') || spanHtml.includes('quarto') || spanHtml.includes('dormitorio')) {
-                quartos = val;
-            } else if (spanHtml.includes('car') || spanHtml.includes('vaga') || spanHtml.includes('garagem')) {
-                vagas = val;
-            } else if (spanHtml.includes('bath') || spanHtml.includes('banheiro') || spanHtml.includes('suite')) {
-                banheiros = val;
-            }
-        });
-
-        const img = $(el).find('img').attr('src') || $(el).find('.img-item-lista').attr('style')?.match(/url\(['"]?(.*?)['"]?\)/)?.[1];
-        const imagens = img ? [img] : [];
-
-        if (valor > 0) {
-            imoveis.push({
-                site: 'agessani',
-                titulo,
-                descricao: titulo,
-                imagens,
-                endereco: titulo,
-                valor,
-                area,
-                areaTotal: area,
-                quartos,
-                banheiros,
-                vagas,
-                precoPorMetro: area > 0 ? valor / area : 0,
-                entrada: 0,
-                link
-            });
-        }
+    let quartos = 0, banheiros = 0, vagas = 0;
+    $(el).find('.facilities-list li').each((_j, feat) => {
+        const text = $(feat).text().toLowerCase().trim();
+        const numMatch = text.match(/\d+/);
+        const num = numMatch ? parseInt(numMatch[0]) : 0;
+        if($(feat).find('.flaticon-bed').length > 0) quartos = num;
+        if($(feat).find('.flaticon-holidays').length > 0) banheiros = num;
+        if($(feat).find('.flaticon-vehicle').length > 0) vagas = num;
     });
 
-    return {
-        imoveis,
-        qtd: imoveis.length,
-    };
-  },
-};
+    const imagens: string[] = [];
+    const imgStr = $(el).find('.img-responsive').attr('src') || $(el).find('.img-responsive').attr('data-src');
+    if (imgStr) {
+        imagens.push(imgStr.startsWith('http') ? imgStr : `https://www.agessani.com${imgStr}`);
+    }
 
-export default site;
+    if (link && valor > 0) {
+      imoveis.push({
+        titulo: titulo || `Imóvel em ${endereco}`,
+        descricao: '',
+        imagens,
+        endereco,
+        valor,
+        area: 0,
+        areaTotal: 0,
+        quartos,
+        link,
+        banheiros,
+        vagas,
+        precoPorMetro: 0,
+        site: 'agessani.com',
+        entrada: valor * 0.20
+      });
+    }
+  });
+
+  return { imoveis, qtd: imoveis.length > 0 ? qtd : 0, html };
+}
