@@ -466,6 +466,11 @@ export const Home = () => {
                      ? ["Tente ajustar a faixa de preço", "Remova filtros de quartos ou vagas", "Selecione menos bairros"]
                      : undefined
                 }
+                tips={!showFavoritesOnly ? [
+                  "Verifique se você não foi muito restritivo no valor mínimo/máximo.",
+                  "Tente diminuir a quantidade de quartos ou vagas desejadas.",
+                  "Remova filtros de bairros específicos para ampliar a busca."
+                ] : undefined}
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
