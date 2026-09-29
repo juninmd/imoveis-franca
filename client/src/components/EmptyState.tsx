@@ -6,13 +6,14 @@ interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  tips?: string[];
   action?: {
     label: string;
     onClick: () => void;
   };
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, tips, action }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -28,9 +29,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
           <Icon size={48} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
       </motion.div>
       <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200 tracking-tight">{title}</h3>
-      <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+      <p className="text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
          {description}
       </p>
+      {tips && tips.length > 0 && (
+         <ul className="text-sm text-gray-500 dark:text-gray-400 mb-8 list-none space-y-2">
+            {tips.map((tip, index) => (
+                <li key={index} className="flex items-center justify-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50"></span>
+                    {tip}
+                </li>
+            ))}
+         </ul>
+      )}
+      {!tips && <div className="mb-4"></div>}
       {action && (
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={action.onClick}

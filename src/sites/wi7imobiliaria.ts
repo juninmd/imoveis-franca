@@ -1,92 +1,106 @@
 import * as cheerio from 'cheerio';
-import { Site, Imoveis } from '../types';
-import { getFixValue, cleanTitle } from '../utils';
+import { Imoveis, Site } from '../types';
+import { normalizeNeighborhoodName, getFixValue } from '../utils';
 
-const site: Site = {
-  name: 'wi7imobiliaria',
-  driver: 'axios',
+export default {
   enabled: true,
-  url: 'https://www.wi7imobiliaria.com.br/imoveis/venda',
+  tipo: 'venda',
+  url: 'https://www.wi7imobiliaria.com.br/imoveis/a-venda/franca',
+  name: 'wi7imobiliaria.com.br',
+  driver: 'axios',
   itemsPerPage: 12,
-  getPaginateParams: (page) => ({ path: `/pagina-${page}` }),
-  adapter: async (html: string) => {
-    const $ = cheerio.load(html);
+  params: [],
+  getPaginateParams: (page: number) => {
+    return { url: `https://www.wi7imobiliaria.com.br/imoveis/a-venda/franca?pagina=${page}` };
+  },
+  adapter,
+} as Site;
 
-    const qtdStr = $('.pagination a').last().prev().text().trim();
-    let qtd = parseInt(qtdStr);
+export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
+  const imoveis: Imoveis[] = [];
+  const $ = cheerio.load(html);
 
-    const imoveis: Imoveis[] = [];
+  let qtd = 0;
 
-    $('.recent-properties-box').each((_i, el) => {
-       const box = $(el).parent();
+  const pagination = $('.pagination');
+  if(pagination.length > 0) {
+      const links = pagination.find('a');
+      let maxPage = 1;
+      links.each((_, el) => {
+         const href = $(el).attr('href');
+         if(href) {
+            const m = href.match(/pagina-(\d+)/);
+            if(m && m[1]) {
+                const pageNum = parseInt(m[1]);
+                if(pageNum > maxPage) maxPage = pageNum;
+            }
+         }
+      });
+      if(maxPage > 1) {
+          qtd = maxPage * 12; // 12 items per page typically
+      } else {
+          qtd = 50;
+      }
+  } else {
+      qtd = 50;
+  }
 
-       const link = box.find('a').first().attr('href') || '';
-       if (!link) return;
+  $('.recent-properties-box').each((_i, el) => {
+    let link = $(el).find('a').first().attr('href');
+    if (!link) return;
+    if (link.startsWith('/')) link = `https://www.wi7imobiliaria.com.br${link}`;
 
-       const type = box.find('a[href^="https://www.wi7imobiliaria.com.br/imovel/"]').last().attr('href')?.split('/').slice(-2, -1)[0];
-       const typeMap: Record<string, string> = {
-         'barracao': 'Barracão',
-         'sitio': 'Sítio',
-         'terreno': 'Terreno',
-         'apartamento': 'Apartamento',
-         'casa': 'Casa',
-         'chacara': 'Chácara',
-         'sobrado': 'Sobrado'
-       };
-       const formattedType = type ? (typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1)) : 'Imóvel';
+    // Only capture 'venda' properties if 'tipo' is venda, but they use tag-s/tag-f
+    const tag = $(el).find('.tag-s').text().toLowerCase() || $(el).find('.tag-f').text().toLowerCase();
+    if(tag && !tag.includes('vend')) return;
 
-       const location = box.find('.location').text().trim();
-       let title = formattedType;
-       if (location) {
-         title += ' em ' + location;
-       }
+    const titulo = $(el).find('.title a').text().trim();
 
-       const priceStr = box.find('.price').text().trim() || box.find('.tag-s').text().trim() || box.find('.tag-f').text().trim() || box.find('.tag-sale').text().trim();
-       const valor = getFixValue(priceStr.replace(/[^0-9,]/g, ''));
+    const loc = $(el).find('.location').text().trim();
+    const bairro = loc.split(',')[0] || 'Franca';
 
-       let infoText = "";
-       box.find('li').each((_j, li) => { infoText += $(li).text() + " "; });
-       const quartosMatch = infoText.match(/(\d+)\s*Quarto/i);
-       const banheirosMatch = infoText.match(/(\d+)\s*Banheiro/i);
-       const vagasMatch = infoText.match(/(\d+)\s*Garagem/i);
+    const endereco = normalizeNeighborhoodName(bairro);
 
-       const quartos = quartosMatch ? parseInt(quartosMatch[1]) : 0;
-       const banheiros = banheirosMatch ? parseInt(banheirosMatch[1]) : 0;
-       const vagas = vagasMatch ? parseInt(vagasMatch[1]) : 0;
+    const valorStr = $(el).find('.price').text().replace(/R\$/g, '').replace(/\./g, '').trim();
+    const valor = getFixValue(valorStr);
 
-       let areaInfo = "";
-       box.find('.flaticon-square').parent().each((_j, a) => { areaInfo += $(a).text() + " "; });
-       const area = getFixValue(areaInfo.replace(/[^0-9,]/g, '')) || 0;
+    let quartos = 0, banheiros = 0, vagas = 0;
 
-       const img = box.find('img').first().attr('src') || box.find('img').first().attr('data-src') || box.find('img').first().attr('data-original') || '';
+    $(el).find('.facilities-list li').each((_j, feat) => {
+        const text = $(feat).text().toLowerCase().trim();
+        const numMatch = text.match(/\d+/);
+        const num = numMatch ? parseInt(numMatch[0]) : 0;
 
-       if (valor > 0) {
-           imoveis.push({
-              site: 'wi7imobiliaria',
-              titulo: cleanTitle(title),
-              descricao: title,
-              imagens: [img],
-              endereco: location,
-              valor: valor,
-              area: area,
-              areaTotal: area,
-              quartos: quartos,
-              link: link,
-              banheiros: banheiros,
-              vagas: vagas,
-              precoPorMetro: area > 0 ? (valor / area) : 0,
-              entrada: valor * 0.2,
-           });
-       }
+        if($(feat).find('.flaticon-bed').length > 0) quartos = num;
+        if($(feat).find('.flaticon-holidays').length > 0) banheiros = num;
+        if($(feat).find('.flaticon-vehicle').length > 0) vagas = num;
     });
 
-    qtd = (qtd > 0 ? qtd : (imoveis.length > 0 ? 1 : 0)) * 12;
+    const imagens: string[] = [];
+    const imgStr = $(el).find('.img-responsive').attr('src');
+    if (imgStr) {
+        imagens.push(imgStr.startsWith('http') ? imgStr : `https://www.wi7imobiliaria.com.br${imgStr}`);
+    }
 
-    return {
-      qtd: (qtd > 0 && imoveis.length > 0) ? qtd : (imoveis.length > 0 ? imoveis.length : 0),
-      imoveis,
-    };
-  }
-};
+    if (link && valor > 0) {
+      imoveis.push({
+        titulo: titulo || `Imóvel em ${endereco}`,
+        descricao: '',
+        imagens,
+        endereco,
+        valor,
+        area: 0,
+        areaTotal: 0,
+        quartos,
+        link,
+        banheiros,
+        vagas,
+        precoPorMetro: 0,
+        site: 'wi7imobiliaria.com.br',
+        entrada: valor * 0.20
+      });
+    }
+  });
 
-export default site;
+  return { imoveis, qtd: imoveis.length > 0 ? qtd : 0, html };
+}
