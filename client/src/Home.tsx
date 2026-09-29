@@ -428,7 +428,7 @@ export const Home = () => {
                  viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
                )}
              >
-               {[...Array(6)].map((_, i) => (
+               {[...Array(12)].map((_, i) => (
                  <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 20 }}
