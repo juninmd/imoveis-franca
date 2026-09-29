@@ -208,21 +208,7 @@ export const Home = () => {
     });
   };
 
-  const getEmptyStateTips = () => {
-    const tips = [];
-    if (filters.address && filters.address.length > 0) {
-      tips.push('Tente remover alguns bairros para ampliar a busca.');
-    }
-    if (filters.minPrice || filters.maxPrice) {
-      tips.push('Considere aumentar a faixa de preço.');
-    }
-    if (filters.minBedrooms || filters.minBathrooms || filters.minVacancies) {
-      tips.push('Reduza a quantidade mínima de quartos, banheiros ou vagas.');
-    }
-    return tips;
-  };
-
-  return (
+    return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
@@ -424,7 +410,7 @@ export const Home = () => {
 
         <div className="p-4 md:p-6 lg:p-8 flex-1 overflow-x-hidden">
           {activeFiltersList.length > 0 && (
-            <motion.div layout className="flex flex-wrap gap-2 mb-6">
+            <motion.div layout className="flex flex-wrap gap-2 mb-8 border-b border-gray-100 dark:border-gray-700/50 pb-4">
               <AnimatePresence>
                 {activeFiltersList.map((filter, index) => (
                   <motion.button
@@ -495,15 +481,6 @@ export const Home = () => {
                      : activeFiltersCount > 0
                      ? "Nenhum imóvel combina com os filtros atuais."
                      : "Nenhum imóvel encontrado no momento. Tente novamente mais tarde."
-                }
-                tips={
-                  !showFavoritesOnly && activeFiltersCount > 0
-                    ? [
-                        "Remova alguns filtros para ver mais resultados.",
-                        "Amplie a faixa de preço desejada.",
-                        "Tente buscar em outras regiões ou bairros."
-                      ]
-                    : undefined
                 }
                 tips={
                   !showFavoritesOnly ? [

@@ -188,7 +188,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                        {formatCurrency(imovel.valor)}{imovel.tipo === 'aluguel' && <span className="text-sm font-semibold">/mês</span>}
                      </>
                    ) : (
-                     <span className="text-xl">Sob Consulta</span>
+                     <span className="text-xl bg-gray-900/80 dark:bg-black/60 px-2.5 py-1 rounded-md backdrop-blur-md shadow-sm border border-white/20 whitespace-nowrap">Sob Consulta</span>
                    )}
                 </span>
                 {imovel.precoPorMetro > 0 && (
