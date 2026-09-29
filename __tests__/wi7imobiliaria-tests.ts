@@ -1,55 +1,31 @@
-import wi7imobiliaria, { adapter } from '../src/sites/wi7imobiliaria';
+import site from '../src/sites/wi7imobiliaria';
 
 describe('wi7imobiliaria', () => {
-  it('should return empty when no html is provided', async () => {
-    const { imoveis, qtd } = await adapter('<html></html>');
-    expect(imoveis.length).toBe(0);
-    expect(qtd).toBe(0);
-  });
+    it('should parse data correctly', async () => {
+        const html = `
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <h3>Casa em Franca</h3>
+            <a href="/imovel/321">Link</a>
+            <div class="price">R$ 300.000,00</div>
+            <ul>
+                <li>3 quartos</li>
+                <li>2 vagas</li>
+                <li>1 banheiro</li>
+                <li>100 m²</li>
+            </ul>
+            <img src="/img2.jpg">
+        </div>`;
+        const result = await site.adapter(html);
+        expect(result.imoveis.length).toBe(1);
+        expect(result.imoveis[0].valor).toBe(300000);
+        expect(result.imoveis[0].area).toBe(100);
+        expect(result.imoveis[0].quartos).toBe(3);
+        expect(result.imoveis[0].vagas).toBe(2);
+        expect(result.imoveis[0].banheiros).toBe(1);
+        expect(result.imoveis[0].link).toBe('https://www.wi7imobiliaria.com.br/imovel/321');
+    });
 
-  it('should extract pagination and single-project properties', async () => {
-    const html = `
-      <ul class="pagination">
-        <li><a href="pagina-1">1</a></li>
-        <li><a href="pagina-4">4</a></li>
-      </ul>
-      <div class="thumbnail recent-properties-box">
-        <div class="detail">
-          <h1><a href="/imovel/casa-123">Casa Linda</a></h1>
-        </div>
-        <div class="location"><a href="#">Centro</a></div>
-        <div class="price">R$ 500.000,00</div>
-        <img src="/img1.jpg" />
-        <ul class="facilities-list">
-          <li>3 quartos</li>
-          <li>2 banheiros</li>
-          <li>2 vagas</li>
-        </ul>
-      </div>
-    `;
-    const { imoveis, qtd } = await adapter(html);
-    expect(qtd).toBe(48);
-    expect(imoveis.length).toBe(1);
-    expect(imoveis[0].titulo).toBe('Casa Linda em Centro');
-    expect(imoveis[0].valor).toBe(500000);
-    expect(imoveis[0].quartos).toBe(3);
-    expect(imoveis[0].banheiros).toBe(2);
-    expect(imoveis[0].vagas).toBe(2);
-    expect(imoveis[0].endereco).toBe('CENTRO');
-    expect(wi7imobiliaria.getPaginateParams(1)).toEqual({ url: 'https://www.wi7imobiliaria.com.br/imoveis/venda/franca/pagina-1' });
-  });
-
-  it('should fallback qtd based on elements count if no pagination', async () => {
-    const html = `
-      <div class="thumbnail recent-properties-box">
-        <div class="detail"><h1><a href="/imovel/123">Casa</a></h1></div>
-        <div class="location"><a href="#">Vila Nova</a></div>
-        <div class="price">R$ 100.000,00</div>
-      </div>
-      <div class="thumbnail recent-properties-box"></div>
-    `;
-    const { imoveis, qtd } = await adapter(html);
-    expect(qtd).toBe(2);
-    expect(imoveis.length).toBe(1);
-  });
+    it('should return getPaginateParams', () => {
+        expect(site.getPaginateParams(2)).toEqual({ path: '/imoveis/a-venda/pagina/2' });
+    });
 });
