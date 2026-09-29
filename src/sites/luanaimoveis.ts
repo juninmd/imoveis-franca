@@ -1,14 +1,13 @@
-import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../types';
-import { normalizeNeighborhoodName, getFixValue } from '../utils';
+import { normalizeNeighborhoodName } from '../utils';
 
 export default {
-  enabled: false,
+  enabled: true,
   tipo: 'venda',
   url: 'https://www.luanaimoveis.com.br/imoveis/a-venda/franca',
   name: 'luanaimoveis.com.br',
   driver: 'axios',
-  itemsPerPage: 12,
+  itemsPerPage: 15,
   params: [],
   getPaginateParams: (page: number) => {
     return { url: `https://www.luanaimoveis.com.br/imoveis/a-venda/franca?pagina=${page}` };
@@ -21,80 +20,97 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   let qtd = 0;
 
   try {
-    const $ = cheerio.load(html);
+      const scriptMatch = html.match(/<script[^>]*>([\s\S]*?window\.\$MC[\s\S]*?)<\/script>/);
+      if (scriptMatch) {
+           const scriptContent = scriptMatch[1];
+           const startIdx = scriptContent.indexOf('concat({');
+           if (startIdx > -1) {
+                const str = scriptContent.substring(startIdx + 7);
+                let brackets = 0;
+                let endIdx = -1;
+                for (let i = 0; i < str.length; i++) {
+                    if (str[i] === '{') brackets++;
+                    else if (str[i] === '}') {
+                        brackets--;
+                        if (brackets === 0) {
+                            endIdx = i + 1;
+                            break;
+                        }
+                    }
+                }
+                if (endIdx > -1) {
+                    const jsonStr = str.substring(0, endIdx);
+                    const data = JSON.parse(jsonStr);
+                    let items: any[] = [];
+                    const search = (o: any) => {
+                        if(!o || typeof o !== 'object') return;
+                        if(Array.isArray(o) && o.length > 0 && o[0].neighborhood && o[0].code) {
+                            items = o;
+                            return;
+                        }
+                        if(o.listings && Array.isArray(o.listings) && o.listings.length > 0 && o.listings[0].code) {
+                            items = o.listings;
+                            return;
+                        }
+                        for(const key in o) {
+                            if(items.length > 0) break;
+                            search(o[key]);
+                        }
+                    }
+                    search(data);
 
-    // Some Kenlo sites store data in Next.js style or window.$MC script
-    // Check if there is script with window.$MC
-    const scriptTags = $('script').toArray();
-    for (const script of scriptTags) {
-      const scriptContent = $(script).html() || '';
-      if (scriptContent.includes('window.$MC')) {
-        const mcMatch = scriptContent.match(/window\.\$MC\s*=\s*(\{.*?\});/);
-        if (mcMatch && mcMatch[1]) {
-           // Basic logic as we just need it covered and enabled=false initially
-           // due to WAF blocks from GoCache mentioned in memory.
-        }
+                    if (items.length > 0) {
+                        qtd = items.length;
+                        for(const item of items) {
+                            const link = `https://www.luanaimoveis.com.br/imovel/${item.url}`;
+                            const titulo = item.title || `Imóvel em ${item.address?.neighborhood || ''}`;
+                            let valor = 0;
+                            if (item.prices && item.prices.length > 0) {
+                                valor = item.prices[0].price || 0;
+                            }
+                            const endereco = normalizeNeighborhoodName(item.address?.neighborhood || '');
+                            let area = 0, quartos = 0, banheiros = 0, vagas = 0;
+                            if (item.details && Array.isArray(item.details)) {
+                               const aDetail = item.details.find((d: any) => d.name === 'area');
+                               if(aDetail) area = parseInt(aDetail.value, 10) || 0;
+                               const qDetail = item.details.find((d: any) => d.name === 'bedrooms');
+                               if(qDetail) quartos = parseInt(qDetail.value, 10) || 0;
+                               const bDetail = item.details.find((d: any) => d.name === 'bathrooms');
+                               if(bDetail) banheiros = parseInt(bDetail.value, 10) || 0;
+                               const vDetail = item.details.find((d: any) => d.name === 'garages');
+                               if(vDetail) vagas = parseInt(vDetail.value, 10) || 0;
+                            }
+                            let imagens: string[] = [];
+                            if (item.images && Array.isArray(item.images)) {
+                                imagens = item.images.map((img: any) => img.url).filter(Boolean);
+                            }
+
+                            if (valor > 0) {
+                                imoveis.push({
+                                    titulo,
+                                    descricao: '',
+                                    imagens,
+                                    endereco,
+                                    valor,
+                                    area,
+                                    areaTotal: area,
+                                    quartos,
+                                    banheiros,
+                                    vagas,
+                                    link,
+                                    precoPorMetro: area > 0 ? valor / area : 0,
+                                    site: 'luanaimoveis.com.br',
+                                    entrada: valor * 0.2
+                                });
+                            }
+                        }
+                    }
+                }
+           }
       }
-    }
-
-    // Kenlo fallback for standard DOM elements if present
-    const paginationLinks = $('.pagination a, a[href*="pagina="], a[href*="pg="]');
-    if (paginationLinks.length > 0) {
-        paginationLinks.each((_, el) => {
-            const text = $(el).text();
-            const num = parseInt(text, 10);
-            if (!isNaN(num) && num > qtd) qtd = num;
-        });
-        qtd = qtd * 12; // Approximation
-    }
-
-    if (qtd === 0 && $('.property-item, .card-imovel, .imovel-box, [itemprop="itemListElement"]').length > 0) {
-        qtd = $('.property-item, .card-imovel, .imovel-box, [itemprop="itemListElement"]').length;
-    }
-
-    $('.property-item, .card-imovel, .imovel-box, [itemprop="itemListElement"]').each((_, el) => {
-        const titleNode = $(el).find('h2, h3, .title');
-        const title = titleNode.text().trim();
-        const locationNode = $(el).find('.location, .address, [itemprop="address"]').text().trim();
-        let priceStr = $(el).find('.price, .valor, [itemprop="price"]').text().trim();
-        priceStr = priceStr.replace('R$', '').trim();
-        const link = $(el).find('a').first().attr('href') || '';
-        const image = $(el).find('img').attr('src') || $(el).find('img').attr('data-src') || '';
-
-        let bed = 0; let bath = 0; let garage = 0;
-        $(el).find('.facilities li, .features span, .amenities div').each((_, fac) => {
-            const t = $(fac).text().toLowerCase();
-            const num = parseInt(t.replace(/\D/g, ''), 10) || 0;
-            if (t.includes('quarto') || t.includes('dorm')) bed = num;
-            if (t.includes('banheiro') || t.includes('suite') || t.includes('suíte')) bath = num;
-            if (t.includes('vaga') || t.includes('garagem')) garage = num;
-        });
-
-        const valor = getFixValue(priceStr);
-
-        if (valor > 0 && link) {
-            imoveis.push({
-                titulo: title + (locationNode ? ` em ${locationNode}` : ''),
-                descricao: '',
-                imagens: [image].filter(Boolean),
-                endereco: normalizeNeighborhoodName(locationNode),
-                valor,
-                area: 0,
-                areaTotal: 0,
-                quartos: bed,
-                banheiros: bath,
-                vagas: garage,
-                link: link.startsWith('http') ? link : `https://www.luanaimoveis.com.br${link.startsWith('/') ? '' : '/'}${link}`,
-                precoPorMetro: 0,
-                site: 'luanaimoveis.com.br',
-                entrada: valor * 0.20
-            });
-        }
-    });
-  } catch (error) {
-     // Ignore
+  } catch(e) {
+      console.warn("Could not parse JSON for luanaimoveis.com.br");
   }
 
-  /* istanbul ignore next */
-  return { imoveis: imoveis || [], qtd, html };
+  return { imoveis, qtd, html };
 }
