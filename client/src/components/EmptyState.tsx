@@ -19,7 +19,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="text-center py-20 text-gray-500 dark:text-gray-400 flex flex-col items-center max-w-md mx-auto"
+      className="text-center py-20 text-gray-500 dark:text-gray-400 flex flex-col items-center max-w-lg mx-auto"
     >
       <motion.div
         whileHover={{ rotate: 5, scale: 1.1 }}
@@ -35,14 +35,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
       </p>
 
       {tips && tips.length > 0 && (
-        <div className="mb-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 w-full text-left">
-           <p className="font-medium text-blue-800 dark:text-blue-300 mb-2 text-sm">Dicas para melhorar sua busca:</p>
-           <ul className="list-disc list-inside text-sm text-blue-700/80 dark:text-blue-200/80 space-y-1">
-             {tips.map((tip, idx) => (
-               <li key={idx}>{tip}</li>
-             ))}
-           </ul>
-        </div>
+          <div className="bg-blue-50 dark:bg-blue-900/20 text-left p-4 rounded-xl border border-blue-100 dark:border-blue-800/50 mb-8 w-full">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 text-sm">Dicas:</h4>
+              <ul className="list-disc pl-5 text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                  {tips.map((tip, idx) => (
+                      <li key={idx}>{tip}</li>
+                  ))}
+              </ul>
+          </div>
       )}
 
       {action && (

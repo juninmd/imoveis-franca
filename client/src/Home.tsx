@@ -490,7 +490,15 @@ export const Home = () => {
                      ? "Nenhum imóvel combina com os filtros atuais."
                      : "Nenhum imóvel encontrado no momento. Tente novamente mais tarde."
                 }
-                tips={!showFavoritesOnly ? getEmptyStateTips() : undefined}
+                tips={
+                  !showFavoritesOnly && activeFiltersCount > 0
+                    ? [
+                        "Remova alguns filtros para ver mais resultados.",
+                        "Amplie a faixa de preço desejada.",
+                        "Tente buscar em outras regiões ou bairros."
+                      ]
+                    : undefined
+                }
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
