@@ -11,7 +11,7 @@ export default {
   itemsPerPage: 12,
   params: [],
   getPaginateParams: (page: number) => {
-    return { url: `https://www.fortscunha.com.br/imoveis?pagina=${page}` };
+    return { url: `https://www.fortscunha.com.br/imoveis?page=${page}` };
   },
   adapter,
 } as Site;
@@ -22,51 +22,42 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
   let qtd = 0;
 
-  const lastPageLink = $('.pagination li a').last().attr('href');
-  if (lastPageLink) {
-    const pageMatch = lastPageLink.match(/pagina=(\d+)/);
-    if (pageMatch) {
-       qtd = parseInt(pageMatch[1]) * 12;
-    }
-  }
+  // They don't seem to show a direct count in a predictable way on all fastimob platforms, default to high number
+  qtd = 50;
 
-  if(qtd === 0) qtd = 50;
-
-  $('.single-item').each((_i, el) => {
-    const $el = $(el);
-    let link = $el.find('h5 a').attr('href');
+  $('.recent-properties-box').each((_i, el) => {
+    let link = $(el).find('a').first().attr('href');
     if (!link) return;
     if (link.startsWith('/')) link = `https://www.fortscunha.com.br${link}`;
 
-    const titulo = $el.find('h5 a').text().trim();
+    // Only capture 'venda' properties if 'tipo' is venda, but they use tag-s/tag-f
+    const tag = $(el).find('.tag-s').text().toLowerCase() || $(el).find('.tag-f').text().toLowerCase();
+    if(tag && !tag.includes('vend')) return;
 
-    const locText = $el.find('.lower-content').text();
-    const locMatch = locText.match(/Franca - (.*)/);
-    const bairro = locMatch ? locMatch[1].trim() : 'Franca';
+    const titulo = $(el).find('.title a').text().trim();
+
+    const loc = $(el).find('.location').text().trim();
+    const bairro = loc.split(',')[0] || 'Franca';
+
     const endereco = normalizeNeighborhoodName(bairro);
 
-    const priceText = $el.find('.price').text();
-    let valorStr = '';
-    if(priceText) {
-       valorStr = priceText.replace(/R\$/g, '').replace(/\./g, '').trim();
-    }
+    const valorStr = $(el).find('.price').text().replace(/R\$/g, '').replace(/\./g, '').trim();
     const valor = getFixValue(valorStr);
 
-    let quartos = 0, banheiros = 0, vagas = 0, area = 0;
+    let quartos = 0, banheiros = 0, vagas = 0;
 
-    $el.find('.valores-imovel').each((_j, feat) => {
-       const text = $(feat).text().trim();
-       const val = parseInt(text) || 0;
+    $(el).find('.facilities-list li').each((_j, feat) => {
+        const text = $(feat).text().toLowerCase().trim();
+        const numMatch = text.match(/\d+/);
+        const num = numMatch ? parseInt(numMatch[0]) : 0;
 
-       if($(feat).find('.fa-bed').length > 0) quartos = val;
-       if($(feat).find('.fa-bath').length > 0) banheiros = val;
-       if($(feat).find('.fa-car').length > 0) vagas = val;
-       if($(feat).find('.fa-arrows').length > 0) area = val;
+        if($(feat).find('.flaticon-bed').length > 0) quartos = num;
+        if($(feat).find('.flaticon-holidays').length > 0) banheiros = num;
+        if($(feat).find('.flaticon-vehicle').length > 0) vagas = num;
     });
 
-
     const imagens: string[] = [];
-    const imgStr = $el.find('.img-box img').attr('src');
+    const imgStr = $(el).find('.img-responsive').attr('src');
     if (imgStr) {
         imagens.push(imgStr.startsWith('http') ? imgStr : `https://www.fortscunha.com.br${imgStr}`);
     }
@@ -78,13 +69,13 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
         imagens,
         endereco,
         valor,
-        area,
+        area: 0,
         areaTotal: 0,
         quartos,
         link,
         banheiros,
         vagas,
-        precoPorMetro: area > 0 ? valor / area : 0,
+        precoPorMetro: 0,
         site: 'fortscunha.com.br',
         entrada: valor * 0.20
       });

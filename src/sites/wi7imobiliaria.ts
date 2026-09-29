@@ -5,13 +5,13 @@ import { normalizeNeighborhoodName, getFixValue } from '../utils';
 export default {
   enabled: true,
   tipo: 'venda',
-  url: 'https://www.wi7imobiliaria.com.br/imoveis/venda/franca',
+  url: 'https://www.wi7imobiliaria.com.br/imoveis',
   name: 'wi7imobiliaria.com.br',
   driver: 'axios',
   itemsPerPage: 12,
   params: [],
   getPaginateParams: (page: number) => {
-    return { url: `https://www.wi7imobiliaria.com.br/imoveis/venda/franca?page=${page}` };
+    return { url: `https://www.wi7imobiliaria.com.br/imoveis?page=${page}` };
   },
   adapter,
 } as Site;
@@ -21,24 +21,16 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const $ = cheerio.load(html);
 
   let qtd = 0;
-  // fastimob platforms - maximum page number from .pagination a[href] links
-  let maxPage = 1;
-  $('.pagination a').each((_i, el) => {
-      const href = $(el).attr('href');
-      if (href) {
-          const match = href.match(/page=(\d+)/);
-          if (match && parseInt(match[1]) > maxPage) {
-              maxPage = parseInt(match[1]);
-          }
-      }
-  });
-  qtd = maxPage * 12;
+
+  // They don't seem to show a direct count in a predictable way on all fastimob platforms, default to high number
+  qtd = 50;
 
   $('.recent-properties-box').each((_i, el) => {
     let link = $(el).find('a').first().attr('href');
     if (!link) return;
     if (link.startsWith('/')) link = `https://www.wi7imobiliaria.com.br${link}`;
 
+    // Only capture 'venda' properties if 'tipo' is venda, but they use tag-s/tag-f
     const tag = $(el).find('.tag-s').text().toLowerCase() || $(el).find('.tag-f').text().toLowerCase();
     if(tag && !tag.includes('vend')) return;
 
