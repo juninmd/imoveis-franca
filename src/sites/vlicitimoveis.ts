@@ -31,6 +31,7 @@ const vlicitimoveis: Site = {
             parsedHtml = jsonResponse.html;
         }
     } catch (e) {
+      // not JSON, treat html as raw markup
     }
 
     const $ = cheerio.load(parsedHtml);
