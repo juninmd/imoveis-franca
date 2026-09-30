@@ -25,6 +25,7 @@ export interface Site {
   method?: string,
   payload?: any,
   waitFor?: string | undefined,
+  axiosConfig?: any,
   disableQuery?: string,
   url: string,
   link?: string,

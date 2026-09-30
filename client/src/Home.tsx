@@ -484,9 +484,9 @@ export const Home = () => {
                 }
                 tips={
                   !showFavoritesOnly ? [
-                    'Tente remover ou alterar alguns filtros.',
-                    'Limpe os filtros de preço para ampliar a busca.',
-                    'Experimente outras opções de tipos ou localizações.'
+                    activeFiltersCount > 0 ? `Você tem ${activeFiltersCount} filtro(s) ativo(s). Tente removê-los.` : 'Tente buscar em todas as imobiliárias.',
+                    filters.maxPrice ? 'Tente aumentar ou remover o limite de preço máximo.' : 'Limpe os filtros de preço para ampliar a busca.',
+                    (filters.minBedrooms || filters.minBathrooms) ? 'Tente reduzir as exigências de quartos ou banheiros.' : 'Remova restrições específicas para mais opções.'
                   ] : undefined
                 }
                 action={
