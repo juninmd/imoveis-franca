@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { PropertyCard } from './PropertyCard';
@@ -80,7 +81,7 @@ describe('PropertyCard', () => {
 
   it('renders fallback for missing values', () => {
       const emptyImovel = { ...mockImovel, area: 0, quartos: 0, banheiros: 0, vagas: 0, precoPorMetro: 0, imagens: undefined, endereco: '' };
-      render(<PropertyCard imovel={emptyImovel as unknown as import('./PropertyCard').Imovel} isFavorite={false} onToggleFavorite={vi.fn()} />);
+      render(<PropertyCard imovel={emptyImovel as unknown as unknown as any} isFavorite={false} onToggleFavorite={vi.fn()} />);
       expect(screen.getByText('Endereço não informado')).toBeInTheDocument();
   });
 
@@ -188,7 +189,7 @@ describe('PropertyCard', () => {
 
   it('handles isBelowAverage false correctly when valorMedio is missing', () => {
       const imovel = { ...mockImovel, valorMedioBairroPorAreaTotal: 0 };
-      render(<PropertyCard imovel={imovel as unknown as import('./PropertyCard').Imovel} isFavorite={false} onToggleFavorite={vi.fn()} />);
+      render(<PropertyCard imovel={imovel as unknown as any} isFavorite={false} onToggleFavorite={vi.fn()} />);
       expect(screen.queryByText('Abaixo da Média')).not.toBeInTheDocument();
   });
 
@@ -200,12 +201,12 @@ describe('PropertyCard', () => {
 
   it('handles isBelowAverage true and false when areaTotal is zero or missing', () => {
       const imovel = { ...mockImovel, valorMedioBairroPorAreaTotal: 300000, areaTotal: 0, precoPorMetro: 1000 };
-      render(<PropertyCard imovel={imovel as unknown as import('./PropertyCard').Imovel} isFavorite={false} onToggleFavorite={vi.fn()} />);
+      render(<PropertyCard imovel={imovel as unknown as any} isFavorite={false} onToggleFavorite={vi.fn()} />);
   });
 
   it('handles isBelowAverage logic entirely gracefully with undefined', () => {
       const imovel = { ...mockImovel, valorMedioBairroPorAreaTotal: undefined, precoPorMetro: 0 };
-      render(<PropertyCard imovel={imovel as unknown as import('./PropertyCard').Imovel} isFavorite={false} onToggleFavorite={vi.fn()} />);
+      render(<PropertyCard imovel={imovel as unknown as any} isFavorite={false} onToggleFavorite={vi.fn()} />);
   });
 
   it('hits all branches of isBelowAverage', () => {

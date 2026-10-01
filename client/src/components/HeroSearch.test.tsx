@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SearchState } from '../hooks/useSearchState';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HeroSearch } from './HeroSearch';
 
 describe('HeroSearch', () => {
-  const defaultFilters = {
+  const defaultFilters: any = {
     tipo: 'venda' as const,
     minPrice: '',
     maxPrice: '',
@@ -25,13 +26,13 @@ describe('HeroSearch', () => {
   });
 
   it('renders the Comprar tab as active by default', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={[]} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
     const comprarTab = screen.getByRole('tab', { name: /Comprar/i });
     expect(comprarTab).toHaveAttribute('aria-selected', 'true');
   });
 
   it('switches tipo to aluguel on click', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={[]} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
     const alugarTab = screen.getByRole('tab', { name: /Alugar/i });
     fireEvent.click(alugarTab);
     expect(mockSetFilters).toHaveBeenCalled();
@@ -39,13 +40,13 @@ describe('HeroSearch', () => {
 
   it('reflects the aluguel tab as active when tipo is aluguel', () => {
     const filters = { ...defaultFilters, tipo: 'aluguel' as const };
-    render(<HeroSearch filters={filters} setFilters={mockSetFilters} addresses={[]} />);
+    render(<HeroSearch filters={filters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
     const alugarTab = screen.getByRole('tab', { name: /Alugar/i });
     expect(alugarTab).toHaveAttribute('aria-selected', 'true');
   });
 
   it('updates minPrice on input change', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={[]} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
     const inputs = screen.getAllByRole('spinbutton');
     const priceInput = inputs.find(i => (i as HTMLInputElement).name === 'maxPrice');
     if (priceInput) {
@@ -55,20 +56,20 @@ describe('HeroSearch', () => {
   });
 
   it('lists addresses in the select', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={['Centro', 'Vila Nova']} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
     expect(screen.getByText('Centro')).toBeInTheDocument();
     expect(screen.getByText('Vila Nova')).toBeInTheDocument();
   });
 
   it('triggers setTipo when clicking Alugar tab', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={[]} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
     const alugarTab = screen.getByText(/Alugar/i);
     fireEvent.click(alugarTab);
     expect(mockSetFilters).toHaveBeenCalled();
   });
 
   it('renders dropdown options correctly and handles selection', () => {
-     render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={[]} />);
+     render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
      const selects = screen.getAllByRole('combobox');
      const select = selects.find(s => (s as HTMLSelectElement).name === 'minBedrooms');
      if(select) {
@@ -79,7 +80,7 @@ describe('HeroSearch', () => {
 
   it('triggers setTipo when clicking Comprar tab', () => {
     const filters = { ...defaultFilters, tipo: 'aluguel' as const };
-    render(<HeroSearch filters={filters} setFilters={mockSetFilters} addresses={[]} />);
+    render(<HeroSearch filters={filters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
     const comprarTab = screen.getByRole('tab', { name: /Comprar/i });
     fireEvent.click(comprarTab);
     expect(mockSetFilters).toHaveBeenCalled();
@@ -91,7 +92,7 @@ describe('HeroSearch', () => {
      dummyElement.scrollIntoView = vi.fn();
      document.body.appendChild(dummyElement);
 
-     render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={[]} />);
+     render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
      const buscarBtn = screen.getByText(/Buscar/i);
      fireEvent.click(buscarBtn);
      expect(dummyElement.scrollIntoView).toHaveBeenCalled();
@@ -100,7 +101,7 @@ describe('HeroSearch', () => {
   });
 
   it('updates address on select change', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={['Centro', 'Vila Nova']} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
     const selects = screen.getAllByRole('combobox');
     const select = selects.find(s => (s as HTMLSelectElement).name === 'address');
     if (select) {
@@ -110,7 +111,7 @@ describe('HeroSearch', () => {
   });
 
   it('handles empty address select correctly (ternary false)', () => {
-    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters} addresses={['Centro', 'Vila Nova']} />);
+    render(<HeroSearch filters={defaultFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
     const selects = screen.getAllByRole('combobox');
     const select = selects.find((s) => (s as HTMLSelectElement).name === 'address');
     if (select) {
