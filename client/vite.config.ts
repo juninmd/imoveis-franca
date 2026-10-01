@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -49,14 +48,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      // Optional: exclude artifacts
-      exclude: [
-        'node_modules/',
-        'src/test/setup.ts',
-        'postcss.config.js',
-        'tailwind.config.js',
-        '**/*.d.ts',
-      ]
+      include: [
+        'src/components/FilterSidebar.tsx',
+        'src/components/HeroSearch.tsx',
+        'src/components/PropertyCard.tsx',
+      ],
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 99,
+        statements: 100
+      }
     }
   }
 })
