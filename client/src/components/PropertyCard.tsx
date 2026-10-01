@@ -54,7 +54,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
 
-  const isBelowAverage = (imovel.valorMedioBairroPorAreaTotal || 0) > 0 && imovel.precoPorMetro < ((imovel.valorMedioBairroPorAreaTotal || 0) / imovel.areaTotal);
+  const isBelowAverage = (imovel.valorMedioBairroPorAreaTotal || 0) > 0 && imovel.precoPorMetro < (imovel.valorMedioBairroPorAreaTotal! / imovel.areaTotal);
 
   // No mobile o menu nativo de compartilhamento é o que o usuário espera; no desktop cai para
   // a área de transferência. `writeText` rejeita fora de contexto seguro ou sem permissão —

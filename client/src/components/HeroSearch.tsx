@@ -96,7 +96,9 @@ export function HeroSearch<T extends HeroFilters>({ filters, setFilters, address
             <select
               name="address"
               value={filters.address[0] || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, address: e.target.value ? [e.target.value] : [] }))}
+              onChange={(e) => {
+                setFilters(prev => ({ ...prev, address: e.target.value ? [e.target.value] : [] }));
+              }}
               className={clsx(inputClass, "cursor-pointer truncate pr-8")}
               style={{ WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none' }}
             >
