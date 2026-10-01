@@ -35,7 +35,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
 
       {tips && tips.length > 0 && (
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-5 mb-8 text-left w-full max-w-sm border border-gray-100 dark:border-gray-700/50">
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Dicas para melhorar a busca:</h4>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Dicas para melhorar a busca:</h4>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Aqui estão algumas sugestões:</p>
           <ul className="space-y-2">
             {tips.map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">

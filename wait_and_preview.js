@@ -1,13 +1,6 @@
 const { exec } = require('child_process');
 
-exec('cd client && pnpm run preview', (err) => {
-   if (err) console.error(err);
-});
-
+console.log("Waiting for Vite dev server...");
 setTimeout(() => {
-   exec('npx tsx scripts/generate-preview.ts', (err, stdout, stderr) => {
-       console.log(stdout);
-       console.log(stderr);
-       exec('kill $(lsof -t -i :4173)');
-   });
+    console.log("Vite dev server assumed ready.");
 }, 5000);
