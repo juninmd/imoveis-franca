@@ -59,8 +59,7 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "puppeteer",
-      "playwright",
-      "typescript"
+      "playwright"
     ]
   }
 }
