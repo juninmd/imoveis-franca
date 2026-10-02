@@ -58,7 +58,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "puppeteer"
+      "puppeteer",
+      "playwright",
+      "typescript"
     ]
   }
 }
