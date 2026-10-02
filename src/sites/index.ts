@@ -1,3 +1,5 @@
+import liderimobiliaria from "./liderimobiliaria";
+import imobiliariazanetti from "./imobiliariazanetti";
 import rrandradeimoveis from "./rrandradeimoveis";
 import imobiliariaindependencia from "./imobiliariaindependencia";
 import casabellafranca from "./casabellafranca";
@@ -71,6 +73,9 @@ import wi7imobiliaria from "./wi7imobiliaria";
 import fortscunha from "./fortscunha";
 
 export const sites: Site[] = [
+  liderimobiliaria as unknown as Site,
+  imobiliariazanetti as unknown as Site,
+
   rrandradeimoveis as unknown as Site,
   imobiliariaindependencia as unknown as Site,
   agessani,
