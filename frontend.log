@@ -1,0 +1,6 @@
+
+> client@0.0.0 preview /app/client
+> vite preview --port 4173
+
+  ➜  Local:   http://localhost:4173/
+  ➜  Network: use --host to expose
