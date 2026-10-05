@@ -24,7 +24,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
         <div className="absolute inset-0 bg-blue-500/20 dark:bg-blue-400/20 blur-2xl rounded-full scale-150 pointer-events-none" />
       <motion.div
         whileHover={{ rotate: 5, scale: 1.1 }}
-        animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
+        animate={{ y: [0, -10, 0], scale: [1, 1.08, 1] }}
         transition={{ y: { repeat: Infinity, duration: 2, ease: 'easeInOut' }, scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' } }}
         className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full relative z-10 shadow-[0_0_35px_rgba(59,130,246,0.3)] dark:shadow-[0_0_30px_rgba(59,130,246,0.15)] ring-2 ring-gray-200/50 dark:ring-gray-700/50 transition-shadow hover:shadow-[0_0_40px_rgba(59,130,246,0.4)]"
       >

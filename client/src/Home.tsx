@@ -320,10 +320,10 @@ export const Home = () => {
             </div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2" aria-live="polite">
                {isLoading ? (
-                 <span className="flex items-center gap-2 text-gray-500">
-                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                   Carregando...
-                 </span>
+                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
+                   <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin shadow-sm" />
+                   Buscando imóveis...
+                 </motion.span>
                ) : (
                  <>
                     <Search size={18} className="text-gray-400" />

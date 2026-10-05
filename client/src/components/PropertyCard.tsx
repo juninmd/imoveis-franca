@@ -65,7 +65,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
     // O link vem de HTML de terceiro. O React ja bloqueia um `javascript:` no href, mas a area
     // de transferencia e o menu de compartilhamento nao tem essa protecao.
     if (!linkIsSafe) {
-      addToast('Link do anúncio indisponível.', 'error');
+      addToast('O link deste anúncio é inválido para compartilhamento.', 'error');
       return;
     }
 
@@ -145,14 +145,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
               >
                  <Heart size={18} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
               </button>
-             <button
+             <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={(e) => { void handleShare(e); }}
                 className="group p-2.5 rounded-full bg-white/95 dark:bg-gray-900/95 hover:bg-white dark:hover:bg-black text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-500 transition-all shadow-lg backdrop-blur-md hover:scale-110 active:scale-95 border border-white/20 dark:border-gray-700/50"
                 title="Compartilhar"
                 aria-label="Compartilhar"
               >
                  <Share2 size={18} className="transition-transform group-hover:rotate-12 group-active:scale-90" />
-              </button>
+              </motion.button>
           </div>
 
           <div className="absolute top-3 left-3 flex flex-col gap-2 items-start pointer-events-none z-10">
