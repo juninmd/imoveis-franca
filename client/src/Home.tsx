@@ -454,7 +454,7 @@ export const Home = () => {
                     key={i}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.05, ease: "easeOut" }}
+                    transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
                     className="h-full"
                  >
                    <PropertyCardSkeleton viewMode={viewMode} />
@@ -472,7 +472,7 @@ export const Home = () => {
                 }}
             /></motion.div>
           ) : sortedImoveis.length === 0 ? (
-             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}><EmptyState
+             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}><EmptyState
                 icon={Search}
                 title="Nenhum imóvel encontrado"
                 description={
