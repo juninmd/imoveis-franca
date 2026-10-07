@@ -6,7 +6,7 @@ import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import {  Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List , ArrowUp } from 'lucide-react';
+import {  Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List , ArrowUp, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Imovel } from './types';
@@ -320,8 +320,8 @@ export const Home = () => {
             </div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2" aria-live="polite">
                {isLoading ? (
-                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
-                   <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin shadow-sm" />
+                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-medium">
+                   <Loader2 size={20} className="animate-spin" />
                    Buscando imóveis...
                  </motion.span>
                ) : (

@@ -62,11 +62,11 @@ export function HeroSearch<T extends HeroFilters>({ filters, setFilters, address
            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
            className="text-center text-blue-100/90 dark:text-gray-300 text-lg sm:text-xl mb-12 max-w-2xl mx-auto text-balance font-medium drop-shadow-sm"
         >
-          Busque entre dezenas de imobiliárias em um só lugar. Simples, rápido e eficiente.
+          Busque entre centenas de imobiliárias em um só lugar. Simples, rápido e eficiente.
         </motion.p>
 
         <div className="flex gap-2 justify-center sm:justify-start" role="tablist" aria-label="Finalidade">
-          <button
+          <motion.button whileTap={{ scale: 0.95 }}
             type="button"
             role="tab"
             aria-selected={filters.tipo === 'venda'}
@@ -80,8 +80,8 @@ export function HeroSearch<T extends HeroFilters>({ filters, setFilters, address
           >
             {filters.tipo === 'venda' && <motion.div layoutId="activeTabIndicator" className="absolute top-0 left-0 w-full h-1 bg-blue-500" />}
             <Tag size={16} /> Comprar
-          </button>
-          <button
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.95 }}
             type="button"
             role="tab"
             aria-selected={filters.tipo === 'aluguel'}
@@ -95,7 +95,7 @@ export function HeroSearch<T extends HeroFilters>({ filters, setFilters, address
           >
             {filters.tipo === 'aluguel' && <motion.div layoutId="activeTabIndicator" className="absolute top-0 left-0 w-full h-1 bg-blue-500" />}
             <Key size={16} /> Alugar
-          </button>
+          </motion.button>
         </div>
 
         <motion.div
@@ -168,13 +168,13 @@ export function HeroSearch<T extends HeroFilters>({ filters, setFilters, address
             />
           </div>
 
-          <button
+          <motion.button whileTap={{ scale: 0.95 }}
             type="button"
             onClick={() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex-1 sm:flex-none min-w-[130px] flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.97] transition-all duration-300"
+            className="flex-1 sm:flex-none min-w-[130px] flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.97] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
           >
             <Search size={18} className="animate-pulse-slow" /> Buscar
-          </button>
+          </motion.button>
         </motion.div>
       </motion.div>
     </div>
