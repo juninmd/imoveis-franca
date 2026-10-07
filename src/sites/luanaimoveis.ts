@@ -3,7 +3,7 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName, getFixValue } from '../utils';
 
 export default {
-  enabled: true,
+  enabled: false, // Luana Adm Imoveis (Kenlo) so lista imoveis de Sao Paulo/SP e aluguel, nenhum em Franca
   tipo: 'venda',
   url: 'https://www.luanaimoveis.com.br/imoveis',
   name: 'luanaimoveis.com.br',

@@ -5,28 +5,26 @@ import { getFixValue, normalizeNeighborhoodName } from '../utils';
 export default {
   enabled: true,
   tipo: 'venda',
-  url: 'https://r2imob.com.br/busca?orst=dta&topr=1',
+  // ecid=9144 = Franca (o site mistura outras cidades). A paginacao (p=N) depende de sessao (JSESSIONID):
+  // sem cookie so a primeira pagina retorna itens, entao paginas > 1 voltam vazias.
+  url: 'https://r2imob.com.br/busca?orst=dta&topr=1&ecid=9144',
   name: 'r2imob.com.br',
   driver: 'axios',
   itemsPerPage: 12,
   params: [],
   getPaginateParams: (page: number) => {
-    return { url: `https://r2imob.com.br/busca?orst=dta&topr=1&pg=${page}` };
+    const base = 'https://r2imob.com.br/busca?orst=dta&topr=1&ecid=9144';
+    return { url: page <= 1 ? base : `${base}&p=${page - 1}` };
   },
   adapter,
 } as Site;
 
 export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
-  // We need to parse this properly, using string 'latin1' Buffer if possible, but html arrives as string
-  const buf = Buffer.from(html, 'binary');
-  const fixedHtml = buf.toString('utf8');
+  // O driver decodifica o latin1 do site como utf8, entao acentos viram U+FFFD; removemos.
+  const $ = cheerio.load(html.replace(/\uFFFD/g, ''));
 
-  // Try utf8 first, if it contains invalid characters, just use the string
-  const parsedHtml = fixedHtml.includes('\uFFFD') ? Buffer.from(html, 'binary').toString('latin1') : fixedHtml;
-
-  const $ = cheerio.load(parsedHtml);
-
-  const qtd = 0;
+  const qtdMatch = $('body').text().match(/Localizados\s+(\d+)/i);
+  const qtd = qtdMatch ? parseInt(qtdMatch[1], 10) : 0;
 
   const imoveis: Imoveis[] = [];
 
@@ -35,7 +33,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
     const linkAttr = linkEl.attr('href') || '';
     const link = linkAttr.startsWith('http') ? linkAttr : `https://r2imob.com.br${linkAttr}`;
 
-    const titulo = $(el).find('.property-title').text().trim();
+    const titulo = $(el).find('.property-title').text().replace(/\s+/g, ' ').trim();
     if (!titulo) return;
 
     const addressText = $(el).find('.property-neighborhood').text().trim();

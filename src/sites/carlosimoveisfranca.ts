@@ -5,13 +5,13 @@ import { normalizeNeighborhoodName } from '../utils';
 export default {
   enabled: true,
   tipo: 'venda',
-  url: 'https://www.carlosimoveisfranca.com.br/imoveis/a-venda/',
+  url: 'https://www.carlosimoveisfranca.com.br/imoveis/finalidade-2-comprar/cidade-FRANCA-franca',
   name: 'carlosimoveisfranca.com.br',
   driver: 'axios',
   itemsPerPage: 12,
   params: [],
   getPaginateParams: (page: number) => {
-    return { url: `https://www.carlosimoveisfranca.com.br/imoveis/a-venda/pagina-${page}` };
+    return { url: `https://www.carlosimoveisfranca.com.br/imoveis/finalidade-2-comprar/cidade-FRANCA-franca/pagina-${page}` };
   },
   adapter,
 } as Site;

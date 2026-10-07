@@ -188,7 +188,8 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
       requestParams = { ...requestParams, ...paginateParams.params };
     }
 
-    const link = `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
+    // getPaginateParams pode devolver uma `url` completa (sites com paginação no path).
+    const link = paginateParams.url ?? `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
@@ -247,7 +248,7 @@ export async function retrieveContent(url: string, site: Site, params = undefine
       return html;
     }
   } else if (site.driver === 'axios_rest') {
-    const { data: html } = await axios.request({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000 });
+    const { data: html } = await axios.request<any>({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000, ...site.axiosConfig });
     return html;
   }
 

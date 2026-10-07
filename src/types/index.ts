@@ -32,7 +32,7 @@ export interface Site {
   translateParams?: { currentPage: string; maxPrice: string; minPrice: string },
   params?: any[],
   itemsPerPage: number,
-  getPaginateParams: (page: number) => { payload?: any, params?: any, path?: any },
+  getPaginateParams: (page: number) => { payload?: any, params?: any, path?: any, url?: string },
   adapter: (html: string) => Promise<{
     imoveis: Imoveis[],
     qtd: number,

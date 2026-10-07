@@ -2,7 +2,8 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName } from '../utils';
 
 export default {
-  enabled: true,
+  // Desativado: Imobzi/Angular de imobiliaria de Peruibe-SP (API sem nenhum imovel em Franca) e o antigo layout MSysImob nao existe mais.
+  enabled: false,
   tipo: 'venda',
   url: 'https://imobiliariazanetti.com.br/comprar/todos',
   name: 'imobiliariazanetti.com.br',
