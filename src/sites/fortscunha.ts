@@ -8,10 +8,10 @@ export default {
   url: 'https://www.fortscunha.com.br/imoveis',
   name: 'fortscunha.com.br',
   driver: 'axios',
-  itemsPerPage: 12,
+  itemsPerPage: 1000, // pagina unica: o site lista todos os imoveis em /imoveis
   params: [],
-  getPaginateParams: (page: number) => {
-    return { url: `https://www.fortscunha.com.br/imoveis?page=${page}` };
+  getPaginateParams: () => {
+    return { url: `https://www.fortscunha.com.br/imoveis` };
   },
   adapter,
 } as Site;
@@ -20,68 +20,53 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const imoveis: Imoveis[] = [];
   const $ = cheerio.load(html);
 
-  let qtd = 0;
-  const paginations = $('.pagination a').map((_i, el) => {
-    const p = parseInt($(el).text());
-    return isNaN(p) ? 0 : p;
-  }).get();
-  if (paginations.length > 0) {
-    qtd = Math.max(...paginations) * 12;
-  } else {
-    qtd = 50;
-  }
-
-  $('.recent-properties-box, .property-box').each((_i, el) => {
-    let link = $(el).find('a').first().attr('href');
+  $('.single-project').each((_i, el) => {
+    const link = $(el).find('.overlay a').first().attr('href') || $(el).find('.lower-content h5 a').attr('href');
     if (!link) return;
-    if (link.startsWith('/')) link = `https://www.fortscunha.com.br${link}`;
 
-    const tag = $(el).find('.tag-s, .tag-f, .badge').text().toLowerCase();
-    if(tag && !tag.includes('vend')) return;
+    const tipo = $(el).find('.lower-content2').text().trim().toLowerCase();
+    if (tipo && !tipo.includes('vend')) return;
 
-    const titulo = $(el).find('.title a, h3 a').text().trim();
-    const loc = $(el).find('.location, .address').text().trim();
-    const bairro = loc.split(',')[0] || 'Franca';
-    const endereco = normalizeNeighborhoodName(bairro);
+    // "Franca - Jardim Paineiras" / "Saída para Ibiraci - Sp"
+    const loc = $(el).find('.lower-content').clone().children().remove().end().text().replace(/\s+/g, ' ').trim();
+    const [cidade, ...resto] = loc.split(/\s*-\s*/);
+    if (!/^franca$/i.test(cidade.trim())) return;
+    const endereco = normalizeNeighborhoodName(resto.join(' - ').trim() || 'Franca');
 
-    const valorStr = $(el).find('.price').text().replace(/R\$/g, '').replace(/\./g, '').trim();
-    const valor = getFixValue(valorStr);
+    const valorStr = $(el).find('.valor-pacote').text().replace(/R\$/g, '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+    const valor = parseFloat(valorStr) || 0;
+    if (valor <= 0) return;
 
-    let quartos = 0, banheiros = 0, vagas = 0;
-    $(el).find('.facilities-list li, .features li').each((_j, feat) => {
-        const text = $(feat).text().toLowerCase().trim();
-        const numMatch = text.match(/\d+/);
-        const num = numMatch ? parseInt(numMatch[0]) : 0;
-        if($(feat).find('.flaticon-bed, .icon-bed').length > 0) quartos = num;
-        if($(feat).find('.flaticon-holidays, .icon-bath').length > 0) banheiros = num;
-        if($(feat).find('.flaticon-vehicle, .icon-garage').length > 0) vagas = num;
+    let quartos = 0, banheiros = 0, vagas = 0, area = 0;
+    $(el).find('.valores-imovel').each((_j, feat) => {
+      const num = parseInt($(feat).text().replace(/\s+/g, ' ').trim()) || 0;
+      if ($(feat).find('.fa-bed').length) quartos = num;
+      else if ($(feat).find('.fa-bath').length) banheiros = num;
+      else if ($(feat).find('.fa-car').length) vagas = num;
+      else if ($(feat).find('.fa-arrows').length) area = getFixValue($(feat).text().replace(/m²/g, '').replace(/\s/g, ''));
     });
 
-    const imagens: string[] = [];
-    const imgStr = $(el).find('.img-responsive, img').attr('src') || $(el).find('img').attr('data-src');
-    if (imgStr) {
-        imagens.push(imgStr.startsWith('http') ? imgStr : `https://www.fortscunha.com.br${imgStr}`);
-    }
+    const titulo = $(el).find('.lower-content h5 a').text().trim();
+    const imgStr = $(el).find('.img-box img').attr('src');
+    const imagens: string[] = imgStr ? [encodeURI(imgStr.startsWith('http') ? imgStr : `https://www.fortscunha.com.br/${imgStr.replace(/^\//, '')}`)] : [];
 
-    if (link && valor > 0) {
-      imoveis.push({
-        titulo: titulo || `Imóvel em ${endereco}`,
-        descricao: '',
-        imagens,
-        endereco,
-        valor,
-        area: 0,
-        areaTotal: 0,
-        quartos,
-        link,
-        banheiros,
-        vagas,
-        precoPorMetro: 0,
-        site: 'fortscunha.com.br',
-        entrada: valor * 0.20
-      });
-    }
+    imoveis.push({
+      titulo: titulo || `Imóvel em ${endereco}`,
+      descricao: '',
+      imagens,
+      endereco,
+      valor,
+      area,
+      areaTotal: area,
+      quartos,
+      link,
+      banheiros,
+      vagas,
+      precoPorMetro: area > 0 ? valor / area : 0,
+      site: 'fortscunha.com.br',
+      entrada: valor * 0.20
+    });
   });
 
-  return { imoveis, qtd: imoveis.length > 0 ? qtd : 0, html };
+  return { imoveis, qtd: imoveis.length, html };
 }

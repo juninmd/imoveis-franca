@@ -110,33 +110,42 @@ describe('Novos Sites Scraper Adapters', () => {
   });
 
   describe('fortscunha', () => {
-    it('deve extrair imóveis corretamente', async () => {
-      const html = `
-        <html>
-          <body>
-            <div class="property-box">
-              <span class="badge">venda</span>
-              <h3><a href="/imovel/f">Terreno Bom</a></h3>
-              <div class="address">Distrito Ind.</div>
-              <div class="price">R$ 150.000</div>
-              <ul class="features">
-                <li><i class="icon-bed"></i> 0 Quartos</li>
-              </ul>
-              <img src="http://forts.com/img4.jpg" />
+    it('deve extrair imóveis corretamente', async () => {
+      const html = `<html><body><div class="col-md-3"><div class="single-project">
+            <div class="img-box"><img src="http://forts.com/img4.jpg" alt="x" /><div class="overlay"><a href="https://www.fortscunha.com.br/imoveis/9/terreno">ver mais</a></div></div>
+            <div class="lower-content">
+              <div class="valores-imovel"><i class="fa fa-bed"></i><br>0</div>
+              <div class="valores-imovel"><i class="fa fa-bath"></i><br>2</div>
+              <div class="valores-imovel"><i class="fa fa-car"></i><br>2</div>
+              <div class="valores-imovel"><i class="fa fa-arrows"></i><br>120 m²</div>
+              <h5><a href="https://www.fortscunha.com.br/imoveis/9/terreno">Terreno Bom</a></h5>
+              <i class="fa fa-map-marker"></i> Franca - Distrito Ind.<br>
             </div>
-          </body>
-        </html>
-      `;
+            <div class="valor-pacote">R$ 150.000,00</div>
+            <a href="https://www.fortscunha.com.br/imoveis/9/terreno"><div class="lower-content2">Venda</div></a>
+          </div></div></body></html>`;
       const result = await fortsAdapter(html);
-      expect(result.qtd).toBe(50);
+      expect(result.qtd).toBe(1);
       expect(result.imoveis).toHaveLength(1);
-      expect(result.imoveis[0].link).toBe('https://www.fortscunha.com.br/imovel/f');
+      expect(result.imoveis[0].link).toBe('https://www.fortscunha.com.br/imoveis/9/terreno');
       expect(result.imoveis[0].quartos).toBe(0);
       expect(result.imoveis[0].imagens[0]).toBe('http://forts.com/img4.jpg');
     });
 
     it('deve lidar com tag aluguel', async () => {
-       const html = `<html><body><div class="property-box"><span class="badge">Aluguel</span><h3><a href="/imovel/f">X</a></h3></div></body></html>`;
+       const html = `<html><body><div class="col-md-3"><div class="single-project">
+            <div class="img-box"><img src="https://www.fortscunha.com.br/images-imoveis/a b.jpg" alt="x" /><div class="overlay"><a href="https://www.fortscunha.com.br/imoveis/1/casa-a-venda--centro">ver mais</a></div></div>
+            <div class="lower-content">
+              <div class="valores-imovel"><i class="fa fa-bed"></i><br>3</div>
+              <div class="valores-imovel"><i class="fa fa-bath"></i><br>2</div>
+              <div class="valores-imovel"><i class="fa fa-car"></i><br>2</div>
+              <div class="valores-imovel"><i class="fa fa-arrows"></i><br>120 m²</div>
+              <h5><a href="https://www.fortscunha.com.br/imoveis/1/casa-a-venda--centro">Casa Linda em Centro</a></h5>
+              <i class="fa fa-map-marker"></i> Franca - Centro<br>
+            </div>
+            <div class="valor-pacote">R$ 500.000,00</div>
+            <a href="https://www.fortscunha.com.br/imoveis/1/casa-a-venda--centro"><div class="lower-content2">Aluguel</div></a>
+          </div></div></body></html>`;
        const result = await fortsAdapter(html);
        expect(result.imoveis).toHaveLength(0);
     });

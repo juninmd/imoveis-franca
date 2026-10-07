@@ -188,7 +188,8 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
       requestParams = { ...requestParams, ...paginateParams.params };
     }
 
-    const link = `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
+    // getPaginateParams pode devolver uma `url` completa (sites com paginação no path).
+    const link = paginateParams.url ?? `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList

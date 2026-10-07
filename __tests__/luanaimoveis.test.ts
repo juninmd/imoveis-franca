@@ -1,6 +1,10 @@
 import site from '../src/sites/luanaimoveis';
 
 describe('luanaimoveis site', () => {
+    it('should be disabled (catalogo so de Sao Paulo, sem imoveis em Franca)', () => {
+        expect(site.enabled).toBe(false);
+    });
+
     it('should parse mock HTML correctly', async () => {
         const mockHtml = `
             <div class="property-card">
