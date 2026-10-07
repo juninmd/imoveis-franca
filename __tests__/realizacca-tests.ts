@@ -1,102 +1,73 @@
-import { adapter } from '../src/sites/realizacca';
+import site, { adapter } from '../src/sites/realizacca';
 
-describe('Realiza CCA Adapter', () => {
-  it('should get correct paginate params', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const site = require('../src/sites/realizacca').default;
-    expect(site.getPaginateParams(2)).toEqual({ url: 'https://realizacca.com.br/comprar/franca-sp?page=2' });
+describe('realizacca (MSysImob API)', () => {
+  const doc = {
+    idtProperty: 3559,
+    jsonPhotos: '[{"desPhoto":"Foto","urlPhoto":"https://s3.amazonaws.com/x/1.jpg","flgNotShowSite":0},{"urlPhoto":"https://s3.amazonaws.com/x/2.jpg","flgNotShowSite":1}]',
+    namStreet: 'Rua A',
+    namDistrict: 'Jardim Dr. Antônio Petraglia',
+    namCity: 'Franca',
+    namCategory: 'Casas',
+    prop_char_1: 120,
+    prop_char_2: 185.08,
+    prop_char_5: 3,
+    prop_char_12: 2,
+    prop_char_176: 2,
+    valSales: 590000,
+    desTitleSite: 'Casa Padrão à Venda no Jardim Petraglia, Franca',
+    indType: 'S',
+  };
+
+  it('usa a API de consulta com paginacao por start', () => {
+    expect(site.driver).toBe('axios_rest');
+    expect(site.method).toBe('POST');
+    expect(site.url).toBe('https://realizacca.com.br/api/service/consult');
+    expect(site.payload.idtCityList).toEqual([36]);
+    expect(site.getPaginateParams(1)).toEqual({ payload: { start: 0, numRows: 12 } });
+    expect(site.getPaginateParams(3)).toEqual({ payload: { start: 24, numRows: 12 } });
   });
 
-  it('should parse HTML with JSON correctly', async () => {
-    const html = `
-      <html>
-        <body>
-          <script id="__NEXT_DATA__" type="application/json">
-            {
-              "props": {
-                "initialState": {
-                  "result": {
-                    "pagination": { "total": 2 },
-                    "propertys": [
-                      {
-                        "valSales": 450000,
-                        "numUsefulArea": 120,
-                        "idtProperty": "123",
-                        "namCategory": "Casa",
-                        "namCity": "Franca",
-                        "namDistrict": "Centro",
-                        "jsonPhotos": "[{\\"url\\": \\"http://img.com/1.jpg\\"}]",
-                        "namTitle": "Linda Casa",
-                        "numBedrooms": 3,
-                        "numBathrooms": 2,
-                        "numGarage": 2
-                      },
-                      {
-                        "valSale": 0,
-                        "idtProperty": "124"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          </script>
-        </body>
-      </html>
-    `;
-    const res = await adapter(html);
-    expect(res.qtd).toBe(2);
-    expect(res.imoveis.length).toBe(1);
-    expect(res.imoveis[0].titulo).toBe('Linda Casa');
-    expect(res.imoveis[0].valor).toBe(450000);
-    expect(res.imoveis[0].area).toBe(120);
-    expect(res.imoveis[0].quartos).toBe(3);
-    expect(res.imoveis[0].banheiros).toBe(2);
-    expect(res.imoveis[0].vagas).toBe(2);
-    expect(res.imoveis[0].endereco).toBe('CENTRO');
-    expect(res.imoveis[0].link).toBe('https://realizacca.com.br/imovel/venda/casa/franca/centro/123');
-    expect(res.imoveis[0].imagens[0]).toBe('http://img.com/1.jpg');
+  it('retorna vazio para conteudo invalido', async () => {
+    expect((await adapter('<html></html>')).imoveis).toEqual([]);
+    expect(await adapter({})).toMatchObject({ imoveis: [], qtd: 0 });
+    expect((await adapter(null)).qtd).toBe(0);
   });
 
-  it('should handle pageProps fallback and string arrays for photos', async () => {
-     const html = `
-      <script id="__NEXT_DATA__" type="application/json">
-            {
-              "props": {
-                "pageProps": {
-                  "initialState": {
-                    "result": {
-                      "pagination": { "total": 1 },
-                      "propertys": [
-                        {
-                          "valSales": 300000,
-                          "numUsefulArea": 100,
-                          "idtProperty": "123",
-                          "namCategory": "Casa",
-                          "namCity": "Franca",
-                          "namDistrict": "Vila Nova",
-                          "photos": [{"url": "http://img.com/1.jpg"}],
-                          "namTitle": "Linda Casa",
-                          "numBedrooms": 3,
-                          "numBathrooms": 2,
-                          "numGarage": 2
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          </script>
-     `;
-     const res = await adapter(html);
-     expect(res.imoveis.length).toBe(1);
-     expect(res.imoveis[0].imagens[0]).toBe('http://img.com/1.jpg');
+  it('mapeia os imoveis da resposta', async () => {
+    const result = await adapter({
+      response: {
+        numFound: 30,
+        docs: [
+          doc,
+          { ...doc, idtProperty: 7, indType: 'SL', namCategory: 'Apartamentos', namDistrict: 'Centro', namStreet: undefined, prop_char_1: undefined },
+          { ...doc, idtProperty: 8, valSales: 0 },
+          { ...doc, idtProperty: undefined },
+        ],
+      },
+    });
+    expect(result.qtd).toBe(30);
+    expect(result.imoveis).toHaveLength(2);
+    const [a, b] = result.imoveis;
+    expect(a).toMatchObject({
+      valor: 590000,
+      area: 120,
+      areaTotal: 185.08,
+      quartos: 3,
+      banheiros: 2,
+      vagas: 2,
+      link: 'https://realizacca.com.br/imovel/venda/casas/franca/jardim-dr-antonio-petraglia/3559',
+      site: 'realizacca.com.br',
+      titulo: 'Casa Padrão à Venda no Jardim Petraglia, Franca',
+    });
+    expect(a.imagens).toEqual(['https://s3.amazonaws.com/x/1.jpg']);
+    expect(a.endereco).toContain('Rua A');
+    expect(a.precoPorMetro).toBeCloseTo(590000 / 120);
+    expect(b.link).toBe('https://realizacca.com.br/imovel/venda-e-locacao/apartamentos/franca/centro/7');
+    expect(b.area).toBe(185.08);
   });
 
-  it('should return empty if no NEXT_DATA', async () => {
-    const res = await adapter('<html></html>');
-    expect(res.imoveis.length).toBe(0);
-    expect(res.qtd).toBe(0);
+  it('aceita o JSON como string', async () => {
+    const result = await adapter(JSON.stringify({ response: { numFound: 1, docs: [doc] } }));
+    expect(result.imoveis).toHaveLength(1);
   });
 });

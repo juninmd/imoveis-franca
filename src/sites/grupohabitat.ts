@@ -3,7 +3,8 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName } from '../utils';
 
 export default {
-  enabled: true,
+  // Desabilitado: /comprar/sp/franca/ foi removida (página de erro); a busca agora é um POST com estado (ASP) sem URL listável.
+  enabled: false,
   tipo: 'venda',
   url: 'https://grupohabitat.com.br/comprar/sp/franca/',
   name: 'grupohabitat.com.br',

@@ -248,7 +248,7 @@ export async function retrieveContent(url: string, site: Site, params = undefine
       return html;
     }
   } else if (site.driver === 'axios_rest') {
-    const { data: html } = await axios.request({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000 });
+    const { data: html } = await axios.request<any>({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000, ...site.axiosConfig });
     return html;
   }
 

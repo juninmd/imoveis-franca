@@ -1,8 +1,8 @@
 import site from '../src/sites/imobiliariazanetti';
 
 describe('imobiliariazanetti', () => {
-    it('should be valid', () => {
+    it('is disabled (Peruibe agency, no Franca listings)', () => {
         expect(site.name).toBe('imobiliariazanetti.com.br');
-        expect(site.url).toBe('https://imobiliariazanetti.com.br/comprar/todos');
+        expect(site.enabled).toBe(false);
     });
 });

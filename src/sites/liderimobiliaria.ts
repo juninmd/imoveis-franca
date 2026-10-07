@@ -1,81 +1,133 @@
 import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName } from '../utils';
 
+// Site Imoview ("Lider Negocios Imobiliarios"): /comprar/todos nao existe mais e a listagem
+// (/venda/imoveis/...) e montada no cliente via POST /imoveis/ajax/ (form-urlencoded, campos
+// `imovel[...]`). Chamamos esse endpoint direto, filtrando pela cidade Franca (codigocidade 62).
+const PAGE_SIZE = 20;
+const BASE = 'https://www.liderimobiliaria.com.br';
+
+// O backend exige o conjunto completo de campos de busca (como o busca.js do site envia).
+const buscaImovel = (page: number) => ({
+  finalidade: 'venda',
+  codigounidade: '',
+  codigosimoveis: '',
+  codigoTipo: { codigo: '' },
+  codigocidade: 62,
+  codigoregiao: 0,
+  codigosbairros: 0,
+  endereco: 0,
+  numeroquartos: 0,
+  numerovagas: 0,
+  numerobanhos: 0,
+  numerosuite: 0,
+  numerovaranda: 0,
+  numeroelevador: 0,
+  valorde: 0,
+  valorate: 0,
+  areade: 0,
+  areaate: 0,
+  extras: 0,
+  extends: false,
+  mobiliado: false,
+  dce: false,
+  piscina: false,
+  sauna: false,
+  salaofestas: false,
+  academia: false,
+  boxDespejo: false,
+  portaria24h: false,
+  aceitafinanciamento: false,
+  arealazer: false,
+  quartoqtdeexata: false,
+  vagaqtdexata: false,
+  destaque: 0,
+  opcaoimovel: 4,
+  retornomapa: false,
+  retornomapaapp: false,
+  numeropagina: page,
+  numeroregistros: PAGE_SIZE,
+  ordenacao: 'valordesc',
+  pagina: page,
+  codigocondominio: '0',
+});
+
 export default {
+  driver: 'axios_rest',
   enabled: true,
   tipo: 'venda',
-  url: 'https://liderimobiliaria.com.br/comprar/todos',
   name: 'liderimobiliaria.com.br',
-  driver: 'axios',
-  itemsPerPage: 15,
-  params: [],
-  getPaginateParams: (page: number) => {
-    return { url: `https://liderimobiliaria.com.br/comprar/todos?page=${page}` };
+  url: `${BASE}/imoveis/ajax/`,
+  method: 'POST',
+  payload: { imovel: buscaImovel(1) },
+  axiosConfig: {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
   },
+  itemsPerPage: PAGE_SIZE,
+  // getImoveis faz merge raso do payload, entao devolvemos o objeto `imovel` completo.
+  getPaginateParams: (page: number) => ({ payload: { imovel: buscaImovel(page) } }),
   adapter,
 } as Site;
 
-export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
-  // O site devolve o html principal em next.js mas sem o payload real diretamente no NEXT_DATA que testamos, entao tentamos ver se tem imoveis no json.
-  const match = html.match(/__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/);
-  if (!match) return { imoveis: [], qtd: 0, html };
+// "R$ 1.250.000,00" -> 1250000 ; "1.234,56" -> 1234.56
+const num = (s: any): number => {
+  if (typeof s === 'number') return s;
+  const n = parseFloat(String(s ?? '').replace(/[^\d,]/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+};
 
-  const data = JSON.parse(match[1]);
-
-  // They are putting properties under props.initialState.result.propertys ? or sometimes it's empty
-  // We'll map the correct names from MSysImob based on code review: valSales, idtProperty, namDistrict, jsonPhotos
-  const sourceImoveis = data?.props?.initialState?.result?.propertys || data?.props?.pageProps?.initialState?.result?.propertys || [];
-
-  let qtd = sourceImoveis.length;
-  if (data?.props?.initialState?.result?.pagination?.total) {
-      qtd = data?.props?.initialState?.result?.pagination?.total;
-  } else if (data?.props?.pageProps?.initialState?.result?.pagination?.total) {
-      qtd = data?.props?.pageProps?.initialState?.result?.pagination?.total;
+export async function adapter(content: any): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
+  let data = content;
+  if (typeof content === 'string') {
+    try {
+      // O backend PHP as vezes antepoe "Warning" em HTML ao JSON.
+      const start = content.indexOf('{');
+      data = JSON.parse(start >= 0 ? content.slice(start) : content);
+    } catch (e) {
+      return { imoveis: [], qtd: 0, html: content };
+    }
   }
 
-  const imoveis: Imoveis[] = sourceImoveis.map((imv: any) => {
-    const valor = imv.valSales || imv.valSale || imv.sale_value || 0;
-    const area = imv.numUsefulArea || imv.numTotalArea || imv.useful_area || imv.total_area || 0;
+  const lista: any[] = Array.isArray(data?.lista) ? data.lista : [];
+  const qtd = Number(data?.quantidade) || 0;
 
-    let link = '';
-    const code = imv.idtProperty || imv.code;
-    const cat = String(imv.namCategory || imv.category || '').toLowerCase().replace(/\s+/g, '-');
-    const city = String(imv.namCity || imv.city || '').toLowerCase().replace(/\s+/g, '-');
-    const dist = String(imv.namDistrict || imv.district || '').toLowerCase().replace(/\s+/g, '-');
+  const imoveis: Imoveis[] = lista.map((imv: any) => {
+    const valor = num(imv.valor);
+    const isTerreno = imv.tipo === 'Terreno' || imv.tipo === 'Sitio';
+    const areaLote = num(imv.arealote);
+    const areaInterna = num(imv.areainterna);
+    // areaprincipal pode vir em alqueires (tipomedida "alq."), so serve como m2 quando for "m²"
+    const areaPrincipal = imv.tipomedida === 'm²' ? num(imv.areaprincipal) : 0;
+    const area = (isTerreno ? areaLote : areaInterna) || areaInterna || areaLote || areaPrincipal;
 
-    if (cat && city && dist && code) {
-      link = `https://liderimobiliaria.com.br/imovel/venda/${cat}/${city}/${dist}/${code}`;
-    }
+    const imagens: string[] = Array.isArray(imv.fotos) && imv.fotos.length
+      ? imv.fotos.map((f: any) => f.urlp).filter(Boolean)
+      : (imv.urlfotoprincipalp ? [imv.urlfotoprincipalp] : []);
 
-    let imagens: string[] = [];
-    if (imv.jsonPhotos) {
-       try {
-           const fotos = typeof imv.jsonPhotos === 'string' ? JSON.parse(imv.jsonPhotos) : imv.jsonPhotos;
-           imagens = fotos.map((f: any) => f.url || f).filter(Boolean);
-       } catch (e) { /* ignore */ }
-    } else if (imv.photos) {
-       imagens = imv.photos.map((p: any) => p.url).filter(Boolean);
-    }
-
-    const endereco = normalizeNeighborhoodName(imv.namDistrict || imv.district || imv.namCity || imv.city || 'Franca');
+    const bairro = normalizeNeighborhoodName(imv.bairro || imv.cidade || 'Franca');
+    const rua = imv.endereco && imv.endereco !== '*' ? String(imv.endereco) : '';
+    const endereco = rua ? `${rua}, ${bairro}` : bairro;
 
     return {
-        titulo: imv.namTitle || imv.title || `${imv.namCategory || imv.category || 'Imóvel'} em ${endereco}`,
-        descricao: imv.txtDescription || imv.description || '',
-        imagens,
-        endereco,
-        valor,
-        area,
-        areaTotal: imv.numTotalArea || imv.total_area || area,
-        quartos: imv.numBedrooms || imv.bedroom || 0,
-        banheiros: imv.numBathrooms || imv.bathroom || 0,
-        vagas: imv.numGarage || imv.garage || 0,
-        link,
-        precoPorMetro: area > 0 ? valor / area : 0,
-        site: 'liderimobiliaria.com.br',
-        entrada: valor * 0.20
-    }
-  }).filter((i: any) => i.valor > 0 && i.link !== '');
+      titulo: `${imv.tipo || 'Imóvel'} em ${bairro}`,
+      descricao: imv.descricaoFotoPrincipal || '',
+      imagens,
+      endereco,
+      valor,
+      area,
+      areaTotal: areaLote || area,
+      quartos: parseInt(imv.numeroquartos, 10) || 0,
+      banheiros: parseInt(imv.numerobanhos, 10) || 0,
+      vagas: parseInt(imv.numerovagas, 10) || 0,
+      link: imv.codigo && imv.titulo ? `${BASE}/imovel/${imv.titulo}/${imv.codigo}` : '',
+      precoPorMetro: area > 0 ? valor / area : 0,
+      site: 'liderimobiliaria.com.br',
+      entrada: valor * 0.20,
+    };
+  }).filter((i: Imoveis) => i.valor > 0 && i.link !== '');
 
-  return { imoveis, qtd, html };
+  return { imoveis, qtd, html: '' };
 }
