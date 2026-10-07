@@ -6,39 +6,34 @@ import { adapter as fortsAdapter } from '../src/sites/fortscunha';
 describe('Novos Sites Scraper Adapters', () => {
 
   describe('agessani', () => {
-    it('deve extrair imóveis corretamente', async () => {
+    it('deve extrair imóveis corretamente', async () => {
       const html = `
-        <html>
-          <body>
-            <div class="pagination"><a href="#">2</a></div>
-            <div class="recent-properties-box">
-              <span class="tag-s">Venda</span>
-              <div class="title"><a href="/imovel/123">Casa no Centro</a></div>
-              <div class="location">Centro, Franca - SP</div>
-              <div class="price">R$ 500.000</div>
-              <ul class="facilities-list">
-                <li><i class="flaticon-bed"></i> 3 Quartos</li>
-                <li><i class="flaticon-holidays"></i> 2 Banheiros</li>
-                <li><i class="flaticon-vehicle"></i> 2 Vagas</li>
-              </ul>
-              <img class="img-responsive" src="http://agessani.com/img1.jpg" />
-            </div>
-          </body>
-        </html>
-      `;
+        <html><body>
+          <div class="grid-9 caixa-imovel"><div class="item-lista">
+  <div class="img-item-lista"><img src="/imagens/imoveis/a.png"></div>
+  <div class="desc-item-lista"><h3>Centro, Franca / SP</h3>
+  <table><tr>
+   <td><a data-tooltip="&Aacute;rea">522 m&sup2;</a></td>
+   <td><a data-tooltip="Dormit&oacute;rios">3</a></td>
+   <td><a data-tooltip="Banheiros">1</a></td>
+   <td><a data-tooltip="Vagas">2</a></td>
+  </tr></table>
+  <ul><li>R$ 500.000,00</li><li><a href="/imovel/123/casa-venda" title="Casa Legal" class="btver">Ver Detalhes</a></li></ul>
+  </div></div></div>
+          <div class="lista_imoveis_paginacao"><a>1</a><a>2</a></div>
+        </body></html>`;
       const result = await agessaniAdapter(html);
-      expect(result.qtd).toBe(24); // max pagination(2) * 12
+      expect(result.qtd).toBe(30); // 2 páginas * 15
       expect(result.imoveis).toHaveLength(1);
-      expect(result.imoveis[0].titulo).toBe('Casa no Centro');
+      expect(result.imoveis[0].titulo).toBe('Casa Legal');
       expect(result.imoveis[0].valor).toBe(500000);
       expect(result.imoveis[0].quartos).toBe(3);
     });
 
     it('deve lidar com ausência de dados', async () => {
-       const html = `<html><body><div class="recent-properties-box"><div class="title">No Link</div></div></body></html>`;
-       const result = await agessaniAdapter(html);
-       expect(result.imoveis).toHaveLength(0);
-       expect(result.qtd).toBe(0);
+      const result = await agessaniAdapter('<html><body><div class="item-lista">Sem link</div></body></html>');
+      expect(result.imoveis).toHaveLength(0);
+      expect(result.qtd).toBe(0);
     });
   });
 

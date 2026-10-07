@@ -54,7 +54,7 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
 
 const nielsenimoveis: Site = {
   driver: 'axios',
-  enabled: true,
+  enabled: false, // 410 Gone em /imoveis/a-venda/franca; o site atual é de São Paulo e lista via JS
   tipo: 'venda',
   name: 'nielsenimoveis.com.br',
   url: 'https://www.nielsenimoveis.com.br/imoveis/a-venda/franca',
