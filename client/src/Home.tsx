@@ -303,6 +303,7 @@ export const Home = () => {
           setFilters={setFilters}
           addresses={allAddresses}
         />
+
         <header id="resultados" className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -328,6 +329,11 @@ export const Home = () => {
                  <>
                     <Search size={18} className="text-gray-400" />
                     {sortedImoveis.length} <span className="hidden sm:inline">imóveis para {filters.tipo === 'aluguel' ? 'alugar' : 'comprar'}</span>
+                    {imoveis && imoveis.length > 0 && (
+                        <span className="hidden md:inline ml-2 pl-2 border-l border-gray-300 dark:border-gray-700 text-sm font-normal text-gray-500 dark:text-gray-400">
+                           Buscando em <strong>{new Set(imoveis.map(i => i.site)).size}</strong> sites
+                        </span>
+                    )}
                  </>
                )}
             </h2>
