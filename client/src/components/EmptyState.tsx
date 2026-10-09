@@ -16,8 +16,9 @@ interface EmptyStateProps {
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, tips, action }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       className="text-center py-20 text-gray-500 dark:text-gray-400 flex flex-col items-center max-w-lg mx-auto"
     >
       <div className="relative mb-6">
@@ -43,7 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
           </h4>
           <ul className="space-y-2">
             {tips.map((tip, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
                 <span className="text-blue-500 dark:text-blue-400 mt-0.5 text-lg leading-none">•</span>
                 {tip}
               </li>
