@@ -1,9 +1,12 @@
 import imoveisemfranca from "./imoveisemfranca";
 import liderimobiliaria from "./liderimobiliaria";
 import imobiliariazanetti from "./imobiliariazanetti";
+import imobiliariazago from "./imobiliariazago";
+import imobiliariamartins from "./imobiliariamartins";
 import rrandradeimoveis from "./rrandradeimoveis";
 import imobiliariaindependencia from "./imobiliariaindependencia";
 import casabellafranca from "./casabellafranca";
+import seculo21imoveis from "./seculo21imoveis";
 import boscoimoveis from "./boscoimoveis";
 import oasisimobiliaria from "./oasisimobiliaria";
 import gpsnegociosimobiliarios from './gpsnegociosimobiliarios';
@@ -83,6 +86,8 @@ export const sites: Site[] = [
 
   liderimobiliaria as unknown as Site,
   imobiliariazanetti as unknown as Site,
+  imobiliariazago as unknown as Site,
+  imobiliariamartins as unknown as Site,
 
   rrandradeimoveis as unknown as Site,
   imobiliariaindependencia as unknown as Site,
@@ -91,6 +96,7 @@ export const sites: Site[] = [
   wi7imobiliaria,
   fortscunha,
   casabellafranca as unknown as Site,
+  seculo21imoveis as unknown as Site,
   casafacilimobiliaria as unknown as Site,
   vlicitimoveis,
   comerianimoveis as unknown as Site,
