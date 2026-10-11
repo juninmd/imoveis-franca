@@ -35,7 +35,7 @@ const FeatureItem = ({ icon: Icon, value, label, suffix = '' }: { icon: React.El
   const isMissing = !value || value <= 0;
   const displayValue = !isMissing ? `${value}${suffix}` : '-';
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50/80 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/80 transition-colors h-full border border-gray-100 dark:border-gray-700/50 backdrop-blur-sm">
+    <div title={label} className="w-full h-full flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-gray-50/80 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/80 transition-colors border border-gray-100 dark:border-gray-700/50 backdrop-blur-sm cursor-help">
        <Icon size={18} className="text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
        <div className="flex flex-col items-center text-center">
           <span className={clsx("font-bold text-sm leading-none", isMissing ? "text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-gray-100")}>{displayValue}</span>
