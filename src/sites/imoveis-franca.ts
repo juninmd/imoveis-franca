@@ -7,7 +7,7 @@ export default {
   tipo: 'venda',
   url: 'https://imoveisfranca.com.br/comprar',
   name: 'imoveisfranca.com.br',
-  driver: 'axios',
+  driver: 'puppet',
   itemsPerPage: 20,
   params: [],
   getPaginateParams: (page: number) => {

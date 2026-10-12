@@ -79,11 +79,15 @@ import wi7imobiliaria from "./wi7imobiliaria";
 import fortscunha from "./fortscunha";
 
 import acropoleimoveis from "./acropoleimoveis";
+import jardiniimoveis from "./jardiniimoveis";
+import jedisonimoveis from "./jedisonimoveis";
 import imobiliariafranca from "./imobiliariafranca";
 export const sites: Site[] = [
   imobiliariafranca,
 
   acropoleimoveis,
+  jardiniimoveis as unknown as Site,
+  jedisonimoveis as unknown as Site,
 
   liderimobiliaria as unknown as Site,
   imobiliariazanetti as unknown as Site,
