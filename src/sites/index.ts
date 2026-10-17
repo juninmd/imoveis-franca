@@ -1,3 +1,5 @@
+import matrizimobiliaria from "./matriz";
+import munhozconsultorimobiliario from "./munhozconsultorimobiliario";
 import gnimoveis from "./gnimoveis";
 import imoveisemfranca from "./imoveisemfranca";
 import liderimobiliaria from "./liderimobiliaria";
@@ -132,5 +134,7 @@ export const sites: Site[] = [
   ...imoveismpb as unknown as Site[],
   imoveisemfranca,
   luanaimoveis as unknown as Site, wi7imobiliaria as unknown as Site, fortscunha as unknown as Site,
-  gnimoveis
+  gnimoveis,
+  munhozconsultorimobiliario as unknown as Site,
+  matrizimobiliaria as unknown as Site,
 ] as unknown as Site[];
