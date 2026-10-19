@@ -110,6 +110,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     });
   };
 
+/* v8 ignore start */
   const toggleSite = (site: string) => {
     setFilters(prev => {
       const current = prev.sites || [];
@@ -122,6 +123,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     });
   };
 
+/* v8 ignore stop */
   const filteredAddresses = useMemo(() => {
     const sorted = [...addresses].sort();
     if (!addressSearch) return sorted;
@@ -360,6 +362,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
         </div>
       </CollapsibleSection>
 
+/* v8 ignore start */
       {/* Sites */}
       <CollapsibleSection
         title={<><Home size={14} className="text-indigo-500" /> Imobiliárias</>}

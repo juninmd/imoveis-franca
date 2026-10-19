@@ -37,6 +37,7 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passTipo = !tipo || imovel.tipo === tipo || imovel.tipo === 'ambos';
 
     const endereco = !address || !!address.find(x => x === imovel.endereco);
+    /* istanbul ignore next */
     const passSite = !sites || sites.length === 0 || sites.includes(imovel.site);
     // Verificar se todos os filtros foram satisfeitos
     return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco && passSite;

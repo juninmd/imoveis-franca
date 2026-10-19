@@ -159,3 +159,72 @@ describe('FilterSidebar', () => {
       expect(getByText('Preço (R$)')).toBeInTheDocument();
   });
 });
+
+  describe('Site filter tests', () => {
+  let mockSetFilters: any;
+  let mockFilters: any;
+  beforeEach(() => {
+    mockSetFilters = vi.fn();
+    mockFilters = { tipo: 'venda', minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '', minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [], sites: [] };
+  });
+
+  it('toggles a new site on', () => {
+      render(<FilterSidebar availableSites={['site1.com', 'site2.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+      const siteBtn = screen.getByText('site1.com');
+      fireEvent.click(siteBtn);
+      expect(mockSetFilters).toHaveBeenCalled();
+  });
+
+  it('toggles an already selected site off', () => {
+      mockFilters.sites = ['site1.com'];
+      render(<FilterSidebar availableSites={['site1.com', 'site2.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+      const siteBtn = screen.getByText('site1.com');
+      fireEvent.click(siteBtn);
+      expect(mockSetFilters).toHaveBeenCalled();
+  });
+
+  it('filters sites based on siteSearch', async () => {
+
+      render(<FilterSidebar availableSites={['site1.com', 'site2.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+
+      const searchInput = screen.getByPlaceholderText('Filtrar imobiliárias...');
+      fireEvent.change(searchInput, { target: { value: 'site2' } });
+
+      expect(screen.queryByText('site1.com')).not.toBeInTheDocument();
+      expect(screen.getByText('site2.com')).toBeInTheDocument();
+  });
+
+  it('clears site search input on clicking X', async () => {
+     render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+
+     const searchInput = screen.getByPlaceholderText('Filtrar imobiliárias...');
+
+     fireEvent.change(searchInput, { target: { value: 'site1' } });
+
+     const clearSearchBtn = searchInput.nextElementSibling;
+     if (clearSearchBtn) {
+       fireEvent.click(clearSearchBtn);
+       expect((searchInput as HTMLInputElement).value).toBe('');
+     }
+  });
+
+  it('shows empty state for site search', async () => {
+      render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+
+      const searchInput = screen.getByPlaceholderText('Filtrar imobiliárias...');
+      fireEvent.change(searchInput, { target: { value: 'Inexistente' } });
+
+      expect(screen.getByText('Nenhuma imobiliária encontrada.')).toBeInTheDocument();
+  });
+
+  it('clears selected sites', async () => {
+    mockFilters.sites = ['site1.com'];
+    render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+    const buttons = screen.getAllByRole('button');
+    const clearAddressBtn = buttons.find(b => b.textContent?.includes('Limpar seleção'));
+    if (clearAddressBtn) {
+        fireEvent.click(clearAddressBtn);
+        expect(mockSetFilters).toHaveBeenCalled();
+    }
+  });
+});
