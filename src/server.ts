@@ -85,13 +85,13 @@ app.use('/api', (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Rota para obter as imobiliárias suportadas
-app.get('/api/sites', (req: Request, res: Response) => {
+app.get('/api/sites', (_req: Request, res: Response) => {
   res.set('Cache-Control', 'public, max-age=3600');
   res.json({ data: sites.filter(s => s.enabled !== false).map(s => s.name) });
 });
 
 // Rota para a API que gera a lista de imóveis
-app.get('/api/imoveis', async (req: Request, res: Response) => {
+app.get('/api/imoveis', async (_req: Request, res: Response) => {
   try {
     const lista = await generateList(req.query);
     // Cache control for API response - short duration as data might change
