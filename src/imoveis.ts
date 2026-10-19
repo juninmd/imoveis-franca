@@ -19,9 +19,10 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   minBathrooms?: number;
   minVacancies?: number;
   address?: string[];
+  sites?: string[];
   tipo?: 'venda' | 'aluguel';
 }) => {
-  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, tipo } = queryParams;
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, sites, tipo } = queryParams;
 
   return imoveis.filter(imovel => {
     const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
@@ -36,8 +37,9 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passTipo = !tipo || imovel.tipo === tipo || imovel.tipo === 'ambos';
 
     const endereco = !address || !!address.find(x => x === imovel.endereco);
+    const passSite = !sites || sites.length === 0 || sites.includes(imovel.site);
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco && passSite;
   });
 };
 

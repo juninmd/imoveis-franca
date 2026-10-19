@@ -5,6 +5,7 @@ import compression from 'compression';
 import cors from 'cors';
 import { generateList } from './imoveis';
 import browser from './infra/browser';
+import { sites } from './sites';
 import { FixedWindowRateLimit } from './infra/rate-limit';
 
 const app = express();
@@ -81,6 +82,12 @@ app.use('/api', (req: Request, res: Response, next: NextFunction) => {
   }
   res.set('X-RateLimit-Remaining', String(decision.remaining));
   return next();
+});
+
+// Rota para obter as imobiliárias suportadas
+app.get('/api/sites', (req: Request, res: Response) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.json({ data: sites.filter(s => s.enabled !== false).map(s => s.name) });
 });
 
 // Rota para a API que gera a lista de imóveis

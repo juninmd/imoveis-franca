@@ -127,6 +127,13 @@ export const Home = () => {
     if (imoveis) syncFavorites(imoveis);
   }, [imoveis, syncFavorites]);
 
+  // Fetch available sites for the filter
+  const { data: availableSites } = useQuery({
+    queryKey: ['sites'],
+    queryFn: () => import('./api').then(m => m.fetchSites()),
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
   // Extract unique addresses for the filter
   const allAddresses = useMemo(() => imoveis
     ? Array.from(new Set(imoveis.map((i) => i.endereco).filter(Boolean)))
@@ -175,7 +182,7 @@ export const Home = () => {
       tipo: prev.tipo,
       minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '',
       minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '',
-      maxAreaTotal: '', address: []
+      maxAreaTotal: '', address: [], sites: []
     }));
     addToast('Filtros limpos com sucesso.', 'info');
   };
@@ -276,8 +283,9 @@ export const Home = () => {
           }>
             <FilterSidebar
               filters={filters}
-              setFilters={(f) => { setFilters(f); /* Scroll to top handled by effect */ }}
+              setFilters={(f: any) => { setFilters(f); /* Scroll to top handled by effect */ }}
               addresses={allAddresses}
+              availableSites={availableSites || []}
             />
           </Suspense>
         </div>
