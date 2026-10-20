@@ -20,12 +20,13 @@ describe('FilterSidebar', () => {
       minBedrooms: '1', minBathrooms: '1', minVacancies: '1',
       minArea: '50', maxArea: '100',
       minAreaTotal: '100', maxAreaTotal: '200',
-      address: ['Centro']
+      address: ['Centro'],
+      sites: []
     };
   });
 
   it('renders and calls clear all filters', () => {
-    render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
+    render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
     const buttons = screen.getAllByRole('button');
     const clearBtn = buttons.find(b => b.textContent?.includes('Limpar Filtros'));
     if (clearBtn) {
@@ -35,7 +36,7 @@ describe('FilterSidebar', () => {
   });
 
   it('clears all addresses inside address section', () => {
-     render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
+     render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
      const buttons = screen.getAllByRole('button');
      const clearAddressBtn = buttons.find(b => b.textContent?.includes('Limpar seleção'));
      if (clearAddressBtn) {
@@ -45,7 +46,7 @@ describe('FilterSidebar', () => {
   });
 
   it('clears address search input on clicking X', () => {
-     render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
+     render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
 
      const inputs = screen.getAllByRole('textbox');
      const searchInput = inputs.find(input => (input as HTMLInputElement).placeholder?.includes('bairro'));
@@ -61,7 +62,7 @@ describe('FilterSidebar', () => {
   });
 
   it('resets section filters for all sections', () => {
-      render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
+      render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
       const buttons = screen.getAllByRole('button');
       const limparButtons = buttons.filter(b => b.textContent?.trim() === 'Limpar' || b.textContent?.includes('Limpar '));
       limparButtons.forEach(btn => fireEvent.click(btn));
@@ -69,7 +70,7 @@ describe('FilterSidebar', () => {
   });
 
   it('toggles address when an address button is clicked', () => {
-     render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
+     render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
 
      const centroBtn = screen.getByText('Centro');
      fireEvent.click(centroBtn);
@@ -81,7 +82,7 @@ describe('FilterSidebar', () => {
   });
 
   it('triggers handleChange on input change', () => {
-      render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
+      render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
       // By using name attribute
       const inputs = screen.getAllByRole('spinbutton');
       const minPriceInput = inputs.find(input => (input as HTMLInputElement).name === 'minPrice');
@@ -92,7 +93,7 @@ describe('FilterSidebar', () => {
   });
 
   it('toggles collapsible section when header is clicked', () => {
-      render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
+      render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
       // Note: testing click on the span/title that triggers the collapse
       const headers = screen.getAllByRole('button');
       const headerBtn = headers.find(b => b.textContent?.includes('Preço (R$)'));
@@ -103,14 +104,14 @@ describe('FilterSidebar', () => {
   });
 
     it('toggles an already selected address off (lines 100-105)', () => {
-        render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
+        render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
         const centroBtn = screen.getByText('Centro');
         fireEvent.click(centroBtn);
         expect(mockSetFilters).toHaveBeenCalled();
     });
 
     it('toggles a new address on (lines 100-105)', () => {
-        render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
+        render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
         const vilaNovaBtn = screen.getByText('Vila Nova');
         fireEvent.click(vilaNovaBtn);
         expect(mockSetFilters).toHaveBeenCalled();
@@ -119,13 +120,13 @@ describe('FilterSidebar', () => {
     it('renders aluguel text correctly (line 126) and empty selection (line 290)', () => {
         mockFilters.tipo = 'aluguel';
         mockFilters.address = [];
-        render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
+        render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro']} />);
         expect(screen.getByText('Aluguel mensal (R$)')).toBeInTheDocument();
         expect(screen.getByText('0 selecionados')).toBeInTheDocument();
     });
 
     it('renders empty address state (line 290)', () => {
-        render(<FilterSidebar filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+        render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
         expect(screen.getByText('Nenhum bairro encontrado.')).toBeInTheDocument();
     });
 
@@ -143,11 +144,12 @@ describe('FilterSidebar', () => {
         maxArea: '',
         minAreaTotal: '',
         maxAreaTotal: '',
-        address: [],
+        address: [], sites: []
       };
 
       const { getByText } = render(
         <FilterSidebar
+          availableSites={[]}
           filters={emptyFilters}
           setFilters={vi.fn()}
           addresses={[]}
@@ -155,5 +157,74 @@ describe('FilterSidebar', () => {
       );
 
       expect(getByText('Preço (R$)')).toBeInTheDocument();
+  });
+});
+
+  describe('Site filter tests', () => {
+  let mockSetFilters: any;
+  let mockFilters: any;
+  beforeEach(() => {
+    mockSetFilters = vi.fn();
+    mockFilters = { tipo: 'venda', minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '', minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [], sites: [] };
+  });
+
+  it('toggles a new site on', () => {
+      render(<FilterSidebar availableSites={['site1.com', 'site2.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+      const siteBtn = screen.getByText('site1.com');
+      fireEvent.click(siteBtn);
+      expect(mockSetFilters).toHaveBeenCalled();
+  });
+
+  it('toggles an already selected site off', () => {
+      mockFilters.sites = ['site1.com'];
+      render(<FilterSidebar availableSites={['site1.com', 'site2.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+      const siteBtn = screen.getByText('site1.com');
+      fireEvent.click(siteBtn);
+      expect(mockSetFilters).toHaveBeenCalled();
+  });
+
+  it('filters sites based on siteSearch', async () => {
+
+      render(<FilterSidebar availableSites={['site1.com', 'site2.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+
+      const searchInput = screen.getByPlaceholderText('Filtrar imobiliárias...');
+      fireEvent.change(searchInput, { target: { value: 'site2' } });
+
+      expect(screen.queryByText('site1.com')).not.toBeInTheDocument();
+      expect(screen.getByText('site2.com')).toBeInTheDocument();
+  });
+
+  it('clears site search input on clicking X', async () => {
+     render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+
+     const searchInput = screen.getByPlaceholderText('Filtrar imobiliárias...');
+
+     fireEvent.change(searchInput, { target: { value: 'site1' } });
+
+     const clearSearchBtn = searchInput.nextElementSibling;
+     if (clearSearchBtn) {
+       fireEvent.click(clearSearchBtn);
+       expect((searchInput as HTMLInputElement).value).toBe('');
+     }
+  });
+
+  it('shows empty state for site search', async () => {
+      render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+
+      const searchInput = screen.getByPlaceholderText('Filtrar imobiliárias...');
+      fireEvent.change(searchInput, { target: { value: 'Inexistente' } });
+
+      expect(screen.getByText('Nenhuma imobiliária encontrada.')).toBeInTheDocument();
+  });
+
+  it('clears selected sites', async () => {
+    mockFilters.sites = ['site1.com'];
+    render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);
+    const buttons = screen.getAllByRole('button');
+    const clearAddressBtn = buttons.find(b => b.textContent?.includes('Limpar seleção'));
+    if (clearAddressBtn) {
+        fireEvent.click(clearAddressBtn);
+        expect(mockSetFilters).toHaveBeenCalled();
+    }
   });
 });

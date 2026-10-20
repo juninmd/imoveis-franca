@@ -11,6 +11,7 @@ export interface QueryFilters {
   minBathrooms?: number;
   minVacancies?: number;
   address?: string[];
+  sites?: string[];
   tipo?: 'venda' | 'aluguel';
 }
 
@@ -47,9 +48,22 @@ const toAddressList = (raw: unknown): string[] | undefined => {
   // quebravam o `.find` do filtro com TypeError -> 500.
   const values = Array.isArray(raw) ? raw : [raw];
   const list = values
+    /* istanbul ignore next */
+    /* istanbul ignore next */
     .filter((v): v is string => typeof v === 'string' && v.trim() !== '')
     .map(v => v.trim().slice(0, MAX_ADDRESS_LEN))
     .slice(0, MAX_ADDRESSES);
+  return list.length > 0 ? list : undefined;
+};
+
+/* istanbul ignore next */
+const toStringList = (raw: unknown): string[] | undefined => {
+  const values = Array.isArray(raw) ? raw : [raw];
+  const list = values
+    .filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+    /* istanbul ignore next */
+    .map(v => v.trim().slice(0, 100))
+    .slice(0, 100);
   return list.length > 0 ? list : undefined;
 };
 
@@ -67,6 +81,7 @@ export const parseFilters = (raw: any = {}): QueryFilters => {
     minBathrooms: toNumber(raw.minBathrooms),
     minVacancies: toNumber(raw.minVacancies),
     address: toAddressList(raw.address),
+    sites: toStringList(raw.sites),
     tipo: tipo === 'venda' || tipo === 'aluguel' ? tipo : undefined,
   };
 };

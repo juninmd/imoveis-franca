@@ -12,6 +12,7 @@ export interface Filters {
   minAreaTotal: string;
   maxAreaTotal: string;
   address: string[];
+  sites: string[];
 }
 
 export type SortOrder = 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc' | 'price_per_m_asc' | 'price_per_m_desc';
@@ -27,7 +28,7 @@ const SORT_ORDERS: SortOrder[] = ['price_asc', 'price_desc', 'area_asc', 'area_d
 export const emptyFilters = (tipo: 'venda' | 'aluguel' = 'venda'): Filters => ({
   tipo,
   minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '', minVacancies: '',
-  minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [],
+  minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [], sites: [],
 });
 
 export interface SearchState {
@@ -49,6 +50,7 @@ export const parseSearch = (search: string): SearchState => {
     }
   }
   filters.address = params.getAll('address').filter(Boolean).slice(0, 30);
+  filters.sites = params.getAll('sites').filter(Boolean).slice(0, 50);
 
   const sort = params.get('sort') as SortOrder;
   return {
@@ -59,7 +61,7 @@ export const parseSearch = (search: string): SearchState => {
   };
 };
 
-const OWNED_KEYS = new Set<string>([...NUMERIC_FILTER_KEYS, 'tipo', 'address', 'sort', 'view', 'favoritos']);
+const OWNED_KEYS = new Set<string>([...NUMERIC_FILTER_KEYS, 'tipo', 'address', 'sites', 'sort', 'view', 'favoritos']);
 
 export const buildSearch = (state: SearchState, currentSearch = ''): string => {
   const params = new URLSearchParams();
@@ -73,6 +75,7 @@ export const buildSearch = (state: SearchState, currentSearch = ''): string => {
     if (state.filters[key]) params.set(key, state.filters[key]);
   }
   state.filters.address.forEach(address => params.append('address', address));
+  state.filters.sites.forEach(site => params.append('sites', site));
   if (state.sortOrder !== 'price_asc') params.set('sort', state.sortOrder);
   if (state.viewMode !== 'grid') params.set('view', state.viewMode);
   if (state.showFavoritesOnly) params.set('favoritos', '1');

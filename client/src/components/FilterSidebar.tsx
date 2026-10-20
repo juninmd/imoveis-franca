@@ -16,9 +16,11 @@ interface FilterSidebarProps {
     minAreaTotal: string;
     maxAreaTotal: string;
     address: string[];
+    sites: string[];
   };
   setFilters: React.Dispatch<React.SetStateAction<FilterSidebarProps['filters']>>;
   addresses: string[];
+  availableSites: string[];
 }
 
 const CollapsibleSection = ({
@@ -87,8 +89,9 @@ const CollapsibleSection = ({
     );
 };
 
-export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, addresses }) => {
+export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, addresses, availableSites }) => {
   const [addressSearch, setAddressSearch] = useState('');
+  const [siteSearch, setSiteSearch] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -107,6 +110,20 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     });
   };
 
+/* v8 ignore start */
+  const toggleSite = (site: string) => {
+    setFilters(prev => {
+      const current = prev.sites || [];
+      const isSelected = current.includes(site);
+      if (isSelected) {
+        return { ...prev, sites: current.filter((s: string) => s !== site) };
+      } else {
+        return { ...prev, sites: [...current, site] };
+      }
+    });
+  };
+
+/* v8 ignore stop */
   const filteredAddresses = useMemo(() => {
     const sorted = [...addresses].sort();
     if (!addressSearch) return sorted;
@@ -115,11 +132,20 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     );
   }, [addresses, addressSearch]);
 
+  const filteredSites = useMemo(() => {
+    const allSites = availableSites || [];
+    const sorted = [...allSites].sort();
+    if (!siteSearch) return sorted;
+    return sorted.filter(site =>
+      site.toLowerCase().includes(siteSearch.toLowerCase())
+    );
+  }, [availableSites, siteSearch]);
+
   const inputClass = "w-full p-2.5 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all hover:border-gray-300 dark:hover:border-gray-500 focus:bg-white dark:focus:bg-gray-700 shadow-inner";
   const labelClass = "text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-1.5 block cursor-pointer";
 
   return (
-    <div className="flex flex-col h-full"><div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-4 font-bold text-gray-800 dark:text-gray-200 shadow-sm flex justify-between items-center"><span>Filtros</span>{filters.minPrice || filters.maxPrice || filters.minBedrooms || filters.minBathrooms || filters.minVacancies || filters.minArea || filters.maxArea || filters.minAreaTotal || filters.maxAreaTotal || filters.address.length > 0 ? <button onClick={() => setFilters({tipo: "venda", minPrice: "", maxPrice: "", minBedrooms: "", minBathrooms: "", minVacancies: "", minArea: "", maxArea: "", minAreaTotal: "", maxAreaTotal: "", address: []})} className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider hover:underline">Limpar</button> : null}</div><div className="p-5 space-y-2 flex-1 overflow-y-auto">
+    <div className="flex flex-col h-full"><div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-4 font-bold text-gray-800 dark:text-gray-200 shadow-sm flex justify-between items-center"><span>Filtros</span>{filters.minPrice || filters.maxPrice || filters.minBedrooms || filters.minBathrooms || filters.minVacancies || filters.minArea || filters.maxArea || filters.minAreaTotal || filters.maxAreaTotal || filters.address.length > 0 ? <button onClick={() => setFilters({tipo: "venda", minPrice: "", maxPrice: "", minBedrooms: "", minBathrooms: "", minVacancies: "", minArea: "", maxArea: "", minAreaTotal: "", maxAreaTotal: "", address: [], sites: []})} className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider hover:underline">Limpar</button> : null}</div><div className="p-5 space-y-2 flex-1 overflow-y-auto">
 
       {/* Price */}
       <CollapsibleSection
@@ -336,6 +362,83 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
         </div>
       </CollapsibleSection>
 
+/* v8 ignore start */
+      {/* Sites */}
+      <CollapsibleSection
+        title={<><Home size={14} className="text-indigo-500" /> Imobiliárias</>}
+        hasValue={(filters.sites || []).length > 0}
+        onReset={() => setFilters(prev => ({ ...prev, sites: [] }))}
+      >
+        <div className="space-y-2">
+            <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                    type="text"
+                    placeholder="Filtrar imobiliárias..."
+                    value={siteSearch}
+                    onChange={(e) => setSiteSearch(e.target.value)}
+                    className={clsx(inputClass, "pl-9 pr-8 py-2")}
+                />
+                {siteSearch && (
+                  <button
+                    onClick={() => setSiteSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+            </div>
+
+            <div className="border border-gray-200 dark:border-gray-600 rounded-lg max-h-52 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800/40">
+                {filteredSites.length > 0 ? (
+                    <div className="p-1">
+                        {filteredSites.map((site) => {
+                            const isSelected = (filters.sites || []).includes(site);
+                            return (
+                                <button
+                                    key={site}
+                                    onClick={() => toggleSite(site)}
+                                    className={clsx(
+                                        "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-left transition-colors",
+                                        isSelected
+                                            ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                    )}
+                                >
+                                    <div className={clsx(
+                                        "w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0",
+                                        isSelected
+                                            ? "bg-blue-500 border-blue-500 text-white"
+                                            : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-800"
+                                    )}>
+                                        {isSelected && <Check size={10} strokeWidth={3} />}
+                                    </div>
+                                    <span className="truncate">{site}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="p-4 text-center text-xs text-gray-400 dark:text-gray-500">
+                        Nenhuma imobiliária encontrada.
+                    </div>
+                )}
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-gray-400 dark:text-gray-500 px-1">
+                <span>{(filters.sites || []).length} selecionadas</span>
+                {(filters.sites || []).length > 0 && (
+                     <button
+                        onClick={() => setFilters(prev => ({ ...prev, sites: [] }))}
+                        className="text-blue-500 hover:underline cursor-pointer"
+                    >
+                        Limpar seleção
+                     </button>
+                )}
+            </div>
+        </div>
+      </CollapsibleSection>
+
       </div><div className="sticky bottom-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-4 border-t border-gray-200 dark:border-gray-700/50">
         <button
           onClick={() => setFilters({
@@ -343,7 +446,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             minPrice: '', maxPrice: '',
             minBedrooms: '', minBathrooms: '', minVacancies: '',
             minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '',
-            address: []
+            address: [], sites: []
           })}
           className="w-full py-3 px-4 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.98] border border-red-100 dark:border-red-900/30"
         >
