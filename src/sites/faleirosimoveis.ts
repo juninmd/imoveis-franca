@@ -5,13 +5,13 @@ import { normalizeNeighborhoodName } from '../utils';
 export default {
   enabled: true,
   tipo: 'venda',
-  url: 'https://faleirosimoveis.com.br/pesquisa-de-imoveis/?locacao_venda=V&id_cidade[]=63&id_tipo_imovel=12&finalidade=0',
+  url: 'https://www.faleirosimoveis.com.br/secao/venda',
   name: 'faleirosimoveis.com.br',
-  driver: 'puppet',
+  driver: 'axios',
   itemsPerPage: 12,
   params: [],
   getPaginateParams: (page: number) => {
-    return { url: `https://faleirosimoveis.com.br/pesquisa-de-imoveis/?locacao_venda=V&id_cidade[]=63&id_tipo_imovel=12&finalidade=0&pag=${page}` };
+    return { url: `https://www.faleirosimoveis.com.br/secao/venda?page=${page}` };
   },
   adapter,
 } as Site;
