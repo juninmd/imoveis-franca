@@ -84,8 +84,10 @@ import acropoleimoveis from "./acropoleimoveis";
 import jardiniimoveis from "./jardiniimoveis";
 import jedisonimoveis from "./jedisonimoveis";
 import imobiliariafranca from "./imobiliariafranca";
+import aliancaimoveisfranca from "./aliancaimoveisfranca";
 export const sites: Site[] = [
   imobiliariafranca,
+  aliancaimoveisfranca as unknown as Site,
 
   acropoleimoveis,
   jardiniimoveis as unknown as Site,
