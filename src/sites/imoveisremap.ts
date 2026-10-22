@@ -26,7 +26,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
       if (content && content.includes('ItemList')) {
          try {
              schemaData = JSON.parse(content);
-         } catch(e) {}
+         } catch (e) { /* ignore */ }
       }
   });
 
@@ -80,7 +80,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
                          if (aMatch) area = parseInt(aMatch[1]);
                      }
                  });
-             } catch(e) {}
+             } catch (e) { /* ignore */ }
          }
 
          if (valor > 0 && link && !imoveis.find(i => i.link === link)) {
