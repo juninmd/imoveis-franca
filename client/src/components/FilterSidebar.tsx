@@ -450,8 +450,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
           })}
           className="w-full py-3 px-4 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.98] border border-red-100 dark:border-red-900/30"
         >
-          <X size={16} strokeWidth={2.5} className="group-hover:rotate-90 transition-transform duration-300" />
-          Limpar Todos os Filtros
+          <X size={16} strokeWidth={2.5} className="group-hover:rotate-90 transition-transform duration-300 text-red-500" />
+          <span className="text-red-600 font-medium">Limpar Todos os Filtros</span>
         </button>
       </div>
     </div>

@@ -67,6 +67,8 @@ import rochacoimbraimoveis from "./rochacoimbraimoveis";
 import aferreiraimoveis from "./aferreiraimoveis";
 import andrecaetano from "./andrecaetano";
 import neoka from "./neoka";
+import projetoimoveisfranca from "./projetoimoveisfranca";
+import imoveisremap from "./imoveisremap";
 import cidadenovaimoveis from "./cidadenovaimoveis";
 import realizacca from "./realizacca";
 import imobfranca from "./imobfranca";
@@ -111,6 +113,8 @@ export const sites: Site[] = [
   comerianimoveis as unknown as Site,
   andrecaetano,
   neoka,
+  projetoimoveisfranca as unknown as Site,
+  imoveisremap as unknown as Site,
   cidadenovaimoveis as unknown as Site,
   realizacca as unknown as Site,
   imobfranca as unknown as Site,
