@@ -1,3 +1,13 @@
 node_modules
 dist/
 coverage
+*.log
+*.pid
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+tmp/
+build/
+client/dist
