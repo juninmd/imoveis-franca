@@ -43,3 +43,5 @@
 *   **Testing:**  The `jest.config.ts` file defines Jest configuration.  The `package-lock.json` ensures consistent code versions. The `client` component demonstrates a basic user interface.  The `src` directory contains the primary codebase.
 *   **Configuration:**  The `package.json` file defines project dependencies and scripts.  The `.vscode` directory contains environment-specific settings.  The `__tests__` directory contains test files. The `.eslintignore` file specifies files to ignore.  The `gitignore` file manages untrusted files.
 ```
+### Limitations Note
+Currently, the codebase integrates nearly 80 real estate websites targeting the Franca, SP region. Based on current constraints and automated discovery, almost all remaining active real estate sites in this specific area are either offline or actively blocking automated scrapers. As a result, the `francaempreendimentos` scraper was added, but depending on Wix's dynamic loading, it may require client-side API parsing in the future.

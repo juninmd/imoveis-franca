@@ -13,7 +13,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  title = 'Nenhum imóvel encontrado',
+  title = 'Nenhum imóvel encontrado nesta busca',
   description = 'Não encontramos imóveis que correspondam aos filtros selecionados. Tente ajustar sua busca.',
   icon: Icon = Search,
   tips = ['Tente ajustar os filtros', 'Remova algumas restrições de preço', 'Pesquise por outros bairros'],
