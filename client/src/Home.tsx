@@ -283,7 +283,7 @@ export const Home = () => {
           }>
             <FilterSidebar
               filters={filters}
-              setFilters={(f: any) => { setFilters(f); /* Scroll to top handled by effect */ }}
+              setFilters={(f: Parameters<typeof setFilters>[0]) => { setFilters(f); /* Scroll to top handled by effect */ }}
               addresses={allAddresses}
               availableSites={availableSites || []}
             />
