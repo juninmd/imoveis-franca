@@ -22,9 +22,9 @@ export function EmptyState({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      animate={{ y: [0, -5, 0], opacity: 1 }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4, ease: "easeOut", y: { repeat: Infinity, duration: 6, ease: "easeInOut" } }}
       className="flex flex-col items-center justify-center p-12 text-center bg-white/70 dark:bg-gray-800/70 rounded-2xl backdrop-blur-xl border border-gray-100 dark:border-gray-700 w-full relative overflow-hidden shadow-sm hover:shadow-md transition-shadow ring-1 ring-blue-500/30 shadow-lg shadow-blue-500/10"
     >
       <div className="absolute inset-0 bg-gradient-to-tr from-primary-100/20 to-transparent opacity-50 dark:from-primary-900/10 pointer-events-none" />
