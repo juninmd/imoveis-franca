@@ -92,6 +92,8 @@ import jedisonimoveis from "./jedisonimoveis";
 import imobiliariafranca from "./imobiliariafranca";
 import aliancaimoveisfranca from "./aliancaimoveisfranca";
 import francaempreendimentos from "./francaempreendimentos";
+import novaaliancaimoveis from './novaaliancaimoveis';
+import imobiliariaatual from './imobiliariaatual';
 export const sites: Site[] = [
   imobiliariapereira as unknown as Site,
   pauloborgesimoveis as unknown as Site,
@@ -153,4 +155,6 @@ export const sites: Site[] = [
   munhozconsultorimobiliario as unknown as Site,
   matrizimobiliaria as unknown as Site,
   francaempreendimentos as unknown as Site,
+novaaliancaimoveis,
+  imobiliariaatual,
 ] as unknown as Site[];
