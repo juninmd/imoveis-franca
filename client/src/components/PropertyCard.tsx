@@ -1,6 +1,6 @@
 import React, { useState, Suspense, memo } from 'react';
 import type { Imovel } from '../types';
-import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart, Share2, TrendingDown } from 'lucide-react';
+import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart, Share2, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from './ToastContext';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,6 +49,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
   const linkIsSafe = isSafeUrl(imovel.link);
   const [showImages, setShowImages] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const { addToast } = useToast();
 
   const formatCurrency = (value: number) =>
@@ -114,7 +115,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                 <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
               )}
               <img
-                src={imovel.imagens[0]}
+                src={imovel.imagens[currentImgIndex]}
                 alt={imovel.titulo}
                 loading="lazy"
                 decoding="async"
@@ -124,6 +125,28 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                   imageLoaded ? "opacity-100" : "opacity-0"
                 )}
               />
+              {imovel.imagens.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 hover:bg-black/60 text-white rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity z-10 pointer-events-auto"
+                    onClick={(e) => { e.stopPropagation(); setCurrentImgIndex((prev) => (prev - 1 + imovel.imagens.length) % imovel.imagens.length); setImageLoaded(false); }}
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 hover:bg-black/60 text-white rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity z-10 pointer-events-auto"
+                    onClick={(e) => { e.stopPropagation(); setCurrentImgIndex((prev) => (prev + 1) % imovel.imagens.length); setImageLoaded(false); }}
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                    {imovel.imagens.slice(0, 5).map((_, i) => (
+                      <div key={i} className={clsx("w-1.5 h-1.5 rounded-full", currentImgIndex === i ? "bg-white" : "bg-white/50")} />
+                    ))}
+                    {imovel.imagens.length > 5 && <div className="w-1.5 h-1.5 rounded-full bg-white/50" title={`+${imovel.imagens.length - 5} imagens`} />}
+                  </div>
+                </>
+              )}
             </>
           ) : (
              <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm">
