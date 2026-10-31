@@ -48,12 +48,12 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
           const vals = iconValues.map(v => parseInt(v) || 0);
           if (iconValues[0].includes('m2') || isNaN(parseInt(iconValues[0]))) {
              quartos = vals[1] || 0;
-             suites = vals[2] || 0;
+             // suites = vals[2] || 0;
              banheiros = vals[3] || 0;
              vagas = vals[4] || 0;
           } else {
              quartos = vals[0] || 0;
-             suites = vals[1] || 0;
+             // suites = vals[1] || 0;
              banheiros = vals[2] || 0;
              vagas = vals[3] || 0;
           }
@@ -79,6 +79,7 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
         area,
         areaTotal: area,
         quartos,
+        suites,
         link,
         banheiros,
         vagas,
