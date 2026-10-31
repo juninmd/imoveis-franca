@@ -79,7 +79,6 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
         area,
         areaTotal: area,
         quartos,
-        suites,
         link,
         banheiros,
         vagas,
