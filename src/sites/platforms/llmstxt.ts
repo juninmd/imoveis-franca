@@ -1,4 +1,4 @@
-import { Imoveis } from '../../types';
+import { Imoveis, Site } from '../../types';
 import { cleanTitle, getFixValue, inferTipoImovel, normalizeNeighborhoodName, normalizeText } from '../../utils';
 
 // Sites ImobiBrasil publicam o catalogo inteiro (precos, areas, descricao e todas as fotos) em
@@ -60,3 +60,13 @@ export function parseLlmsCatalog(text: string, siteName: string, upgradeHttps = 
 
   return { imoveis, qtd: imoveis.length, html: text };
 }
+
+/** Site ImobiBrasil: o catalogo inteiro (venda e locacao) vem de um unico GET em /llms.txt. */
+export const buildLlmsSite = (host: string, name: string, upgradeHttps = true): Site => {
+  const url = `${upgradeHttps ? 'https' : 'http'}://www.${host}/llms.txt`;
+  return {
+    enabled: true, tipo: 'ambos', url, name, driver: 'axios', itemsPerPage: 1000, params: [],
+    getPaginateParams: () => ({ url }),
+    adapter: (text: string) => parseLlmsCatalog(text, name, upgradeHttps),
+  } as unknown as Site;
+};

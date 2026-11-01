@@ -120,6 +120,10 @@ import ispernassifimobiliaria from "./ispernassifimobiliaria";
 import nbimobiliaria from "./nbimobiliaria";
 import atitudeimoveisoficial from "./atitudeimoveisoficial";
 import olafranca from "./olafranca";
+import camargoimoveisfranca from "./camargoimoveisfranca";
+import jlimoveisfranca from "./jlimoveisfranca";
+import goncalvesdonzelli from "./goncalvesdonzelli";
+import patrimoniosimob from "./patrimoniosimob";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -211,5 +215,9 @@ novaaliancaimoveis,
   ...nbimobiliaria,
   atitudeimoveisoficial,
   ...olafranca,
+  camargoimoveisfranca,
+  jlimoveisfranca,
+  ...goncalvesdonzelli,
+  ...patrimoniosimob,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];
