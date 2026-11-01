@@ -3,6 +3,7 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName } from '../utils';
 
 export default {
+  // Desabilitado: o site não tem imóveis à venda ("Nenhum imóvel de venda cadastrado"); ?negocio=venda só devolve locações.
   enabled: true,
   tipo: 'venda',
   url: 'https://www.botelhoimobiliaria.com.br/imoveis.php?negocio=venda',

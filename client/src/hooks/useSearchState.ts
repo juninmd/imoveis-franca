@@ -12,9 +12,10 @@ export interface Filters {
   minAreaTotal: string;
   maxAreaTotal: string;
   address: string[];
+  sites: string[];
 }
 
-export type SortOrder = 'price_asc' | 'price_desc' | 'area_desc' | 'price_per_m_asc';
+export type SortOrder = 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc' | 'price_per_m_asc' | 'price_per_m_desc';
 export type ViewMode = 'grid' | 'list';
 
 export const NUMERIC_FILTER_KEYS = [
@@ -22,12 +23,12 @@ export const NUMERIC_FILTER_KEYS = [
   'minArea', 'maxArea', 'minAreaTotal', 'maxAreaTotal',
 ] as const;
 
-const SORT_ORDERS: SortOrder[] = ['price_asc', 'price_desc', 'area_desc', 'price_per_m_asc'];
+const SORT_ORDERS: SortOrder[] = ['price_asc', 'price_desc', 'area_asc', 'area_desc', 'price_per_m_asc', 'price_per_m_desc'];
 
 export const emptyFilters = (tipo: 'venda' | 'aluguel' = 'venda'): Filters => ({
   tipo,
   minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '', minVacancies: '',
-  minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [],
+  minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [], sites: [],
 });
 
 export interface SearchState {
@@ -49,6 +50,7 @@ export const parseSearch = (search: string): SearchState => {
     }
   }
   filters.address = params.getAll('address').filter(Boolean).slice(0, 30);
+  filters.sites = params.getAll('sites').filter(Boolean).slice(0, 50);
 
   const sort = params.get('sort') as SortOrder;
   return {
@@ -59,13 +61,21 @@ export const parseSearch = (search: string): SearchState => {
   };
 };
 
-export const buildSearch = (state: SearchState): string => {
+const OWNED_KEYS = new Set<string>([...NUMERIC_FILTER_KEYS, 'tipo', 'address', 'sites', 'sort', 'view', 'favoritos']);
+
+export const buildSearch = (state: SearchState, currentSearch = ''): string => {
   const params = new URLSearchParams();
+  // Preserva o que nao e nosso (utm_*, gclid, parametros de campanha): reescrever a URL no
+  // mount descartava esses valores antes mesmo de o usuario interagir.
+  new URLSearchParams(currentSearch).forEach((value, key) => {
+    if (!OWNED_KEYS.has(key)) params.append(key, value);
+  });
   if (state.filters.tipo === 'aluguel') params.set('tipo', 'aluguel');
   for (const key of NUMERIC_FILTER_KEYS) {
     if (state.filters[key]) params.set(key, state.filters[key]);
   }
   state.filters.address.forEach(address => params.append('address', address));
+  state.filters.sites.forEach(site => params.append('sites', site));
   if (state.sortOrder !== 'price_asc') params.set('sort', state.sortOrder);
   if (state.viewMode !== 'grid') params.set('view', state.viewMode);
   if (state.showFavoritesOnly) params.set('favoritos', '1');
@@ -81,8 +91,9 @@ export const useSearchState = () => {
   const [state, setState] = useState<SearchState>(() => parseSearch(window.location.search));
 
   useEffect(() => {
-    const search = buildSearch(state);
-    window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname);
+    const search = buildSearch(state, window.location.search);
+    const base = search ? `?${search}` : window.location.pathname;
+    window.history.replaceState(null, '', `${base}${window.location.hash}`);
   }, [state]);
 
   useEffect(() => {

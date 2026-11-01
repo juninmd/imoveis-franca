@@ -72,6 +72,32 @@ describe('useSearchState', () => {
     expect(window.history.length).toBe(before);
   });
 
+  it('preserva parâmetros de campanha que não são nossos', () => {
+    // Reescrever a URL no mount descartava utm_*/gclid antes de o usuário interagir.
+    window.history.replaceState(null, '', '/?utm_source=instagram&tipo=aluguel');
+    const { result } = renderHook(() => useSearchState());
+
+    act(() => result.current.setFilters(prev => ({ ...prev, minBedrooms: '2' })));
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get('utm_source')).toBe('instagram');
+    expect(params.get('minBedrooms')).toBe('2');
+    expect(params.get('tipo')).toBe('aluguel');
+  });
+
+  it('não duplica os próprios parâmetros a cada escrita', () => {
+    window.history.replaceState(null, '', '/?tipo=aluguel&address=CENTRO');
+    const { result } = renderHook(() => useSearchState());
+
+    act(() => result.current.setFilters(prev => ({ ...prev, maxPrice: '2000' })));
+    act(() => result.current.setFilters(prev => ({ ...prev, maxPrice: '3000' })));
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.getAll('tipo')).toEqual(['aluguel']);
+    expect(params.getAll('address')).toEqual(['CENTRO']);
+    expect(params.getAll('maxPrice')).toEqual(['3000']);
+  });
+
   it('acompanha a navegação do usuário (voltar/avançar)', () => {
     const { result } = renderHook(() => useSearchState());
 

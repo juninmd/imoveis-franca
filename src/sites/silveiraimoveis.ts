@@ -3,7 +3,7 @@ import { Imoveis, Site } from '../types';
 import { getFixValue, normalizeNeighborhoodName } from '../utils';
 
 export default {
-  enabled: true,
+  enabled: false, // site agora e de Belo Horizonte/MG (Next.js loftsites), sem imoveis de Franca
   tipo: 'venda',
   url: 'https://silveiraimoveis.com.br/busca/?finalidade=Venda',
   name: 'silveiraimoveis.com.br',

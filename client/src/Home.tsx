@@ -6,7 +6,7 @@ import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import {  Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List , ArrowUp, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Imovel } from './types';
@@ -58,6 +58,21 @@ export const Home = () => {
   } = useSearchState();
 
   const { addToast } = useToast();
+
+  const [showScroll, setShowScroll] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScroll(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const debouncedFilters = useDebounce(filters, 500);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -112,6 +127,13 @@ export const Home = () => {
     if (imoveis) syncFavorites(imoveis);
   }, [imoveis, syncFavorites]);
 
+  // Fetch available sites for the filter
+  const { data: availableSites } = useQuery({
+    queryKey: ['sites'],
+    queryFn: () => import('./api').then(m => m.fetchSites()),
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
   // Extract unique addresses for the filter
   const allAddresses = useMemo(() => imoveis
     ? Array.from(new Set(imoveis.map((i) => i.endereco).filter(Boolean)))
@@ -130,10 +152,14 @@ export const Home = () => {
         return list.sort((a, b) => a.valor - b.valor);
       case 'price_desc':
         return list.sort((a, b) => b.valor - a.valor);
+      case 'area_asc':
+        return list.sort((a, b) => a.area - b.area);
       case 'area_desc':
         return list.sort((a, b) => b.area - a.area);
       case 'price_per_m_asc':
         return list.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
+      case 'price_per_m_desc':
+        return list.sort((a, b) => b.precoPorMetro - a.precoPorMetro);
       default:
         return list;
     }
@@ -156,7 +182,7 @@ export const Home = () => {
       tipo: prev.tipo,
       minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '',
       minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '',
-      maxAreaTotal: '', address: []
+      maxAreaTotal: '', address: [], sites: []
     }));
     addToast('Filtros limpos com sucesso.', 'info');
   };
@@ -189,7 +215,7 @@ export const Home = () => {
     });
   };
 
-  return (
+    return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
@@ -220,7 +246,7 @@ export const Home = () => {
               Imóveis Franca
             </h1>
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} aria-label="Fechar filtros" className="lg:hidden p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+          <button onClick={() => setIsSidebarOpen(false)} aria-label="Fechar filtros" className="lg:hidden p-2 text-primary-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
             <X size={20} />
           </button>
         </div>
@@ -257,8 +283,9 @@ export const Home = () => {
           }>
             <FilterSidebar
               filters={filters}
-              setFilters={(f) => { setFilters(f); /* Scroll to top handled by effect */ }}
+              setFilters={(f: Parameters<typeof setFilters>[0]) => { setFilters(f); /* Scroll to top handled by effect */ }}
               addresses={allAddresses}
+              availableSites={availableSites || []}
             />
           </Suspense>
         </div>
@@ -267,31 +294,54 @@ export const Home = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 relative">
         <ScrollToTop />
+
+        {/* Floating Dark Mode Toggle for Hero */}
+        <div className="absolute top-4 right-4 z-20 hidden lg:block">
+            <button
+               onClick={() => setDarkMode(!darkMode)}
+               title={darkMode ? "Modo Claro" : "Modo Escuro"}
+               className="p-2.5 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/20 transition-all shadow-lg hover:scale-105 active:scale-95"
+            >
+               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+        </div>
+
         <HeroSearch
           filters={filters}
           setFilters={setFilters}
           addresses={allAddresses}
         />
+
         <header id="resultados" className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm flex-wrap gap-4 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden text-gray-600 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              aria-label="Abrir filtros"
-              aria-expanded={isSidebarOpen}
-            >
-              <Menu size={24} />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden text-gray-600 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+                aria-label={activeFiltersCount > 0 ? `Abrir filtros (${activeFiltersCount} ativos)` : 'Abrir filtros'}
+                aria-expanded={isSidebarOpen}
+              >
+                <Menu size={24} />
+                {activeFiltersCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" aria-hidden="true" />
+                )}
+              </button>
+            </div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2" aria-live="polite">
                {isLoading ? (
-                 <span className="flex items-center gap-2 text-gray-500">
-                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                   Carregando...
-                 </span>
+                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-medium">
+                   <Loader2 size={20} className="animate-spin" />
+                   Buscando imóveis...
+                 </motion.span>
                ) : (
                  <>
                     <Search size={18} className="text-gray-400" />
                     {sortedImoveis.length} <span className="hidden sm:inline">imóveis para {filters.tipo === 'aluguel' ? 'alugar' : 'comprar'}</span>
+                    {imoveis && imoveis.length > 0 && (
+                        <span className="hidden md:inline ml-2 pl-2 border-l border-gray-300 dark:border-gray-700 text-sm font-normal text-gray-500 dark:text-gray-400">
+                           Buscando em <strong>{new Set(imoveis.map(i => i.site)).size}</strong> sites
+                        </span>
+                    )}
                  </>
                )}
             </h2>
@@ -315,8 +365,9 @@ export const Home = () => {
 
              <button
                 onClick={() => setDarkMode(!darkMode)}
-                className="p-2.5 rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm"
+
                 title={darkMode ? "Modo Claro" : "Modo Escuro"}
+                className="p-2.5 rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm hover:scale-105 active:scale-95"
              >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
              </button>
@@ -325,7 +376,7 @@ export const Home = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={clsx(
-                    "p-1.5 rounded-md transition-all",
+                    "p-1.5 rounded-md transition-all hover:-translate-y-1 hover:scale-105 active:scale-95",
                     viewMode === 'grid'
                       ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -337,7 +388,7 @@ export const Home = () => {
                 <button
                   onClick={() => setViewMode('list')}
                   className={clsx(
-                    "p-1.5 rounded-md transition-all",
+                    "p-1.5 rounded-md transition-all hover:-translate-y-1 hover:scale-105 active:scale-95",
                     viewMode === 'list'
                       ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -362,8 +413,10 @@ export const Home = () => {
                 >
                   <option value="price_asc">Menor Preço</option>
                   <option value="price_desc">Maior Preço</option>
+                  <option value="area_asc">Menor Área</option>
                   <option value="area_desc">Maior Área</option>
                   <option value="price_per_m_asc">Menor Preço/m²</option>
+                  <option value="price_per_m_desc">Maior Preço/m²</option>
                 </select>
             </div>
           </div>
@@ -371,7 +424,7 @@ export const Home = () => {
 
         <div className="p-4 md:p-6 lg:p-8 flex-1 overflow-x-hidden">
           {activeFiltersList.length > 0 && (
-            <motion.div layout className="flex flex-wrap gap-2 mb-6">
+            <motion.div layout className="flex flex-wrap gap-2 mb-8 border-b border-gray-100 dark:border-gray-700/50 pb-4">
               <AnimatePresence>
                 {activeFiltersList.map((filter, index) => (
                   <motion.button
@@ -410,12 +463,12 @@ export const Home = () => {
                  viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
                )}
              >
-               {[...Array(6)].map((_, i) => (
+               {[...Array(12)].map((_, i) => (
                  <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.05, ease: "easeOut" }}
+                    transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
                     className="h-full"
                  >
                    <PropertyCardSkeleton viewMode={viewMode} />
@@ -423,7 +476,7 @@ export const Home = () => {
                ))}
              </motion.div>
           ) : isError ? (
-            <EmptyState
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}><EmptyState
                 icon={AlertCircle}
                 title="Erro ao carregar imóveis"
                 description="Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
@@ -431,22 +484,31 @@ export const Home = () => {
                     label: isFetching ? 'Tentando...' : 'Tentar novamente',
                     onClick: () => { void refetch(); }
                 }}
-            />
+            /></motion.div>
           ) : sortedImoveis.length === 0 ? (
-             <EmptyState
+             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}><EmptyState
                 icon={Search}
                 title="Nenhum imóvel encontrado"
                 description={
                   showFavoritesOnly
                      ? "Você ainda não adicionou nenhum imóvel aos favoritos."
-                     : "Tente ajustar os filtros para encontrar o que você procura."
+                     : activeFiltersCount > 0
+                     ? "Nenhum imóvel combina com os filtros atuais."
+                     : "Nenhum imóvel encontrado no momento. Tente novamente mais tarde."
+                }
+                tips={
+                  !showFavoritesOnly ? [
+                    activeFiltersCount > 0 ? `Você tem ${activeFiltersCount} filtro(s) ativo(s). Tente removê-los.` : 'Tente buscar em todas as imobiliárias.',
+                    filters.maxPrice ? 'Tente aumentar ou remover o limite de preço máximo.' : 'Limpe os filtros de preço para ampliar a busca.',
+                    (filters.minBedrooms || filters.minBathrooms) ? 'Tente reduzir as exigências de quartos ou banheiros.' : 'Remova restrições específicas para mais opções.'
+                  ] : undefined
                 }
                 action={
                     activeFiltersCount > 0 && !showFavoritesOnly
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
                     : undefined
                 }
-             />
+             /></motion.div>
           ) : (
             <VirtuosoGrid
               useWindowScroll
@@ -478,6 +540,22 @@ export const Home = () => {
           )}
         </div>
       </main>
+
+      <AnimatePresence>
+        {showScroll && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors z-50 flex items-center justify-center"
+            title="Voltar ao topo"
+            aria-label="Voltar ao topo"
+          >
+            <ArrowUp size={24} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

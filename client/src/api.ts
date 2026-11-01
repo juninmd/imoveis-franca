@@ -7,3 +7,8 @@ export const fetchImoveis = async (params: ImoveisQuery) => {
   const { data } = await axios.get<ApiParsedResponse>('/api/imoveis', { params });
   return data.data;
 };
+
+export const fetchSites = async () => {
+  const { data } = await axios.get<{ data: string[] }>('/api/sites');
+  return data.data;
+};

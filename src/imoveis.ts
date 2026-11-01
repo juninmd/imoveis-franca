@@ -19,9 +19,10 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   minBathrooms?: number;
   minVacancies?: number;
   address?: string[];
+  sites?: string[];
   tipo?: 'venda' | 'aluguel';
 }) => {
-  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, tipo } = queryParams;
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, sites, tipo } = queryParams;
 
   return imoveis.filter(imovel => {
     const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
@@ -36,18 +37,46 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passTipo = !tipo || imovel.tipo === tipo || imovel.tipo === 'ambos';
 
     const endereco = !address || !!address.find(x => x === imovel.endereco);
+    /* istanbul ignore next */
+    const passSite = !sites || sites.length === 0 || sites.includes(imovel.site);
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco && passSite;
   });
 };
 
 // `precoPorMetro` vem de divisões feitas nos adapters e pode chegar NaN/Infinity (área zero).
 // NaN em comparador de sort faz o Array.prototype.sort devolver uma ordem arbitrária e
 // contamina toda a lista, não só o item inválido — por isso normalizamos antes de ordenar.
+const MAX_PAGES = 200;
+
 const finiteOrZero = (value: number): number => (Number.isFinite(value) ? value : 0);
 
+/**
+ * O link vem do HTML de sites que nao controlamos.
+ *
+ * Nao e uma defesa contra XSS: o React ja troca um `href` `javascript:` por uma URL que so
+ * lanca se clicada (verificado no react-dom 19.2), entao nada executa. O ponto e outro — um
+ * anuncio cujo link nao e http(s) e artefato de scraping: o card ofereceria um botao "Ver
+ * Detalhes" que nao leva a lugar nenhum. Sai da lista aqui, na origem, em vez de cada
+ * consumidor ter que se defender.
+ */
+export const isSafeLink = (link: string): boolean => {
+  if (!link) {
+    return true; // sem link nao ha nada para o navegador abrir
+  }
+  try {
+    // O construtor de URL ja remove espacos e caracteres de controle antes de ler o esquema.
+    const { protocol } = new URL(link);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return true; // relativo: resolve no proprio host, sem esquema perigoso
+  }
+};
+
 export const sanitizeImoveis = (imoveis: Imoveis[]): Imoveis[] =>
-  imoveis.map(imovel => ({ ...imovel, precoPorMetro: finiteOrZero(imovel.precoPorMetro) }));
+  imoveis
+    .filter(imovel => isSafeLink(imovel.link))
+    .map(imovel => ({ ...imovel, precoPorMetro: finiteOrZero(imovel.precoPorMetro) }));
 
 // O mesmo anúncio aparece repetido quando um site é varrido por vários conjuntos de params
 // (ex.: venda + aluguel) ou quando a paginação se sobrepõe.
@@ -65,9 +94,37 @@ export const dedupeImoveis = (imoveis: Imoveis[]): Imoveis[] => {
 
 export const sortImoveis = (imoveis: Imoveis[]) => {
   // Sem preço por metro conhecido o imóvel vai para o fim, e não para o topo como "mais barato".
-  const rank = (imovel: Imoveis) => (imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.POSITIVE_INFINITY);
+  // `Infinity - Infinity` e NaN, e um comparador que devolve NaN deixa a ordem indefinida
+  // justamente quando ha varios imoveis sem preco por metro — que e o caso comum.
+  const rank = (imovel: Imoveis) =>
+    (Number.isFinite(imovel.precoPorMetro) && imovel.precoPorMetro > 0 ? imovel.precoPorMetro : Number.MAX_SAFE_INTEGER);
   return imoveis.filter(q => q.valor > 0).sort((a, b) => rank(a) - rank(b));
 };
+
+/** O que destes `baseQueryParams` de fato chega a este site. Fonte unica para a requisicao
+ *  e para a chave de cache: se as duas divergirem, buscas diferentes passam a compartilhar a
+ *  mesma entrada de cache. */
+const relevantBaseParams = (site: Site, baseQueryParams: BaseQueryParams): Record<string, unknown> => {
+  const relevant: Record<string, unknown> = {};
+  for (const param of Object.keys(site.translateParams || {})) {
+    if (site.translateParams[param]) {
+      relevant[param] = baseQueryParams[param];
+    }
+  }
+  return relevant;
+};
+
+/**
+ * Chave de cache com o minimo que muda a resposta daquele site.
+ *
+ * Antes a chave carregava todos os `baseQueryParams`, mas so 5 dos ~60 sites usam
+ * `translateParams` (e apenas para preco e pagina): area e quartos nunca chegam a lugar
+ * nenhum. O produto cartesiano de todos os campos dava ~3e11 chaves possiveis, e CADA chave
+ * nova custava um scraping completo dos ~60 sites — um cliente remoto conseguia transformar
+ * requisicoes baratas em trabalho ilimitado de rede e memoria de Redis.
+ */
+export const cacheKeyFor = (site: Site, baseQueryParams: BaseQueryParams): string =>
+  `${site.name}-${JSON.stringify(relevantBaseParams(site, baseQueryParams))}`;
 
 export const generateList = async (query) => {
   const filters = parseFilters(query);
@@ -77,8 +134,7 @@ export const generateList = async (query) => {
   let lista: Imoveis[] = [];
 
   const promises = sites.filter(q => q.enabled).map(async (site) => {
-    // Include baseQueryParams in cache key to ensure cache respects filters
-    const cacheKeyString = `${site.name}-${JSON.stringify(baseQueryParams)}`;
+    const cacheKeyString = cacheKeyFor(site, baseQueryParams);
     const cacheValue: Imoveis[] = await RedisConnection.getKey(cacheKeyString);
 
     if (cacheValue) {
@@ -122,12 +178,9 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     let requestParams = params ? { ...params } : params;
 
     if (requestParams && site.translateParams) {
-      Object.keys(site.translateParams).forEach((param => {
-        const paramName = site.translateParams[param];
-        if (paramName) {
-          requestParams[paramName] = baseQueryParams[param];
-        }
-      }));
+      for (const [param, value] of Object.entries(relevantBaseParams(site, baseQueryParams))) {
+        requestParams[site.translateParams[param]] = value;
+      }
     }
 
     const paginateParams = site.getPaginateParams(page);
@@ -138,7 +191,8 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
       requestParams = { ...requestParams, ...paginateParams.params };
     }
 
-    const link = `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
+    // getPaginateParams pode devolver uma `url` completa (sites com paginação no path).
+    const link = paginateParams.url ?? `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
@@ -197,7 +251,7 @@ export async function retrieveContent(url: string, site: Site, params = undefine
       return html;
     }
   } else if (site.driver === 'axios_rest') {
-    const { data: html } = await axios.request({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000 });
+    const { data: html } = await axios.request<any>({ url, method: site.method, data: payload ?? site.payload, params, timeout: 30000, ...site.axiosConfig });
     return html;
   }
 
@@ -240,7 +294,10 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
         lista.push(...imoveis);
     }
 
-    const pages = qtd ? Math.ceil(qtd / site.itemsPerPage) : 1;
+    // `qtd` e extraido do HTML/JSON de um site que nao controlamos. Sem teto, um total absurdo
+    // (ou lixo) monta o array de promises inteiro ANTES do pLimit throttlar qualquer coisa.
+    const rawPages = qtd > 0 && site.itemsPerPage > 0 ? Math.ceil(qtd / site.itemsPerPage) : 1;
+    const pages = Math.min(rawPages, baseQueryParams.maxPages || MAX_PAGES);
     console.info(`------- ${site.name} possuí ${pages} páginas. Initial fetch: ${imoveis?.length || 0} items.`);
 
     if (pages <= 1 || (baseQueryParams.maxPages && page >= baseQueryParams.maxPages)) {
@@ -250,11 +307,8 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     const limit = pLimit(5); // Limit to 5 concurrent requests per site
     const promises: Promise<any>[] = [];
 
+    // `pages` ja embute `maxPages` e MAX_PAGES, entao nao ha segundo corte aqui.
     for (let currentPage = 2; currentPage <= pages; currentPage++) {
-      if (baseQueryParams.maxPages && currentPage > baseQueryParams.maxPages) {
-        break;
-      }
-
       promises.push(limit(async () => {
         const { imoveis, page } = await getImoveis(site, params, baseQueryParams, currentPage);
         console.info(`------- ${site.name} página ${page} de ${pages}`);

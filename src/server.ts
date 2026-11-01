@@ -5,10 +5,26 @@ import compression from 'compression';
 import cors from 'cors';
 import { generateList } from './imoveis';
 import browser from './infra/browser';
+import { sites } from './sites';
 import { FixedWindowRateLimit } from './infra/rate-limit';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+
+// `req.ip` e o endereco do socket a menos que o Express saiba quantos proxies ha na frente.
+// Atras de um ingress sem isto, TODO cliente compartilha a mesma chave de rate limit e um
+// abusador devolve 429 para a base inteira. Deixamos desligado por padrao (deploy direto) e
+// exigimos a contagem exata de saltos via env — nunca `true`, que confia em qualquer
+// X-Forwarded-For enviado pelo cliente.
+if (process.env.TRUST_PROXY) {
+  const hops = Number(process.env.TRUST_PROXY);
+  // `Number('true')` e NaN, e o Express compila NaN para "nao confia em ninguem": a config
+  // errada passava despercebida e o rate limit voltava a ser global sem nenhum sinal.
+  if (!Number.isInteger(hops) || hops < 0) {
+    throw new Error('TRUST_PROXY deve ser a quantidade de proxies na frente (inteiro >= 0)');
+  }
+  app.set('trust proxy', hops);
+}
 const clientDir = path.join(__dirname, '..', '..', 'client', 'dist');
 const indexHtml = path.join(clientDir, 'index.html');
 
@@ -68,6 +84,12 @@ app.use('/api', (req: Request, res: Response, next: NextFunction) => {
   return next();
 });
 
+// Rota para obter as imobiliárias suportadas
+app.get('/api/sites', (_req: Request, res: Response) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.json({ data: sites.filter(s => s.enabled !== false).map(s => s.name) });
+});
+
 // Rota para a API que gera a lista de imóveis
 app.get('/api/imoveis', async (req: Request, res: Response) => {
   try {
@@ -84,16 +106,26 @@ app.get('/api/imoveis', async (req: Request, res: Response) => {
 });
 
 // SPA: qualquer rota não-API cai no index.html (deep link, refresh em /favoritos, etc).
-app.get(/^(?!\/api\/).*/, sendIndex);
+// `/assets/` fica de fora: um bundle com hash que não existe mais precisa devolver 404, e não
+// um HTML que o navegador tenta executar como JavaScript — justamente o sintoma pós-deploy
+// que o `index: false` acima existe para evitar.
+app.get(/^(?!\/api(\/|$)|\/assets\/).*/, sendIndex);
 
 // Iniciar o servidor
 const server = app.listen(port, () => {
   console.log(`Servidor rodando http://localhost:${port}`);
 });
 
+const SHUTDOWN_TIMEOUT_MS = 15_000;
+
 const shutdown = async (signal: string) => {
   console.log(`${signal} recebido, encerrando...`);
-  server.close();
+  // Uma resposta de /api/imoveis com cache frio leva dezenas de segundos; sair sem drenar
+  // corta a requisicao do usuario no meio. Com teto, para nao travar o deploy.
+  await Promise.race([
+    new Promise<void>(resolve => server.close(() => resolve())),
+    new Promise<void>(resolve => setTimeout(resolve, SHUTDOWN_TIMEOUT_MS).unref()),
+  ]);
   await browser.close().catch(() => undefined);
   process.exit(0);
 };

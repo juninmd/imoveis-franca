@@ -21,15 +21,15 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const imoveis: Imoveis[] = [];
 
   const qtdText = $('p.mono:contains("Exibindo")').text() || $('p:contains("Exibindo")').text() || $('div:contains("Exibindo")').text();
-  const qtdMatch = qtdText.match(/de\s+(\d+)\s+imóveis/i);
-  const qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
+  const qtdMatch = qtdText.match(/de\s+(\d+)\s+imóveis/i) || qtdText.match(/de\s+(\d+)\s+resultados/i);
+  let qtd = qtdMatch ? Number(qtdMatch[1]) : 0;
 
   const items = $('a.card, a.card-imovel, div.card');
 
   items.each((_i, el) => {
     const linkAttr = $(el).attr('href') || $(el).find('a').attr('href');
     if (!linkAttr) return;
-    const link = linkAttr.startsWith('http') ? linkAttr : `https://oasisimobiliaria.com.br${linkAttr.startsWith('/') ? linkAttr : `/${linkAttr}`}`;
+    const link = linkAttr.startsWith('http') ? linkAttr : `https://oasisimobiliaria.com.br${linkAttr.startsWith('/') ? linkAttr : '/' + linkAttr}`;
 
     const titulo = $(el).find('h3').text().trim();
     if (!titulo) return;
@@ -84,6 +84,10 @@ export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: 
         });
     }
   });
+
+  if (qtd === 0 && imoveis.length > 0) {
+      qtd = imoveis.length;
+  }
 
   return { imoveis, qtd, html };
 }

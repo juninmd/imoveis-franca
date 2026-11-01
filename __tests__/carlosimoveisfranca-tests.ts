@@ -1,4 +1,4 @@
-import { adapter } from '../src/sites/carlosimoveisfranca';
+import site, { adapter } from '../src/sites/carlosimoveisfranca';
 
 describe('Carlos Imoveis Franca Adapter', () => {
   it('should parse a venda item with real price, ignore aluga and consulte-nos items', async () => {
@@ -123,5 +123,10 @@ describe('Carlos Imoveis Franca Adapter', () => {
 
     expect(result.imoveis).toEqual([]);
     expect(result.qtd).toBe(12);
+  });
+
+  it('should only target venda listings for Franca (the a-venda URL mixes rentals)', () => {
+    expect(site.url).toContain('finalidade-2-comprar');
+    expect(site.getPaginateParams(3).url).toBe('https://www.carlosimoveisfranca.com.br/imoveis/finalidade-2-comprar/cidade-FRANCA-franca/pagina-3');
   });
 });

@@ -78,5 +78,8 @@ export const useFavorites = () => {
     [store],
   );
 
-  return { isFavorite, toggle, sync, items, count: Object.keys(store).length };
+  // `count` conta o que a lista consegue mostrar, nao as chaves do storage: entradas migradas
+  // da v1 ainda sem os dados do anuncio nao sao renderizaveis, e conta-las devolvia o mesmo
+  // descasamento "Favoritos (7)" com a tela vazia que este hook existe para eliminar.
+  return { isFavorite, toggle, sync, items, count: items.length };
 };

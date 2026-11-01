@@ -1,0 +1,5 @@
+# Falsos positivos confirmados manualmente - Senha dev do Redis em commit historico; o codigo atual usa process.env.REDIS_PASSWORD.
+# Formato: commit:arquivo:regra:linha (fingerprint exato; segredo novo no mesmo
+# arquivo continua sendo detectado). Nao usar path allowlist para isso.
+
+b7390c1a069935259982da155877001e19134651:src/redis.ts:juninmd-hardcoded-password:13

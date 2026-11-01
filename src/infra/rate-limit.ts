@@ -25,10 +25,12 @@ export class FixedWindowRateLimit {
 
     const entry = this.hits.get(key);
     if (!entry || entry.resetAt <= now) {
-      // Limite de chaves: um atacante variando o IP de origem (ou X-Forwarded-For) nao pode
-      // fazer a tabela crescer sem fim.
+      // Limite de chaves: um atacante variando o IP de origem nao pode fazer a tabela crescer
+      // sem fim. Antes isso era um `clear()`, que zerava o contador de TODO cliente honesto —
+      // a tabela do proprio limitador virava um recurso compartilhado que o atacante resetava.
+      // No teto, recusamos chaves novas e preservamos os contadores existentes.
       if (this.hits.size >= this.maxKeys) {
-        this.hits.clear();
+        return { allowed: false, remaining: 0, retryAfterSeconds: Math.ceil(this.windowMs / 1000) };
       }
       this.hits.set(key, { count: 1, resetAt: now + this.windowMs });
       return { allowed: true, remaining: this.limit - 1, retryAfterSeconds: 0 };

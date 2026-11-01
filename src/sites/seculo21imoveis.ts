@@ -1,0 +1,78 @@
+import * as cheerio from "cheerio";
+import { Imoveis, Site } from '../types';
+import { normalizeNeighborhoodName, getFixValue } from '../utils';
+
+export default {
+  enabled: true,
+  tipo: 'venda',
+  url: 'https://www.seculo21imoveis.com.br/imoveis/a-venda/franca',
+  name: 'seculo21imoveis.com.br',
+  driver: 'axios',
+  itemsPerPage: 12,
+  params: [],
+  getPaginateParams: (page: number) => {
+    return { url: `https://www.seculo21imoveis.com.br/imoveis/a-venda/franca?page=${page}` };
+  },
+  adapter,
+} as Site;
+
+export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
+  const $ = cheerio.load(html);
+  const imoveis: Imoveis[] = [];
+
+  let qtd = 0;
+  const paginationLinks = $('.ui-pagination li a');
+  if (paginationLinks.length > 0) {
+    const lastPageLink = paginationLinks.eq(-2).text().trim();
+    const pages = parseInt(lastPageLink, 10);
+    if (!isNaN(pages)) {
+       qtd = pages * 12; // Approximation
+    }
+  }
+
+  if (qtd === 0 && $('a.card-with-buttons').length > 0) {
+      qtd = $('a.card-with-buttons').length;
+  }
+
+  $('a.card-with-buttons').each((_, el) => {
+     const locationNode = $(el).find('.card-with-buttons__heading').text().trim();
+
+     const title = $(el).find('.card-with-buttons__title').text().trim() + ' ' + locationNode;
+     let priceStr = $(el).find('.card-with-buttons__value').text().trim();
+     priceStr = priceStr.replace('R$', '').trim();
+     let link = $(el).attr('href') || ''; if (link && !link.startsWith('http')) link = 'https://www.seculo21imoveis.com.br' + link;
+     const image = $(el).find('img').attr('src') || '';
+
+     let bed = 0; let bath = 0; let garage = 0;
+     $(el).find('ul li').each((_, fac) => {
+         const t = $(fac).text().toLowerCase();
+         const num = parseInt(t.replace(/\D/g, ''), 10) || 0;
+         if (t.includes('quarto')) bed = num;
+         if (t.includes('banheiro')) bath = num;
+         if (t.includes('vaga') || t.includes('garagem')) garage = num;
+     });
+
+     const valor = getFixValue(priceStr);
+
+     if (valor > 0 && link) {
+       imoveis.push({
+         titulo: title,
+         descricao: '',
+         imagens: [image].filter(Boolean),
+         endereco: normalizeNeighborhoodName(locationNode),
+         valor,
+         area: 0,
+         areaTotal: 0,
+         quartos: bed,
+         banheiros: bath,
+         vagas: garage,
+         link,
+         precoPorMetro: 0,
+         site: 'seculo21imoveis.com.br',
+         entrada: valor * 0.20
+       });
+     }
+  });
+
+  return { imoveis, qtd, html };
+}

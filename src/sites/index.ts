@@ -1,3 +1,19 @@
+import novaesimoveis from "./novaesimoveis";
+import colinaimoveis from "./colinaimoveis";
+import pauloborgesimoveis from "./pauloborgesimoveis";
+import imobiliariapereira from "./imobiliariapereira";
+import matrizimobiliaria from "./matriz";
+import munhozconsultorimobiliario from "./munhozconsultorimobiliario";
+import gnimoveis from "./gnimoveis";
+import imoveisemfranca from "./imoveisemfranca";
+import liderimobiliaria from "./liderimobiliaria";
+import imobiliariazanetti from "./imobiliariazanetti";
+import imobiliariazago from "./imobiliariazago";
+import imobiliariamartins from "./imobiliariamartins";
+import rrandradeimoveis from "./rrandradeimoveis";
+import imobiliariaindependencia from "./imobiliariaindependencia";
+import casabellafranca from "./casabellafranca";
+import seculo21imoveis from "./seculo21imoveis";
 import boscoimoveis from "./boscoimoveis";
 import oasisimobiliaria from "./oasisimobiliaria";
 import gpsnegociosimobiliarios from './gpsnegociosimobiliarios';
@@ -27,12 +43,14 @@ import groupagility from './groupagility';
 import silveiraimoveis from './silveiraimoveis';
 import futuraimobiliariafranca from './futuraimobiliariafranca';
 import casanovaimoveis from './casanovaimoveis';
+import francaimoveis from "./francaimoveis";
 import unicafrancaimoveis from "./unicafrancaimoveis";
 import imperadorimoveis from "./imperadorimoveis";
 import nielsenimoveis from "./nielsenimoveis";
 import imobiliarialadonni from "./imobiliarialadonni";
 import pucciimobiliaria from "./pucciimobiliaria";
 import matriz from "./matriz";
+import imobiliarialemos from "./imobiliarialemos";
 import cintraimoveis from "./cintraimoveis";
 import tratoimoveis from "./tratoimoveis";
 import faleirosimoveis from "./faleirosimoveis";
@@ -44,20 +62,99 @@ import famaimoveisfranca from "./famaimoveisfranca";
 import carlosimoveisfranca from "./carlosimoveisfranca";
 import dinizmartins from "./dinizmartins";
 import grupohabitat from "./grupohabitat";
+import altagalleria from "./altagalleria";
+import magnaimoveis from "./magnaimoveis";
+import locallizegoldimob from "./locallizegoldimob";
 import habitesefranca from "./habitesefranca";
+import mercadoimoveisfranca from "./mercadoimoveisfranca";
+import rochacoimbraimoveis from "./rochacoimbraimoveis";
+import aferreiraimoveis from "./aferreiraimoveis";
+import andrecaetano from "./andrecaetano";
+import neoka from "./neoka";
+import projetoimoveisfranca from "./projetoimoveisfranca";
+import imoveisremap from "./imoveisremap";
+import cidadenovaimoveis from "./cidadenovaimoveis";
+import realizacca from "./realizacca";
+import imobfranca from "./imobfranca";
+import quintareimoveis from "./quintareimoveis";
 
+import casafacilimobiliaria from "./casafacilimobiliaria";
+import vlicitimoveis from "./vlicitimoveis";
+import comerianimoveis from "./comerianimoveis";
+import agessani from "./agessani";
+import luanaimoveis from "./luanaimoveis";
+import wi7imobiliaria from "./wi7imobiliaria";
+import fortscunha from "./fortscunha";
+
+import acropoleimoveis from "./acropoleimoveis";
+import jardiniimoveis from "./jardiniimoveis";
+import jedisonimoveis from "./jedisonimoveis";
+import imobiliariafranca from "./imobiliariafranca";
+import aliancaimoveisfranca from "./aliancaimoveisfranca";
+import francaempreendimentos from "./francaempreendimentos";
+import novaaliancaimoveis from './novaaliancaimoveis';
+import imobiliariaatual from './imobiliariaatual';
 export const sites: Site[] = [
+  imobiliariapereira as unknown as Site,
+  pauloborgesimoveis as unknown as Site,
+  colinaimoveis as unknown as Site,
+  novaesimoveis as unknown as Site,
+  imobiliariafranca,
+  aliancaimoveisfranca as unknown as Site,
+
+  acropoleimoveis,
+  jardiniimoveis as unknown as Site,
+  jedisonimoveis as unknown as Site,
+
+  liderimobiliaria as unknown as Site,
+  imobiliariazanetti as unknown as Site,
+  imobiliariazago as unknown as Site,
+  imobiliariamartins as unknown as Site,
+
+  rrandradeimoveis as unknown as Site,
+  imobiliariaindependencia as unknown as Site,
+  agessani,
+  luanaimoveis,
+  wi7imobiliaria,
+  fortscunha,
+  casabellafranca as unknown as Site,
+  seculo21imoveis as unknown as Site,
+  casafacilimobiliaria as unknown as Site,
+  vlicitimoveis,
+  comerianimoveis as unknown as Site,
+  andrecaetano,
+  neoka,
+  projetoimoveisfranca as unknown as Site,
+  imoveisremap as unknown as Site,
+  cidadenovaimoveis as unknown as Site,
+  realizacca as unknown as Site,
+  imobfranca as unknown as Site,
+  quintareimoveis as unknown as Site,
+  mercadoimoveisfranca,
+  rochacoimbraimoveis,
+  aferreiraimoveis,
+  oasisimobiliaria,
+  matriz as unknown as Site,
+  imobiliarialemos,
   c15imob, ...aacosta as unknown as Site[], agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,
   r2imob, artefattoimoveis, anzimoveis, zagoimoveis, bragaimobiliaria, groupagility,
   silveiraimoveis, sueliandradelopes, futuraimobiliariafranca, casanovaimoveis,
-  oasisimobiliaria, unicafrancaimoveis as unknown as Site, imperadorimoveis as unknown as Site, nielsenimoveis as unknown as Site,
-  imobiliarialadonni as unknown as Site, pucciimobiliaria as unknown as Site, matriz as unknown as Site,
+  francaimoveis as unknown as Site, unicafrancaimoveis as unknown as Site, imperadorimoveis as unknown as Site, nielsenimoveis as unknown as Site,
+  imobiliarialadonni as unknown as Site, pucciimobiliaria as unknown as Site,
   cintraimoveis as unknown as Site, tratoimoveis as unknown as Site, faleirosimoveis as unknown as Site, moradiaimoveis as unknown as Site, andresaborgesimoveis as unknown as Site,
   iegimoveisfrancaeregiao as unknown as Site, salimimobiliaria as unknown as Site, boscoimoveis as unknown as Site,
   famaimoveisfranca as unknown as Site, carlosimoveisfranca as unknown as Site,
-dinizmartins as unknown as Site, grupohabitat as unknown as Site, habitesefranca as unknown as Site,
-  ...imoveismpb as unknown as Site[]
+  dinizmartins as unknown as Site, grupohabitat as unknown as Site, habitesefranca as unknown as Site, altagalleria as unknown as Site, magnaimoveis as unknown as Site, locallizegoldimob as unknown as Site,
+  ...imoveismpb as unknown as Site[],
+  imoveisemfranca,
+  luanaimoveis as unknown as Site, wi7imobiliaria as unknown as Site, fortscunha as unknown as Site,
+  gnimoveis,
+  munhozconsultorimobiliario as unknown as Site,
+  matrizimobiliaria as unknown as Site,
+  francaempreendimentos as unknown as Site,
+novaaliancaimoveis,
+  imobiliariaatual,
 ] as unknown as Site[];
