@@ -1,4 +1,5 @@
-import jresende, { parseJResende } from '../src/sites/jresendeimoveis';
+import jresende from '../src/sites/jresendeimoveis';
+import { parseKurole } from '../src/sites/platforms/kurole';
 import { sites } from '../src/sites';
 
 const card = (path: string, prices: string, over: { descr?: string; dorm?: string; imgs?: number } = {}) => `
@@ -17,7 +18,7 @@ const P = '/comprar/FRANCA/Apartamento/Padrao/JARDIM-CONSOLACAO/1356';
 
 describe('jresendeimoveis (Kurole, ISO-8859-1)', () => {
   it('venda usa o preco V (ignorando o preco antigo riscado) e le fotos, comodos, area e codigo', async () => {
-    const { imoveis, qtd } = await parseJResende(page(card(P, prices)), 'jresendeimoveis.com.br - Comprar', 'venda');
+    const { imoveis, qtd } = await parseKurole(page(card(P, prices)), 'jresendeimoveis.com.br - Comprar', 'venda', 'https://www.jresendeimoveis.com.br');
     expect(qtd).toBe(1);
     expect(imoveis[0]).toMatchObject({
       valor: 549000, area: 68, quartos: 1, banheiros: 2, vagas: 2, codigo: '1356', tipoImovel: 'apartamento', endereco: 'JARDIM CONSOLACAO',
@@ -27,7 +28,7 @@ describe('jresendeimoveis (Kurole, ISO-8859-1)', () => {
 
   it('aluguel usa o preco L do mesmo cartao; decodifica bytes latin1', async () => {
     const bytes = Buffer.from(page(card(P, prices)), 'latin1');
-    const { imoveis } = await parseJResende(bytes, 'jresendeimoveis.com.br - Alugar', 'aluguel');
+    const { imoveis } = await parseKurole(bytes, 'jresendeimoveis.com.br - Alugar', 'aluguel', 'https://www.jresendeimoveis.com.br');
     expect(imoveis[0].valor).toBe(2800);
     expect(imoveis[0].titulo).toBe('VENDA apto Edifício The One');
   });
@@ -39,7 +40,7 @@ describe('jresendeimoveis (Kurole, ISO-8859-1)', () => {
       card('', prices),
       card(P, '<div>R$ 100.000,00 V</div>', { descr: 'Sala', dorm: '', imgs: 1 }),
     );
-    const { imoveis } = await parseJResende(html, 'j - Comprar', 'venda');
+    const { imoveis } = await parseKurole(html, 'j - Comprar', 'venda', 'https://www.jresendeimoveis.com.br');
     expect(imoveis).toHaveLength(1);
     expect(imoveis[0]).toMatchObject({ valor: 100000, area: 0, quartos: 0, banheiros: 0, vagas: 0, imagens: ['https://cdn/0.webp'], precoPorMetro: 0 });
   });

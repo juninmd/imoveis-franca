@@ -1,11 +1,12 @@
-import vivenda, { parseVivenda } from '../src/sites/vivendanegociosimob';
+import vivenda from '../src/sites/vivendanegociosimob';
+import { parseGridList } from '../src/sites/platforms/gridlist';
 import { sites } from '../src/sites';
 
-const card = (path: string, price: string, over: { descr?: string; thumb?: string; bairro?: string; ref?: string } = {}) => `
+const card = (path: string, price: string, over: { descr?: string; thumb?: string; bairro?: string; ref?: string; city?: string } = {}) => `
 <dl class="gridTypeList">
   <dd class="foto-lista"><a href="${path}"><img data-src="${over.thumb ?? '/uploads/imovel/galeria/thumb-abc.jpeg'}"></a></dd>
   <dd class="det-lista"><strong><a href="${path}">Apartamento </a></strong><br>
-    <span class="loc"><b>${over.bairro ?? 'Jardim Três Colinas'}</b> / <b>Franca - SP</b></span>
+    <span class="loc"><b>${over.bairro ?? 'Jardim Três Colinas'}</b> / <b>${over.city ?? 'Franca - SP'}</b></span>
     <span class="cr">Cód. Referência: <b>${over.ref ?? 'JA1030'}</b></span>
     <p class="descr">${over.descr ?? 'Apartamento com 66 m² de área útil, 2 dormitórios, 3 banheiros, 1 Vaga de Garagem.'}</p></dd>
   <dd class="pr-lista">${price}</dd>
@@ -16,7 +17,7 @@ const page = (cards: string[], pags: number[] = []) => `<html><body>${pags.map(p
 describe('vivendanegociosimob (ISO-8859-1)', () => {
   it('le preco, bairro, area/quartos/banheiros/vagas da descricao, referencia e foto cheia', async () => {
     const html = page([card('/detalhes-imovel/820-x.html', price('R$ 340.000,00'))], [2, 3, 7]);
-    const { imoveis, qtd } = await parseVivenda(html, 'vivendanegociosimob.com.br - Comprar');
+    const { imoveis, qtd } = await parseGridList(html, 'vivendanegociosimob.com.br - Comprar', 'https://www.vivendanegociosimob.com.br');
     expect(qtd).toBe(7 * 30);
     expect(imoveis[0]).toMatchObject({
       valor: 340000, area: 66, quartos: 2, banheiros: 3, vagas: 1, codigo: 'JA1030', tipoImovel: 'apartamento', precoPorMetro: 340000 / 66,
@@ -27,7 +28,7 @@ describe('vivendanegociosimob (ISO-8859-1)', () => {
 
   it('decodifica bytes latin1 (acentos) quando o corpo vem como buffer', async () => {
     const bytes = Buffer.from(page([card('/d/1.html', price('R$ 1.500,00'), { bairro: 'São José' })]), 'latin1');
-    const { imoveis } = await parseVivenda(bytes, 'v - Alugar');
+    const { imoveis } = await parseGridList(bytes, 'v - Alugar', 'https://www.vivendanegociosimob.com.br');
     expect(imoveis[0].endereco).toBe('SAO JOSE');
     expect(imoveis[0].titulo).toBe('Apartamento - São José');
   });
@@ -37,8 +38,9 @@ describe('vivendanegociosimob (ISO-8859-1)', () => {
       card('', price('R$ 100,00')),
       card('/d/2.html', price('Consulte')),
       card('/d/3.html', price('R$ 900,00'), { descr: 'Sala comercial', thumb: '' }),
+      card('/d/5.html', price('R$ 800,00'), { city: 'Cristais Paulista - SP' }),
     ]);
-    const { imoveis, qtd } = await parseVivenda(html, 'v');
+    const { imoveis, qtd } = await parseGridList(html, 'v', 'https://www.vivendanegociosimob.com.br');
     expect(qtd).toBe(30);
     expect(imoveis).toHaveLength(1);
     expect(imoveis[0]).toMatchObject({ imagens: [], area: 0, quartos: 0, banheiros: 0, vagas: 0, precoPorMetro: 0 });
