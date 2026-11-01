@@ -16,7 +16,8 @@ const squareMeters = (block: string, label: RegExp): number => {
   return match ? getFixValue(match[1]) : 0;
 };
 
-export function parseLlmsCatalog(text: string, siteName: string): { imoveis: Imoveis[], qtd: number, html: string } {
+// upgradeHttps=false para sites cujo certificado TLS nao cobre o dominio (so respondem em http).
+export function parseLlmsCatalog(text: string, siteName: string, upgradeHttps = true): { imoveis: Imoveis[], qtd: number, html: string } {
   const imoveis: Imoveis[] = [];
   // Cada anuncio e um bloco "### Tipo - Referencia"; o que vem antes e o cabecalho da imobiliaria.
   const blocks = text.split(/^### /m).slice(1);
@@ -47,7 +48,7 @@ export function parseLlmsCatalog(text: string, siteName: string): { imoveis: Imo
       quartos: count(block, 'Dormitórios'),
       banheiros: count(block, 'Banheiros'),
       vagas: count(block, 'Vagas de garagem'),
-      link: link.replace(/^http:/, 'https:'),
+      link: upgradeHttps ? link.replace(/^http:/, 'https:') : link,
       precoPorMetro: areaPreco > 0 ? valor / areaPreco : 0,
       site: siteName,
       entrada: valor * 0.20,
