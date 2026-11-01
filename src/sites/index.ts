@@ -107,6 +107,7 @@ import ferreiraferreiraimob from "./ferreiraferreiraimob";
 import soldimob from "./soldimob";
 import belavistarp from "./belavistarp";
 import s2iinteligenciaimobiliaria from "./s2iinteligenciaimobiliaria";
+import menezesimobi from "./menezesimobi";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -185,5 +186,6 @@ novaaliancaimoveis,
   ...soldimob,
   belavistarp,
   s2iinteligenciaimobiliaria,
+  ...menezesimobi,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];
