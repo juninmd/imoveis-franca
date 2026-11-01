@@ -56,6 +56,7 @@ describe('BrowserSingleton', () => {
   it('should launch browser if not initialized', async () => {
     await BrowserSingleton.getBrowser();
     expect(puppeteerExtra.launch).toHaveBeenCalledTimes(1);
+    expect(puppeteerExtra.launch).toHaveBeenCalledWith();
 
     // Call again, should not launch again (because instance persists state)
     await BrowserSingleton.getBrowser();

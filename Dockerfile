@@ -31,8 +31,12 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod
 
 # Copy built assets
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/client/dist ./client/dist
+
+# The scraper visits third-party pages; keep Chromium sandboxing enabled and
+# limit the impact of a compromised browser process.
+USER node
 
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
