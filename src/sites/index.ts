@@ -94,7 +94,9 @@ import aliancaimoveisfranca from "./aliancaimoveisfranca";
 import francaempreendimentos from "./francaempreendimentos";
 import novaaliancaimoveis from './novaaliancaimoveis';
 import imobiliariaatual from './imobiliariaatual';
+import moraremfranca from "./moraremfranca";
 export const sites: Site[] = [
+  moraremfranca as unknown as Site,
   imobiliariapereira as unknown as Site,
   pauloborgesimoveis as unknown as Site,
   colinaimoveis as unknown as Site,
