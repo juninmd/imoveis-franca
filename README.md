@@ -68,7 +68,9 @@ O Redis é opcional: se estiver fora do ar a API continua respondendo, só sem c
 
 ### Cobertura de providers
 
-Além das imobiliárias locais, o scraping cobre os portais Casamineira, Chaves na Mão, Imovelweb, VivaReal, ZAP e OLX (venda e aluguel). `npx tsx scripts/list-advertisers.ts` lista os anunciantes de Franca no Chaves na Mão por volume, para achar lacunas: os maiores sem site próprio (SOLD IMOB, Mariane Menezes, L4S, S2I, Mudare, J. L. Barcellos, Vivenda) anunciam só pelos portais e ficam cobertos por eles.
+Além das imobiliárias locais, o scraping cobre os portais Casamineira, Chaves na Mão, Imovelweb, VivaReal, ZAP e OLX (venda e aluguel). `npx tsx scripts/list-advertisers.ts` lista os anunciantes de Franca no Chaves na Mão por volume, para achar lacunas. Cada anunciante grande sem provider deve ter o site procurado por sondagem de domínio, não só por busca na web: foi assim que apareceram `soldimob.com.br` (API Kenlo) e `jlbarcellosimoveis.com.br` (WordPress/Houzez). Os domínios homônimos de outras cidades (Mariane Menezes, S2I, Mudare, Vivenda, Larraz, BG) não são da mesma empresa.
+
+Ainda sem provider, por não terem site próprio localizado: L4S, Bela Vista RP, B&G Imóveis de Franca e corretores individuais; todos anunciam pelos portais.
 
 Avaliados e **não adicionados**: Olá Franca (1 imóvel e nenhum aluguel, mesmo executando o JavaScript), Imobiliária Conquista (conteúdo de Joinville/SC), Lago (5 anúncios), Wimoveis (mesmo inventário do Imovelweb), Trovit e Deztop (agregam anúncios de outros sites), QuintoAndar (carrega os anúncios por API do cliente, sem HTML estável).
 

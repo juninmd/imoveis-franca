@@ -104,6 +104,8 @@ import chavesnamao from "./chavesnamao";
 import imovelweb from "./imovelweb";
 import vivareal from "./vivareal";
 import ferreiraferreiraimob from "./ferreiraferreiraimob";
+import soldimob from "./soldimob";
+import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
   moraremfranca as unknown as Site,
@@ -178,4 +180,6 @@ novaaliancaimoveis,
   ...imovelweb,
   ...vivareal,
   ferreiraferreiraimob,
+  ...soldimob,
+  ...jlbarcellosimoveis,
 ] as unknown as Site[];
