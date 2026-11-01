@@ -15,6 +15,8 @@ export interface Imoveis {
   entrada: number,
   valorMedioBairroPorAreaTotal?: number; // Novo atributo
   tipo?: 'venda' | 'aluguel' | 'ambos', // Finalidade: comprar, alugar ou ambos
+  codigo?: string, // Referencia do anuncio no site de origem
+  tipoImovel?: string, // casa, apartamento, terreno, comercial, rural...
 };
 
 export interface Site {
@@ -32,6 +34,7 @@ export interface Site {
   translateParams?: { currentPage: string; maxPrice: string; minPrice: string },
   params?: any[],
   itemsPerPage: number,
+  maxPages?: number, // Teto de paginas para portais enormes (milhares de anuncios)
   getPaginateParams: (page: number) => { payload?: any, params?: any, path?: any, url?: string },
   adapter: (html: string) => Promise<{
     imoveis: Imoveis[],

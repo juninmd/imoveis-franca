@@ -46,6 +46,8 @@ Interface da busca com resultados reais obtidos localmente pelo Docker Compose.
 | `minArea`, `maxArea`, `minAreaTotal`, `maxAreaTotal` | número | limitado a 10.000 m² |
 | `minBedrooms`, `minBathrooms`, `minVacancies` | número | limitado a 50 |
 | `address` | string ou lista | até 30 bairros, 120 caracteres cada |
+| `tipoImovel` | string ou lista | `casa`, `apartamento`, `terreno`, `rural`, `comercial`; anúncios sem tipo reconhecido continuam na lista |
+| `q` | texto | busca em título, descrição, bairro e código, sem diferenciar acento ou caixa (até 100 caracteres) |
 
 Valores inválidos são descartados em vez de gerarem erro. A rota está limitada a 60
 requisições por minuto por IP (`429` com `Retry-After` acima disso), porque cada miss de
@@ -63,6 +65,17 @@ cache dispara um scraping completo.
 | `REDIS_PASSWORD` | — | senha, quando houver |
 
 O Redis é opcional: se estiver fora do ar a API continua respondendo, só sem cache.
+
+### Cache
+
+Cada site tem a sua entrada no Redis (`src/infra/site-cache.ts`):
+
+- **Fresco (~1 h, com jitter de ±10%)**: devolvido direto, sem scraping.
+- **Vencido (até 24 h depois)**: devolvido na hora e revalidado em segundo plano (stale-while-revalidate), então o usuário não espera o scraping quando o TTL vence.
+- **Site fora do ar**: se a revalidação volta vazia, os dados antigos são mantidos e a próxima tentativa só ocorre em 5 min.
+- **Primeiro acesso sem dados**: resultado vazio vira cache negativo de 5 min.
+
+Portais enormes (`casamineira`, `zapimoveis`, `olx`) têm `maxPages` por site para limitar o custo de cada scraping. `zapimoveis` e `olx` usam o Chromium (`driver: 'puppet'`) porque o `axios` recebe `403`.
 
 ## Instalação
 

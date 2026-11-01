@@ -6,9 +6,11 @@ export default {
   name: 'imobiliariaestillo.com.br',
   driver: 'axios',
   enabled: true,
+  tipo: 'venda',
+  params: [],
   url: 'https://www.imobiliariaestillo.com.br/imoveis/a-venda',
   itemsPerPage: 24,
-  getPaginateParams: () => ({}),
+  getPaginateParams: (page: number) => ({ url: `https://www.imobiliariaestillo.com.br/imoveis/a-venda${page > 1 ? `/pagina-${page}/` : ''}` }),
   adapter: async (html: string) => {
     const properties: Imoveis[] = [];
     const $ = load(html);
@@ -54,6 +56,7 @@ export default {
       });
     });
 
-    return { imoveis: properties, qtd: properties.length };
+    // O site nao informa o total: pagina cheia significa que pode haver mais (as vazias custam pouco).
+    return { imoveis: properties, qtd: properties.length >= 24 ? 24 * 10 : properties.length };
   }
 } as Site;

@@ -3,8 +3,9 @@ import axios from 'axios';
 import pLimit from 'p-limit';
 import { sites } from './sites';
 import browser from './infra/browser';
-import RedisConnection from './infra/redis';
 import singleFlight from './infra/single-flight';
+import { CachedSite, extendSiteCache, readSiteCache, writeSiteCache } from './infra/site-cache';
+import { inferTipoImovel, normalizeText } from './utils';
 import { getQuantizedParams, parseFilters } from './query';
 import { BaseQueryParams, Imoveis, Site } from './types';
 
@@ -21,8 +22,11 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
   address?: string[];
   sites?: string[];
   tipo?: 'venda' | 'aluguel';
+  tipoImovel?: string[];
+  q?: string;
 }) => {
-  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, sites, tipo } = queryParams;
+  const { maxPrice, minPrice, minBedrooms, minArea, maxArea, minAreaTotal, maxAreaTotal, minBathrooms, minVacancies, address, sites, tipo, tipoImovel, q } = queryParams;
+  const needle = q ? normalizeText(q) : '';
 
   return imoveis.filter(imovel => {
     const passMaxPrice = !maxPrice || imovel.valor <= maxPrice;
@@ -35,12 +39,15 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passMinBathroom = !minBathrooms || imovel.banheiros >= minBathrooms;
     const passMinVacancies = !minVacancies || imovel.vagas >= minVacancies;
     const passTipo = !tipo || imovel.tipo === tipo || imovel.tipo === 'ambos';
+    // Anuncio sem tipoImovel conhecido nao some do filtro: o adapter pode nao ter como inferi-lo.
+    const passTipoImovel = !tipoImovel || tipoImovel.length === 0 || !imovel.tipoImovel || tipoImovel.includes(imovel.tipoImovel);
+    const passText = !needle || normalizeText(`${imovel.titulo} ${imovel.descricao} ${imovel.endereco} ${imovel.codigo ?? ''}`).includes(needle);
 
     const endereco = !address || !!address.find(x => x === imovel.endereco);
     /* istanbul ignore next */
     const passSite = !sites || sites.length === 0 || sites.includes(imovel.site);
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && endereco && passSite;
+    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && passTipoImovel && passText && endereco && passSite;
   });
 };
 
@@ -126,6 +133,32 @@ const relevantBaseParams = (site: Site, baseQueryParams: BaseQueryParams): Recor
 export const cacheKeyFor = (site: Site, baseQueryParams: BaseQueryParams): string =>
   `${site.name}-${JSON.stringify(relevantBaseParams(site, baseQueryParams))}`;
 
+/**
+ * Raspa o site e grava no cache.
+ *
+ * Coalesce: com o cache frio, N requisições simultâneas disparavam N scrapings completos do
+ * mesmo site (cada um com Chromium e dezenas de páginas) antes de qualquer uma gravar no
+ * Redis. Agora a segunda em diante espera a primeira.
+ *
+ * Resultado vazio vira cache negativo curto (um site fora do ar não faz CADA requisição
+ * esperar 3 tentativas x 30s). Mas se já havia dados antigos, eles são mantidos: uma queda
+ * momentânea do site não pode apagar o último resultado bom.
+ */
+const PARTIAL_SCRAPE_RATIO = 0.5;
+
+const refreshSite = (site: Site, key: string, baseQueryParams: BaseQueryParams, previous?: CachedSite) =>
+  singleFlight.run(key, async () => {
+    const fetched = await retrieImoveisSite(site, baseQueryParams);
+    // Scraping parcial (ex.: pagina 1 ok e as demais bloqueadas) tambem conta como falha:
+    // gravar 30 anuncios por cima de 1.200 apagaria o ultimo resultado bom.
+    if (previous && previous.data.length > 0 && fetched.length < previous.data.length * PARTIAL_SCRAPE_RATIO
+      && await extendSiteCache(key, previous.data, previous.lastGoodAt)) {
+      return previous.data;
+    }
+    await writeSiteCache(key, fetched);
+    return fetched;
+  });
+
 export const generateList = async (query) => {
   const filters = parseFilters(query);
   // Use quantized params for fetching/caching to improve cache hit rate
@@ -135,26 +168,22 @@ export const generateList = async (query) => {
 
   const promises = sites.filter(q => q.enabled).map(async (site) => {
     const cacheKeyString = cacheKeyFor(site, baseQueryParams);
-    const cacheValue: Imoveis[] = await RedisConnection.getKey(cacheKeyString);
+    const cached = await readSiteCache(cacheKeyString);
 
-    if (cacheValue) {
-      return cacheValue;
+    if (cached?.fresh) {
+      return cached.data;
     }
 
-    // Coalesce: com o cache frio, N requisições simultâneas disparavam N scrapings completos
-    // do mesmo site (cada um com Chromium e dezenas de páginas) antes de qualquer uma gravar
-    // no Redis. Agora a segunda em diante espera a primeira.
-    return singleFlight.run(cacheKeyString, async () => {
-      const fetched = await retrieImoveisSite(site, baseQueryParams);
-      // Cache o resultado, inclusive quando vazio ("cache negativo"): sem isso, um site
-      // permanentemente fora do ar (domínio morto, 404/410, timeout) fazia CADA requisição a
-      // /api/imoveis esperar de novo pelas 3 tentativas x até 30s dele, deixando a API lenta
-      // (minutos) em toda chamada sem cache. TTL curto para vazio permite recuperação rápida
-      // caso o site volte a funcionar.
-      const ttl = fetched && fetched.length > 0 ? 3600 : 300;
-      await RedisConnection.setKey(cacheKeyString, fetched, ttl);
-      return fetched;
-    });
+    if (cached) {
+      // Stale-while-revalidate: o usuario recebe o ultimo resultado bom na hora e o scraping
+      // (dezenas de segundos) roda por tras, em vez de bloquear a requisicao quando o TTL vence.
+      refreshSite(site, cacheKeyString, baseQueryParams, cached).catch(error => {
+        console.error(`Falha ao revalidar ${site.name}: ${error.message}`);
+      });
+      return cached.data;
+    }
+
+    return refreshSite(site, cacheKeyString, baseQueryParams);
   });
 
   const results = await Promise.all(promises);
@@ -206,7 +235,12 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
 
     // Propaga a finalidade (venda/aluguel) do site para cada imóvel, respeitando um valor já
     // definido pelo próprio adapter (inferência por anúncio) quando existir.
-    const imoveisComTipo = (imoveis || []).map(imovel => ({ ...imovel, tipo: imovel.tipo ?? site.tipo ?? 'ambos' }));
+    const imoveisComTipo = (imoveis || []).map(imovel => ({
+      ...imovel,
+      tipo: imovel.tipo ?? site.tipo ?? 'ambos',
+      // Os adapters antigos nao preenchem tipoImovel; sem isto o filtro por tipo so valeria para os novos.
+      tipoImovel: imovel.tipoImovel ?? (inferTipoImovel(imovel.titulo) || undefined),
+    }));
 
     return { imoveis: imoveisComTipo, qtd, page };
   } catch (error) {
@@ -297,7 +331,7 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
     // `qtd` e extraido do HTML/JSON de um site que nao controlamos. Sem teto, um total absurdo
     // (ou lixo) monta o array de promises inteiro ANTES do pLimit throttlar qualquer coisa.
     const rawPages = qtd > 0 && site.itemsPerPage > 0 ? Math.ceil(qtd / site.itemsPerPage) : 1;
-    const pages = Math.min(rawPages, baseQueryParams.maxPages || MAX_PAGES);
+    const pages = Math.min(rawPages, baseQueryParams.maxPages || site.maxPages || MAX_PAGES);
     console.info(`------- ${site.name} possuí ${pages} páginas. Initial fetch: ${imoveis?.length || 0} items.`);
 
     if (pages <= 1 || (baseQueryParams.maxPages && page >= baseQueryParams.maxPages)) {
