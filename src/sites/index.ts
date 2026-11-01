@@ -105,6 +105,8 @@ import imovelweb from "./imovelweb";
 import vivareal from "./vivareal";
 import ferreiraferreiraimob from "./ferreiraferreiraimob";
 import soldimob from "./soldimob";
+import belavistarp from "./belavistarp";
+import s2iinteligenciaimobiliaria from "./s2iinteligenciaimobiliaria";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -181,5 +183,7 @@ novaaliancaimoveis,
   ...vivareal,
   ferreiraferreiraimob,
   ...soldimob,
+  belavistarp,
+  s2iinteligenciaimobiliaria,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];
