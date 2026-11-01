@@ -13,10 +13,14 @@ export interface Filters {
   maxAreaTotal: string;
   address: string[];
   sites: string[];
+  tipoImovel: string[];
+  q: string;
 }
 
 export type SortOrder = 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc' | 'price_per_m_asc' | 'price_per_m_desc';
 export type ViewMode = 'grid' | 'list';
+
+export const TIPOS_IMOVEL = ['casa', 'apartamento', 'terreno', 'rural', 'comercial'] as const;
 
 export const NUMERIC_FILTER_KEYS = [
   'minPrice', 'maxPrice', 'minBedrooms', 'minBathrooms', 'minVacancies',
@@ -28,7 +32,7 @@ const SORT_ORDERS: SortOrder[] = ['price_asc', 'price_desc', 'area_asc', 'area_d
 export const emptyFilters = (tipo: 'venda' | 'aluguel' = 'venda'): Filters => ({
   tipo,
   minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '', minVacancies: '',
-  minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [], sites: [],
+  minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '', address: [], sites: [], tipoImovel: [], q: '',
 });
 
 export interface SearchState {
@@ -51,6 +55,9 @@ export const parseSearch = (search: string): SearchState => {
   }
   filters.address = params.getAll('address').filter(Boolean).slice(0, 30);
   filters.sites = params.getAll('sites').filter(Boolean).slice(0, 50);
+  // Lista fechada: um valor arbitrario na URL compartilhada nao pode virar estado do app.
+  filters.tipoImovel = params.getAll('tipoImovel').filter((v): v is (typeof TIPOS_IMOVEL)[number] => (TIPOS_IMOVEL as readonly string[]).includes(v));
+  filters.q = (params.get('q') || '').trim().slice(0, 100);
 
   const sort = params.get('sort') as SortOrder;
   return {
@@ -61,7 +68,7 @@ export const parseSearch = (search: string): SearchState => {
   };
 };
 
-const OWNED_KEYS = new Set<string>([...NUMERIC_FILTER_KEYS, 'tipo', 'address', 'sites', 'sort', 'view', 'favoritos']);
+const OWNED_KEYS = new Set<string>([...NUMERIC_FILTER_KEYS, 'tipo', 'address', 'sites', 'tipoImovel', 'q', 'sort', 'view', 'favoritos']);
 
 export const buildSearch = (state: SearchState, currentSearch = ''): string => {
   const params = new URLSearchParams();
@@ -76,6 +83,8 @@ export const buildSearch = (state: SearchState, currentSearch = ''): string => {
   }
   state.filters.address.forEach(address => params.append('address', address));
   state.filters.sites.forEach(site => params.append('sites', site));
+  state.filters.tipoImovel.forEach(tipo => params.append('tipoImovel', tipo));
+  if (state.filters.q) params.set('q', state.filters.q);
   if (state.sortOrder !== 'price_asc') params.set('sort', state.sortOrder);
   if (state.viewMode !== 'grid') params.set('view', state.viewMode);
   if (state.showFavoritesOnly) params.set('favoritos', '1');

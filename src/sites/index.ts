@@ -100,6 +100,7 @@ import imobiliariafabioliporoni from "./imobiliariafabioliporoni";
 import casamineira from "./casamineira";
 import zapimoveis from "./zapimoveis";
 import olx from "./olx";
+import chavesnamao from "./chavesnamao";
 
 export const sites: Site[] = [
   moraremfranca as unknown as Site,
@@ -170,4 +171,5 @@ novaaliancaimoveis,
   ...casamineira,
   ...zapimoveis,
   ...olx,
+  ...chavesnamao,
 ] as unknown as Site[];

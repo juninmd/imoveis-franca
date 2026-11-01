@@ -21,7 +21,9 @@ describe('FilterSidebar', () => {
       minArea: '50', maxArea: '100',
       minAreaTotal: '100', maxAreaTotal: '200',
       address: ['Centro'],
-      sites: []
+      sites: [],
+      tipoImovel: [],
+      q: ''
     };
   });
 
@@ -144,7 +146,7 @@ describe('FilterSidebar', () => {
         maxArea: '',
         minAreaTotal: '',
         maxAreaTotal: '',
-        address: [], sites: []
+        address: [], sites: [], tipoImovel: [], q: ''
       };
 
       const { getByText } = render(

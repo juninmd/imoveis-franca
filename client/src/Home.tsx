@@ -182,7 +182,7 @@ export const Home = () => {
       tipo: prev.tipo,
       minPrice: '', maxPrice: '', minBedrooms: '', minBathrooms: '',
       minVacancies: '', minArea: '', maxArea: '', minAreaTotal: '',
-      maxAreaTotal: '', address: [], sites: []
+      maxAreaTotal: '', address: [], sites: [], tipoImovel: [], q: ''
     }));
     addToast('Filtros limpos com sucesso.', 'info');
   };

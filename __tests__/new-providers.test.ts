@@ -2,6 +2,7 @@ import liporoni, { adapter as liporoniAdapter } from '../src/sites/imobiliariafa
 import casamineira, { adapter as casamineiraAdapter } from '../src/sites/casamineira';
 import zap, { adapter as zapAdapter } from '../src/sites/zapimoveis';
 import olx, { adapter as olxAdapter } from '../src/sites/olx';
+import chaves, { adapter as chavesAdapter } from '../src/sites/chavesnamao';
 import estillo from '../src/sites/imobiliariaestillo';
 import { sites } from '../src/sites';
 
@@ -265,6 +266,63 @@ describe('olx', () => {
   });
 });
 
+const offer = (over: any = {}, item: any = {}) => ({
+  '@type': 'Offer',
+  name: 'Sobrado à Venda - Vila Rezende, Franca-SP, 3 quartos, 192,80 m²',
+  url: 'https://www.chavesnamao.com.br/imovel/casa-a-venda/id-37788540/',
+  price: '420000',
+  itemOffered: {
+    numberOfBedrooms: 3, numberOfBathroomsTotal: 2, floorSize: { unitText: '192m²' },
+    address: { addressLocality: 'Vila Rezende', addressRegion: 'Franca, SP', streetAddress: 'Rua A, 950' },
+    image: 'https://www.chavesnamao.com.br/imn/1.jpg', ...item,
+  },
+  offeredBy: { name: 'RE/MAX PAR IMOB' },
+  ...over,
+});
+const chavesPage = (offers: any[], extra = '') => `<script type="application/ld+json">{"@type":"Organization"}</script>
+  <script type="application/ld+json">{not json</script>${extra}
+  <script type="application/ld+json">${JSON.stringify({ '@type': 'RealEstateListing', offers: { numberOfItems: 3599, itemListElement: offers } })}</script>`;
+
+describe('chavesnamao', () => {
+  it('le os anuncios do JSON-LD, ignorando blocos invalidos e cidades vizinhas', async () => {
+    const { imoveis, qtd } = await chavesAdapter(chavesPage([
+      offer(),
+      offer({ url: 'https://www.chavesnamao.com.br/imovel/x/id-2/' }, { address: { addressLocality: 'Centro', addressRegion: 'Batatais, SP' } }),
+      offer({ price: '0', url: 'https://www.chavesnamao.com.br/imovel/y/id-3/' }),
+      offer({ url: 'https://outro.com/z/id-4/' }),
+    ]));
+    expect(qtd).toBe(3599);
+    expect(imoveis).toHaveLength(1);
+    expect(imoveis[0]).toMatchObject({
+      valor: 420000, area: 192, quartos: 3, banheiros: 2, endereco: 'VILA REZENDE', codigo: '37788540', tipoImovel: 'casa',
+      imagens: ['https://www.chavesnamao.com.br/imn/1.jpg'],
+    });
+    expect(imoveis[0].descricao).toContain('Anunciante: RE/MAX PAR IMOB');
+  });
+
+  it('anuncio minimo (sem imagem, endereco ou anunciante) nao quebra', async () => {
+    const { imoveis } = await chavesAdapter(chavesPage([
+      { price: '1.500', url: 'https://www.chavesnamao.com.br/imovel/a/id-9/', name: 'Sala', itemOffered: { address: { addressRegion: 'Franca, SP' } } },
+    ]));
+    expect(imoveis[0]).toMatchObject({ valor: 1500, imagens: [], endereco: '', area: 0, quartos: 0, banheiros: 0, precoPorMetro: 0 });
+    expect((await chavesAdapter(chavesPage([{ price: '10', url: 'https://www.chavesnamao.com.br/imovel/b/id-8/', name: 'S', itemOffered: { address: { addressRegion: 'Franca, SP' } } }]))).imoveis[0].tipoImovel).toBeUndefined();
+  });
+
+  it('pagina sem JSON-LD de listagem devolve vazio', async () => {
+    expect(await chavesAdapter('<html></html>')).toMatchObject({ imoveis: [], qtd: 0 });
+    expect(await chavesAdapter('<script type="application/ld+json">{"@type":"RealEstateListing"}</script>')).toMatchObject({ imoveis: [], qtd: 0 });
+  });
+
+  it('venda e aluguel com paginacao ?pg=N e teto de paginas', async () => {
+    expect(chaves.map(s => s.tipo)).toEqual(['venda', 'aluguel']);
+    expect(chaves[0].getPaginateParams(1).url).toBe('https://www.chavesnamao.com.br/imoveis-a-venda/sp-franca/');
+    expect(chaves[1].getPaginateParams(3).url).toBe('https://www.chavesnamao.com.br/imoveis-para-alugar/sp-franca/?pg=3');
+    expect(chaves[0].maxPages).toBeLessThanOrEqual(40);
+    const { imoveis } = await chaves[1].adapter(chavesPage([offer()]));
+    expect(imoveis[0].site).toBe('chavesnamao.com.br - Alugar');
+  });
+});
+
 describe('imobiliariaestillo', () => {
   it('pagina pelo path e continua buscando enquanto a pagina vier cheia', async () => {
     expect(estillo.getPaginateParams(1).url).toBe('https://www.imobiliariaestillo.com.br/imoveis/a-venda');
@@ -279,7 +337,7 @@ describe('registro', () => {
   it('registra cada novo provider exatamente uma vez (o nome e a chave de cache)', () => {
     const names = sites.map(s => s.name);
     ['imobiliariaestillo.com.br', 'imobiliariafabioliporoni.com.br', 'casamineira.com.br - Comprar', 'casamineira.com.br - Alugar',
-      'zapimoveis.com.br - Comprar', 'zapimoveis.com.br - Alugar', 'olx.com.br - Comprar', 'olx.com.br - Alugar']
+      'zapimoveis.com.br - Comprar', 'zapimoveis.com.br - Alugar', 'olx.com.br - Comprar', 'olx.com.br - Alugar', 'chavesnamao.com.br - Comprar', 'chavesnamao.com.br - Alugar']
       .forEach(name => expect(names.filter(n => n === name)).toHaveLength(1));
   });
 
