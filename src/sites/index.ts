@@ -113,6 +113,7 @@ import mudare from "./mudare";
 import begimoveissp from "./begimoveissp";
 import colibexsites from "./colibexsites";
 import vivendanegociosimob from "./vivendanegociosimob";
+import jresendeimoveis from "./jresendeimoveis";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -197,5 +198,6 @@ novaaliancaimoveis,
   begimoveissp,
   ...colibexsites,
   ...vivendanegociosimob,
+  ...jresendeimoveis,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];
