@@ -122,6 +122,26 @@ describe('PropertyCard', () => {
       });
   });
 
+  it('navigates the image carousel and renders the overflow indicator', () => {
+      const imovelWithGallery = {
+          ...mockImovel,
+          imagens: ['img1.jpg', 'img2.jpg', 'img3.jpg', 'img4.jpg', 'img5.jpg', 'img6.jpg'],
+      };
+      const { container } = render(
+          <PropertyCard imovel={imovelWithGallery} isFavorite={false} onToggleFavorite={vi.fn()} />,
+      );
+
+      const image = screen.getByRole('img');
+      expect(image).toHaveAttribute('src', 'img1.jpg');
+      expect(container.querySelector('[title="+1 imagens"]')).toBeInTheDocument();
+
+      fireEvent.click(container.querySelector('button.absolute.left-2')!);
+      expect(image).toHaveAttribute('src', 'img6.jpg');
+
+      fireEvent.click(container.querySelector('button.absolute.right-2')!);
+      expect(image).toHaveAttribute('src', 'img1.jpg');
+  });
+
   it('handles clipboard failure', async () => {
      const originalNavigatorShare = navigator.share;
      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });

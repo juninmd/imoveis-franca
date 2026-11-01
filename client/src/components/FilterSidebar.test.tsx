@@ -217,6 +217,19 @@ describe('FilterSidebar', () => {
       expect(screen.getByText('Nenhuma imobiliária encontrada.')).toBeInTheDocument();
   });
 
+  it('handles a missing site catalog as an empty list', () => {
+      render(
+          <FilterSidebar
+              availableSites={undefined as unknown as string[]}
+              filters={mockFilters}
+              setFilters={mockSetFilters}
+              addresses={[]}
+          />,
+      );
+
+      expect(screen.getByText('Nenhuma imobiliária encontrada.')).toBeInTheDocument();
+  });
+
   it('clears selected sites', async () => {
     mockFilters.sites = ['site1.com'];
     render(<FilterSidebar availableSites={['site1.com']} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={[]} />);

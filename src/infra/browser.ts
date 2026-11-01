@@ -20,12 +20,7 @@ class BrowserSingleton {
 
   public async getBrowser(): Promise<Browser> {
     if (!this.browser) {
-      // --no-sandbox é necessário quando o Chromium roda como root (caso do container Docker,
-      // que não define um usuário não-root); sem isso o launch falha com
-      // "Running as root without --no-sandbox is not supported".
-      this.browser = await puppeteerExtra.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      });
+      this.browser = await puppeteerExtra.launch();
     }
     return this.browser;
   }
