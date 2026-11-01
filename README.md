@@ -75,7 +75,7 @@ Cada site tem a sua entrada no Redis (`src/infra/site-cache.ts`):
 - **Site fora do ar**: se a revalidação volta vazia, os dados antigos são mantidos e a próxima tentativa só ocorre em 5 min.
 - **Primeiro acesso sem dados**: resultado vazio vira cache negativo de 5 min.
 
-Portais enormes (`casamineira`, `chavesnamao`, `zapimoveis`, `olx`) têm `maxPages` por site para limitar o custo de cada scraping. `zapimoveis` e `olx` usam o Chromium (`driver: 'puppet'`) porque o `axios` recebe `403`.
+Portais enormes (`casamineira`, `chavesnamao`, `imovelweb`, `vivareal`, `zapimoveis`, `olx`) têm `maxPages` por site para limitar o custo de cada scraping. `zapimoveis`, `vivareal`, `imovelweb` e `olx` usam o Chromium (`driver: 'puppet'`) porque o `axios` recebe `403`.
 
 ## Instalação
 
