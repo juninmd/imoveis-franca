@@ -292,7 +292,12 @@ export const Home = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 relative">
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex-1 flex flex-col min-w-0 relative"
+      >
         <ScrollToTop />
 
         {/* Floating Dark Mode Toggle for Hero */}
@@ -476,7 +481,7 @@ export const Home = () => {
                ))}
              </motion.div>
           ) : isError ? (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}><EmptyState
+            <EmptyState
                 icon={AlertCircle}
                 title="Erro ao carregar imóveis"
                 description="Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
@@ -484,9 +489,9 @@ export const Home = () => {
                     label: isFetching ? 'Tentando...' : 'Tentar novamente',
                     onClick: () => { void refetch(); }
                 }}
-            /></motion.div>
+            />
           ) : sortedImoveis.length === 0 ? (
-             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}><EmptyState
+             <EmptyState
                 icon={Search}
                 title="Nenhum imóvel encontrado"
                 description={
@@ -508,7 +513,7 @@ export const Home = () => {
                     ? { label: 'Limpar Filtros', onClick: clearFilters }
                     : undefined
                 }
-             /></motion.div>
+             />
           ) : (
             <VirtuosoGrid
               useWindowScroll
@@ -539,7 +544,7 @@ export const Home = () => {
             />
           )}
         </div>
-      </main>
+      </motion.main>
 
       <AnimatePresence>
         {showScroll && (
