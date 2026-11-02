@@ -231,7 +231,8 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
-    const content = await retrieveContent(link, site, requestParams, requestPayload);
+    // Com URL completa a query ja esta em `link`; repassar `params` ao axios a repetia (duplicada, o servidor responde 500).
+    const content = await retrieveContent(link, site, paginateParams.url ? undefined : requestParams, requestPayload);
 
     const { imoveis, qtd } = (await site.adapter(content));
 

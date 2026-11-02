@@ -128,3 +128,19 @@ describe('site sem "params" declarado', () => {
     expect(result).toHaveLength(1);
   });
 });
+
+describe('URL completa vinda do getPaginateParams', () => {
+  // O pipeline anexava a query na URL e o axios_rest a repetia via `params`: o servidor respondia 500.
+  it('nao repassa params ao axios_rest, so a URL ja montada', async () => {
+    (axios.request as jest.Mock).mockReset().mockResolvedValue({ data: { ok: true } });
+    const site = {
+      ...bandSite(async () => ({ imoveis: [{ titulo: 'x', link: 'l' } as never], qtd: 1 })),
+      driver: 'axios_rest', method: 'GET', appendParams: false, params: [{ sort: 'recent' }],
+      getPaginateParams: (_page: number, variant?: { sort: string }) => ({ url: `http://bands.example.com/api?sort=${variant?.sort}` }),
+    } as unknown as Site;
+    await retrieImoveisSite(site, {} as never);
+    const call = (axios.request as jest.Mock).mock.calls[0][0];
+    expect(call.url).toBe('http://bands.example.com/api?sort=recent');
+    expect(call.params).toBeUndefined();
+  });
+});

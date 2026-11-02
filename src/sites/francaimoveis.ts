@@ -7,7 +7,9 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
   const imoveis: Imoveis[] = [];
 
   const cards = $('.search-detail-right-img-area').parent();
-  const qtd = parseInt($('.search-pageing.pagination').find('a[href*="#"]').last().text()) * 20 || cards.length;
+  // O ultimo link e "Proximo" (NaN): a ultima pagina e o maior numero entre os links.
+  const lastPage = Math.max(0, ...$('.search-pageing.pagination a').map((_i, el) => parseInt($(el).text(), 10) || 0).get());
+  const qtd = lastPage * 20 || cards.length;
 
   cards.each((_, el) => {
     try {
@@ -75,26 +77,26 @@ export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: 
   return { imoveis, qtd, html };
 };
 
+const URL = 'https://www.francaimoveis.net/imoveis/a-venda/franca';
+
+// A paginacao e um POST de formulario (page=N); com GET toda pagina devolvia a primeira.
 const francaimoveis: Site = {
-  driver: 'axios',
+  driver: 'axios_rest',
+  method: 'POST',
   enabled: true,
   tipo: 'venda',
   name: 'francaimoveis.net',
-  url: 'https://www.francaimoveis.net/imoveis/a-venda/franca',
+  url: URL,
   itemsPerPage: 20,
+  payload: { page: 1, order: 'destaque' },
+  axiosConfig: { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124 Safari/537.36' } },
   adapter,
   translateParams: {
     currentPage: 'page',
     maxPrice: undefined,
     minPrice: undefined,
   },
-  getPaginateParams: (page: number) => {
-    return {
-      method: 'POST',
-      url: 'https://www.francaimoveis.net/imoveis/a-venda/franca',
-      data: `page=${page}&order=destaque`
-    };
-  }
+  getPaginateParams: (page: number) => ({ url: URL, payload: { page, order: 'destaque' } }),
 };
 
 export default francaimoveis;

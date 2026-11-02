@@ -5,7 +5,7 @@ describe('unicafrancaimoveis Site', () => {
     it('should have correct configuration', () => {
         expect(site.name).toContain('unicafrancaimoveis');
         expect(site.driver).toBe('axios');
-        expect(site.getPaginateParams(2)).toBeDefined();
+        expect(site.getPaginateParams(2)).toEqual({ url: 'https://www.unicafrancaimoveis.com.br/imovel/?finalidade=venda&pag=2' });
     });
 
     it('should parse an empty HTML successfully', async () => {
@@ -38,6 +38,7 @@ describe('unicafrancaimoveis Site', () => {
         </html>
         `;
         const result = await adapter(html);
+        expect(result.qtd).toBe(25); // total desconhecido: estimativa de paginas, nao a contagem do cartao
         expect(result.imoveis.length).toBe(1);
         expect(result.imoveis[0].titulo).toBe('TERRENO A VENDA NO JARDIM LUIZA EM FRANCA - SP, FRANCA / SP');
         expect(result.imoveis[0].valor).toBe(150000);
