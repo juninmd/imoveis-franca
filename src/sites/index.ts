@@ -145,7 +145,7 @@ export const sites: Site[] = [
 
   acropoleimoveis,
   jardiniimoveis as unknown as Site,
-  jedisonimoveis as unknown as Site,
+  ...jedisonimoveis,
 
   liderimobiliaria as unknown as Site,
   imobiliariazanetti as unknown as Site,
@@ -177,7 +177,7 @@ export const sites: Site[] = [
   oasisimobiliaria,
   matriz as unknown as Site,
   imobiliarialemos,
-  c15imob, ...aacosta as unknown as Site[], agnelloimoveis, imoveisfranca, espaconobreimoveis,
+  ...c15imob, ...aacosta as unknown as Site[], agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
   botelhoimobiliaria, unioconimobiliaria, imobiliariaplano,
   transacaoimobiliaria, conectaassesconimoveis, gpsnegociosimobiliarios,

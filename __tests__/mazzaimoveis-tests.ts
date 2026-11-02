@@ -32,4 +32,13 @@ describe('Mazza Imoveis Adapter', () => {
     expect(site.url).toBe('https://www.mazzaimoveis.com.br/busca/venda/BR/SP/franca');
     expect(site.getPaginateParams(2)).toEqual({ params: { pagina: 2 } });
   });
+
+  // O site passou a numerar as linhas do payload em hexadecimal ("3a:"); exigir so digitos perdia a listagem toda.
+  it('should find the listing when the payload line id is hexadecimal', async () => {
+    const item = '{\\"recordType\\":\\"property\\",\\"absoluteUrl\\":\\"https://mazzaimoveis.com.br/imovel/9/x\\",\\"name\\":\\"Casa\\",\\"prices\\":{\\"sale_price\\":300000},\\"features\\":{},\\"address\\":{\\"neighborhood\\":\\"Centro\\"},\\"photos\\":[]}';
+    const html = '<script>self.__next_f.push([1,"3a:{\\"items\\":[' + item + '],\\"total\\":1}"])</script>';
+    const result = await adapter(html);
+    expect(result.imoveis).toHaveLength(1);
+    expect(result.imoveis[0].valor).toBe(300000);
+  });
 });

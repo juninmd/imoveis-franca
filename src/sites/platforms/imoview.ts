@@ -19,10 +19,13 @@ const baseForm = (finalidade: Tipo): Record<string, string | number> => ({
   finalidade, codigounidade: '', codigocondominio: 0, codigoproprietario: 0, codigocaptador: 0, codigosimovei: 0, codigocidade: 0, codigoregiao: 0,
   'bairros[0][cidade]': '', 'bairros[0][codigo]': '', 'bairros[0][estado]': '', 'bairros[0][estadoUrl]': '', 'bairros[0][nome]': 'Todos', 'bairros[0][nomeUrl]': 'todos-os-bairros', 'bairros[0][regiao]': '',
   endereco: '', edificio: '', numeroquartos: 0, numerovagas: 0, numerobanhos: 0, numerosuite: 0, numerovaranda: 0, numeroelevador: 0,
-  valorde: 0, valorate: 0, areade: 0, areaate: 0, areaexternade: 0, areaexternaate: 0, extras: '', destaque: 0,
+  valorde: 0, valorate: 0, areade: 0, areaate: 0, areaexternade: 0, areaexternaate: 0, destaque: 0,
   'opcaoimovel[codigo]': 0, 'opcaoimovel[nome]': '', 'opcaoimovel[nomeUrl]': 'todas-as-opcoes', codigoOpcaoimovel: 0,
   numeropagina: 1, numeroregistros: PAGE_SIZE, ordenacao: 'dataatualizacaodesc',
   'condominio[codigo]': 0, 'condominio[nome]': '', 'condominio[nomeUrl]': 'todos-os-condominios',
+  // Alguns tenants (ex.: C15) respondem um aviso de PHP em HTML quando estes dois faltam e quando
+  // `extras` vai como string (o PHP espera array); por isso `extras` nao e enviado.
+  retornomapaapp: 'false', codigoempreendimentomae: '',
 });
 
 const toNumber = (text = ''): number => getFixValue(text.replace(/[^\d.,]/g, ''));
