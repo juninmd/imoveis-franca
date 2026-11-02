@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Home, DollarSign, Maximize, MapPin, X, Check, Grid, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TIPOS_IMOVEL } from '../hooks/useSearchState';
 
 interface FilterSidebarProps {
   filters: {
@@ -17,6 +18,8 @@ interface FilterSidebarProps {
     maxAreaTotal: string;
     address: string[];
     sites: string[];
+    tipoImovel: string[];
+    q: string;
   };
   setFilters: React.Dispatch<React.SetStateAction<FilterSidebarProps['filters']>>;
   addresses: string[];
@@ -110,6 +113,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
     });
   };
 
+const toggleTipoImovel = (tipoImovel: string) => {
+    setFilters(prev => {
+      const current = prev.tipoImovel || [];
+      return { ...prev, tipoImovel: current.includes(tipoImovel) ? current.filter(t => t !== tipoImovel) : [...current, tipoImovel] };
+    });
+  };
+
 /* v8 ignore start */
   const toggleSite = (site: string) => {
     setFilters(prev => {
@@ -145,7 +155,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
   const labelClass = "text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-1.5 block cursor-pointer";
 
   return (
-    <div className="flex flex-col h-full"><div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-4 font-bold text-gray-800 dark:text-gray-200 shadow-sm flex justify-between items-center"><span>Filtros</span>{filters.minPrice || filters.maxPrice || filters.minBedrooms || filters.minBathrooms || filters.minVacancies || filters.minArea || filters.maxArea || filters.minAreaTotal || filters.maxAreaTotal || filters.address.length > 0 ? <button onClick={() => setFilters({tipo: "venda", minPrice: "", maxPrice: "", minBedrooms: "", minBathrooms: "", minVacancies: "", minArea: "", maxArea: "", minAreaTotal: "", maxAreaTotal: "", address: [], sites: []})} className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider hover:underline">Limpar</button> : null}</div><div className="p-5 space-y-2 flex-1 overflow-y-auto">
+    <div className="flex flex-col h-full"><div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-4 font-bold text-gray-800 dark:text-gray-200 shadow-sm flex justify-between items-center"><span>Filtros</span>{filters.minPrice || filters.maxPrice || filters.minBedrooms || filters.minBathrooms || filters.minVacancies || filters.minArea || filters.maxArea || filters.minAreaTotal || filters.maxAreaTotal || filters.address.length > 0 || (filters.tipoImovel || []).length > 0 || filters.q ? <button onClick={() => setFilters({tipo: "venda", minPrice: "", maxPrice: "", minBedrooms: "", minBathrooms: "", minVacancies: "", minArea: "", maxArea: "", minAreaTotal: "", maxAreaTotal: "", address: [], sites: [], tipoImovel: [], q: ""})} className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider hover:underline">Limpar</button> : null}</div><div className="p-5 space-y-2 flex-1 overflow-y-auto">
 
       {/* Price */}
       <CollapsibleSection
@@ -362,6 +372,46 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
         </div>
       </CollapsibleSection>
 
+      {/* Tipo de imóvel e busca por palavra */}
+      <CollapsibleSection
+        title={<><Search size={14} className="text-teal-500" /> Tipo e palavra-chave</>}
+        hasValue={(filters.tipoImovel || []).length > 0 || !!filters.q}
+        onReset={() => setFilters(prev => ({ ...prev, tipoImovel: [], q: '' }))}
+      >
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Tipo de imóvel">
+            {TIPOS_IMOVEL.map(tipo => {
+              const selected = (filters.tipoImovel || []).includes(tipo);
+              return (
+                <button
+                  key={tipo}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleTipoImovel(tipo)}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-colors',
+                    selected
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-400',
+                  )}
+                >
+                  {tipo}
+                </button>
+              );
+            })}
+          </div>
+          <input
+            type="search"
+            aria-label="Buscar por palavra-chave"
+            placeholder="Ex.: piscina, edícula, código"
+            maxLength={100}
+            value={filters.q || ''}
+            onChange={e => setFilters(prev => ({ ...prev, q: e.target.value }))}
+            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </CollapsibleSection>
+
 /* v8 ignore start */
       {/* Sites */}
       <CollapsibleSection
@@ -446,7 +496,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             minPrice: '', maxPrice: '',
             minBedrooms: '', minBathrooms: '', minVacancies: '',
             minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '',
-            address: [], sites: []
+            address: [], sites: [], tipoImovel: [], q: ''
           })}
           className="w-full py-3 px-4 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.98] border border-red-100 dark:border-red-900/30 group"
         >

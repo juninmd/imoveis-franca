@@ -95,6 +95,46 @@ import francaempreendimentos from "./francaempreendimentos";
 import novaaliancaimoveis from './novaaliancaimoveis';
 import imobiliariaatual from './imobiliariaatual';
 import moraremfranca from "./moraremfranca";
+import imobiliariaestillo from "./imobiliariaestillo";
+import imobiliariafabioliporoni from "./imobiliariafabioliporoni";
+import casamineira from "./casamineira";
+import zapimoveis from "./zapimoveis";
+import olx from "./olx";
+import chavesnamao from "./chavesnamao";
+import imovelweb from "./imovelweb";
+import vivareal from "./vivareal";
+import ferreiraferreiraimob from "./ferreiraferreiraimob";
+import soldimob from "./soldimob";
+import belavistarp from "./belavistarp";
+import s2iinteligenciaimobiliaria from "./s2iinteligenciaimobiliaria";
+import menezesimobi from "./menezesimobi";
+import imobiliariavale from "./imobiliariavale";
+import mudare from "./mudare";
+import begimoveissp from "./begimoveissp";
+import colibexsites from "./colibexsites";
+import vivendanegociosimob from "./vivendanegociosimob";
+import jresendeimoveis from "./jresendeimoveis";
+import diasediasimobiliaria from "./diasediasimobiliaria";
+import soniaeramalhoimoveis from "./soniaeramalhoimoveis";
+import ispernassifimobiliaria from "./ispernassifimobiliaria";
+import nbimobiliaria from "./nbimobiliaria";
+import atitudeimoveisoficial from "./atitudeimoveisoficial";
+import olafranca from "./olafranca";
+import camargoimoveisfranca from "./camargoimoveisfranca";
+import jlimoveisfranca from "./jlimoveisfranca";
+import goncalvesdonzelli from "./goncalvesdonzelli";
+import patrimoniosimob from "./patrimoniosimob";
+import senhorferreira from "./senhorferreira";
+import ednaimoveis from "./ednaimoveis";
+import vencerimoveis from "./vencerimoveis";
+import imoveismorar from "./imoveismorar";
+import aluvend from "./aluvend";
+import loft from "./loft";
+import chavecertafranca from "./chavecertafranca";
+import vitalizeimoveisfrancasp from "./vitalizeimoveisfrancasp";
+import lcastroimoveis from "./lcastroimoveis";
+import jlbarcellosimoveis from "./jlbarcellosimoveis";
+
 export const sites: Site[] = [
   moraremfranca as unknown as Site,
   imobiliariapereira as unknown as Site,
@@ -159,4 +199,43 @@ export const sites: Site[] = [
   francaempreendimentos as unknown as Site,
 novaaliancaimoveis,
   imobiliariaatual,
+  imobiliariaestillo,
+  imobiliariafabioliporoni,
+  ...casamineira,
+  ...zapimoveis,
+  ...olx,
+  ...chavesnamao,
+  ...imovelweb,
+  ...vivareal,
+  ferreiraferreiraimob,
+  ...soldimob,
+  belavistarp,
+  s2iinteligenciaimobiliaria,
+  ...menezesimobi,
+  ...imobiliariavale,
+  ...mudare,
+  begimoveissp,
+  ...colibexsites,
+  ...vivendanegociosimob,
+  ...jresendeimoveis,
+  ...diasediasimobiliaria,
+  ...soniaeramalhoimoveis,
+  ...ispernassifimobiliaria,
+  ...nbimobiliaria,
+  atitudeimoveisoficial,
+  ...olafranca,
+  camargoimoveisfranca,
+  jlimoveisfranca,
+  ...goncalvesdonzelli,
+  ...patrimoniosimob,
+  ...senhorferreira,
+  ...ednaimoveis,
+  vencerimoveis,
+  ...imoveismorar,
+  ...aluvend,
+  ...loft,
+  ...chavecertafranca,
+  vitalizeimoveisfrancasp,
+  ...lcastroimoveis,
+  ...jlbarcellosimoveis,
 ] as unknown as Site[];

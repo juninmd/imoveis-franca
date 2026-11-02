@@ -48,3 +48,31 @@ export function normalizeNeighborhoodName(name: string = ''): string {
 export function cleanTitle(title: string = ''): string {
    return title.replace(/\s+/g, ' ').trim();
 }
+
+export function normalizeText(text: string = ''): string {
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// A ordem importa: o primeiro padrao que casa vence ("chacara com casa" e rural, nao casa).
+const TIPOS_IMOVEL: Array<[string, RegExp]> = [
+  ['rural', /\b(chacara|sitio|fazenda|rancho|haras)\b/],
+  ['apartamento', /\b(apartamento|apto|flat|kitnet|kitinete|studio|cobertura)\b/],
+  ['casa', /\b(casa|sobrado|residencia|edicula)\b/],
+  ['terreno', /\b(terreno|lote|loteamento|area)\b/],
+  ['comercial', /\b(sala|salao|comercial|loja|galpao|barracao|predio|ponto)\b/],
+];
+
+/** Classifica o anuncio por palavras do titulo; vazio quando nao reconhece. */
+export function inferTipoImovel(text: string = ''): string {
+  const normalized = normalizeText(text);
+  const match = TIPOS_IMOVEL.find(([, pattern]) => pattern.test(normalized));
+  return match ? match[0] : '';
+}
+
+export function safeUrl(href: string, base: string): URL | null {
+  try {
+    return new URL(href, base);
+  } catch {
+    return null;
+  }
+}

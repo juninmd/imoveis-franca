@@ -15,6 +15,8 @@ export interface Imovel {
   entrada: number;
   valorMedioBairroPorAreaTotal: number;
   tipo: 'venda' | 'aluguel' | 'ambos';
+  codigo?: string;
+  tipoImovel?: string;
 }
 
 export interface ApiParsedResponse {

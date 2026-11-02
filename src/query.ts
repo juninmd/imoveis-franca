@@ -13,6 +13,8 @@ export interface QueryFilters {
   address?: string[];
   sites?: string[];
   tipo?: 'venda' | 'aluguel';
+  tipoImovel?: string[];
+  q?: string;
 }
 
 const PRICE_STEP = 50000;
@@ -67,6 +69,11 @@ const toStringList = (raw: unknown): string[] | undefined => {
   return list.length > 0 ? list : undefined;
 };
 
+const toSearchText = (raw: unknown): string | undefined => {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return typeof value === 'string' && value.trim() !== '' ? value.trim().slice(0, 100) : undefined;
+};
+
 export const parseFilters = (raw: any = {}): QueryFilters => {
   const tipo = Array.isArray(raw.tipo) ? raw.tipo[0] : raw.tipo;
 
@@ -83,6 +90,8 @@ export const parseFilters = (raw: any = {}): QueryFilters => {
     address: toAddressList(raw.address),
     sites: toStringList(raw.sites),
     tipo: tipo === 'venda' || tipo === 'aluguel' ? tipo : undefined,
+    tipoImovel: toStringList(raw.tipoImovel)?.map(v => v.toLowerCase()),
+    q: toSearchText(raw.q),
   };
 };
 
