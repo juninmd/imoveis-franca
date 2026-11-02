@@ -4,7 +4,6 @@ import pauloborgesimoveis from "./pauloborgesimoveis";
 import imobiliariapereira from "./imobiliariapereira";
 import matrizimobiliaria from "./matriz";
 import munhozconsultorimobiliario from "./munhozconsultorimobiliario";
-import gnimoveis from "./gnimoveis";
 import imoveisemfranca from "./imoveisemfranca";
 import liderimobiliaria from "./liderimobiliaria";
 import imobiliariazanetti from "./imobiliariazanetti";
@@ -92,8 +91,6 @@ import jedisonimoveis from "./jedisonimoveis";
 import imobiliariafranca from "./imobiliariafranca";
 import aliancaimoveisfranca from "./aliancaimoveisfranca";
 import francaempreendimentos from "./francaempreendimentos";
-import novaaliancaimoveis from './novaaliancaimoveis';
-import imobiliariaatual from './imobiliariaatual';
 import moraremfranca from "./moraremfranca";
 import imobiliariaestillo from "./imobiliariaestillo";
 import imobiliariafabioliporoni from "./imobiliariafabioliporoni";
@@ -195,12 +192,9 @@ export const sites: Site[] = [
   ...imoveismpb as unknown as Site[],
   imoveisemfranca,
   luanaimoveis as unknown as Site, wi7imobiliaria as unknown as Site, fortscunha as unknown as Site,
-  gnimoveis,
   munhozconsultorimobiliario as unknown as Site,
   matrizimobiliaria as unknown as Site,
   francaempreendimentos as unknown as Site,
-novaaliancaimoveis,
-  imobiliariaatual,
   imobiliariaestillo,
   imobiliariafabioliporoni,
   ...casamineira,
