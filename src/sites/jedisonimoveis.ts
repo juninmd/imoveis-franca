@@ -1,87 +1,76 @@
 import * as cheerio from 'cheerio';
-import { Imoveis, Site } from '../types';
-import { normalizeNeighborhoodName, getFixValue } from '../utils';
+import { Imoveis } from '../types';
+import { cleanTitle, getFixValue, inferTipoImovel, normalizeNeighborhoodName } from '../utils';
+import { buildPortalSites } from './platforms/portal';
 
-export default {
-  enabled: true,
-  tipo: 'venda',
-  url: 'https://www.jedisonimoveis.com.br/imoveis/a-venda/franca',
-  name: 'jedisonimoveis.com.br',
-  driver: 'puppet',
-  itemsPerPage: 12,
-  params: [],
-  getPaginateParams: (page: number) => {
-    return { url: `https://www.jedisonimoveis.com.br/imoveis/a-venda/franca?pagina=${page}` };
-  },
-  adapter,
-} as Site;
+const HOST = 'https://www.jedisonimoveis.com.br';
+const PAGE_SIZE = 12;
+const MIN_VALID_PRICE = 100;
+const PATH = /^\/(comprar|alugar)\/sp\/franca\/([^/]+)\/([^/]+)\/(\d+)\/?$/;
 
-export async function adapter(html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
+const toNumber = (text = ''): number => getFixValue(text.replace(/[^\d.,]/g, ''));
+
+// Tokko (template "resultado_lista"), renderizado no servidor: /comprar e /alugar paginam em /pagina-N/.
+// Alem do fim da lista a pagina repete 2 cartoes de destaque, entao o total vem dos links de paginacao.
+export async function parseJedison(html: string, siteName: string, host: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> {
   const $ = cheerio.load(html);
+  const aluguel = siteName.endsWith('Alugar');
   const imoveis: Imoveis[] = [];
-  let qtd = 0;
+  const pages = $('a[href*="pagina-"]').map((_i, a) => parseInt(($(a).attr('href') || '').match(/pagina-(\d+)/)?.[1] ?? '0', 10)).get();
 
-  const items = $('.box_imovel');
-  if (qtd === 0 && items.length > 0) {
-      // Find pagination
-      const lastPageLink = $('.paginacao a').last().attr('href');
-      if (lastPageLink) {
-         const m = lastPageLink.match(/pagina=(\d+)/);
-         if (m) {
-             qtd = parseInt(m[1], 10) * 12;
-         }
-      }
-      if (qtd === 0) qtd = items.length;
-  }
+  $('.resultado_lista').each((_i, el) => {
+    const card = $(el);
+    const path = card.find('a[href*="/sp/franca/"]').first().attr('href') || '';
+    const match = path.match(PATH);
+    if (!match || (match[1] === 'alugar') !== aluguel) return;
 
-  items.each((_, el) => {
-      const title = $(el).find('h2.titulo_imovel, .titulo_imovel').text().trim() || 'Imóvel';
+    // A pagina de venda mistura cartoes de locacao: vale o rotulo do bloco de valor.
+    const valor = toNumber(card.find('.valor h5').first().text());
+    // "R$ 1,00" e o placeholder de "sob consulta".
+    if (valor < MIN_VALID_PRICE) return;
 
-      const priceStr = $(el).find('.valor_imovel, .preco').text().trim();
-      const valorStr = priceStr.replace(/[^\d,.]/g, '').replace(/\./g, '');
-      const valor = getFixValue(valorStr);
+    const detalhes = card.find('.detalhes').text().replace(/\s+/g, ' ');
+    const count = (word: RegExp): number => parseInt((detalhes.match(word) || [])[1] ?? '0', 10) || 0;
+    // Area "1,00" e placeholder; a construida tem preferencia sobre a total.
+    const areaOf = (suffix: RegExp): number => { const n = toNumber((detalhes.match(suffix) || [])[1]); return n > 1 ? n : 0; };
+    const area = areaOf(/([\d.,]+)\s*m² constru/i) || areaOf(/([\d.,]+)\s*m² total/i);
+    const titulo = cleanTitle(card.find('h3.tipo').text());
+    const bairro = card.find('h4.localizacao span').text().split(' - ')[0];
+    const imagens = card.find('[data-img]').map((_j, d) => $(d).attr('data-img') || '').get().filter(Boolean);
 
-      const image = $(el).find('img').attr('data-src') || $(el).find('img').attr('src') || '';
-
-      const text = $(el).text();
-      const mBed = text.match(/(\d+)\s*Quarto/i) || text.match(/(\d+)\s*Dormitório/i);
-      const bed = mBed ? parseInt(mBed[1], 10) : 0;
-
-      const mBath = text.match(/(\d+)\s*Banheiro/i) || text.match(/(\d+)\s*Suite/i) || text.match(/(\d+)\s*Suíte/i);
-      const bath = mBath ? parseInt(mBath[1], 10) : 0;
-
-      const mCar = text.match(/(\d+)\s*Vaga/i);
-      const garage = mCar ? parseInt(mCar[1], 10) : 0;
-
-      let area = 0;
-      const mArea = text.match(/(\d+)\s*m²/i);
-      if (mArea) area = parseInt(mArea[1], 10);
-
-      const endStr = $(el).find('.bairro_imovel, .endereco_imovel').text().trim();
-      const endereco = normalizeNeighborhoodName(endStr.split('-')[0].trim());
-
-      const href = $(el).find('a').attr('href');
-      const link = href ? (href.startsWith('http') ? href : `https://www.jedisonimoveis.com.br${href}`) : 'https://www.jedisonimoveis.com.br/link';
-
-      if (valor > 0) {
-          imoveis.push({
-            titulo: title,
-            descricao: '',
-            imagens: [image].filter(Boolean),
-            endereco,
-            valor,
-            area,
-            areaTotal: area,
-            quartos: bed,
-            banheiros: bath,
-            vagas: garage,
-            link,
-            precoPorMetro: area > 0 ? valor / area : 0,
-            site: 'jedisonimoveis.com.br',
-            entrada: valor * 0.20
-          });
-      }
+    imoveis.push({
+      titulo,
+      descricao: cleanTitle(card.find('.descricao').text()),
+      imagens: [...new Set(imagens)],
+      endereco: normalizeNeighborhoodName(bairro || match[2].replace(/-/g, ' ')),
+      valor,
+      area,
+      areaTotal: area,
+      quartos: count(/(\d+)\s*dormit/i),
+      banheiros: count(/(\d+)\s*banh/i),
+      vagas: count(/(\d+)\s*vaga/i),
+      link: `${host}${path}`,
+      precoPorMetro: area > 0 ? valor / area : 0,
+      site: siteName,
+      entrada: valor * 0.20,
+      codigo: cleanTitle(card.find('.referencia').text()) || undefined,
+      tipoImovel: inferTipoImovel(match[3].replace(/-/g, ' ')) || undefined,
+    });
   });
 
-  return { imoveis, qtd, html };
+  const lastPage = pages.length > 0 ? Math.max(...pages) : 1;
+  return { imoveis, qtd: lastPage * PAGE_SIZE, html };
 }
+
+const base = (tipo: string) => `${HOST}/${tipo === 'venda' ? 'comprar' : 'alugar'}`;
+
+export default buildPortalSites({
+  host: HOST,
+  label: 'jedisonimoveis.com.br',
+  pageSize: PAGE_SIZE,
+  maxPages: 60,
+  driver: 'axios',
+  parser: parseJedison,
+  firstPageUrl: base,
+  pageUrl: (tipo, page) => `${base(tipo)}/pagina-${page}/`,
+});
