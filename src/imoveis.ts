@@ -218,7 +218,7 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
       }
     }
 
-    const paginateParams = site.getPaginateParams(page);
+    const paginateParams = site.getPaginateParams(page, requestParams);
     let requestPayload = site.payload;
     if (site.payload) {
       requestPayload = { ...site.payload, ...paginateParams.payload };

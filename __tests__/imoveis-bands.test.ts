@@ -91,3 +91,29 @@ describe('buildPortalSites com faixas', () => {
     expect(aluguel).toMatchObject({ params: [], appendParams: false });
   });
 });
+
+describe('listagens por variante (tipo de imovel)', () => {
+  const config = {
+    host: 'https://p.example.com', label: 'p.example.com', pageSize: 10, maxPages: 5, driver: 'axios' as const,
+    parser: async () => ({ imoveis: [], qtd: 0, html: '' }), firstPageUrl: () => 'https://p.example.com/todos.html', pageUrl: (_t: unknown, page: number) => `https://p.example.com/todos-${page}.html`,
+    variants: (tipo: string) => (tipo === 'venda' ? [{ type: 'casas' }, { type: 'terrenos' }] : undefined),
+    variantPageUrl: (_t: unknown, page: number, { type }: Record<string, string>) => `https://p.example.com/${type}${page > 1 ? `-${page}` : ''}.html`,
+  };
+
+  it('a finalidade com variantes recebe params; a URL vem da variante, sem anexar query', () => {
+    const [venda, aluguel] = buildPortalSites(config);
+    expect(venda.params).toEqual([{ type: 'casas' }, { type: 'terrenos' }]);
+    expect(venda.appendParams).toBe(false);
+    expect(venda.getPaginateParams(1, { type: 'casas' }).url).toBe('https://p.example.com/casas.html');
+    expect(venda.getPaginateParams(3, { type: 'terrenos' }).url).toBe('https://p.example.com/terrenos-3.html');
+    expect(venda.getPaginateParams(2).url).toBe('https://p.example.com/todos-2.html');
+    expect(aluguel.params).toEqual([]);
+  });
+
+  it('o pipeline entrega a variante da vez ao getPaginateParams e varre cada uma', async () => {
+    (axios.get as jest.Mock).mockReset().mockResolvedValue({ data: 'html' });
+    const [venda] = buildPortalSites({ ...config, parser: async () => ({ imoveis: [{ titulo: 'x' } as never], qtd: 1, html: '' }) });
+    await retrieImoveisSite(venda, {} as never);
+    expect((axios.get as jest.Mock).mock.calls.map(c => c[0])).toEqual(['https://p.example.com/casas.html', 'https://p.example.com/terrenos.html']);
+  });
+});
