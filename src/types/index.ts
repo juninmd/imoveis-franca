@@ -33,6 +33,7 @@ export interface Site {
   link?: string,
   translateParams?: { currentPage: string; maxPrice: string; minPrice: string },
   params?: any[],
+  appendParams?: boolean, // Anexa `params` a URL devolvida por getPaginateParams (faixas de preco em portais)
   itemsPerPage: number,
   maxPages?: number, // Teto de paginas para portais enormes (milhares de anuncios)
   getPaginateParams: (page: number) => { payload?: any, params?: any, path?: any, url?: string },
