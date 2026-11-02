@@ -64,6 +64,7 @@ import altagalleria from "./altagalleria";
 import magnaimoveis from "./magnaimoveis";
 import locallizegoldimob from "./locallizegoldimob";
 import habitesefranca from "./habitesefranca";
+import imobiliariaatual from "./imobiliariaatual";
 import mercadoimoveisfranca from "./mercadoimoveisfranca";
 import rochacoimbraimoveis from "./rochacoimbraimoveis";
 import aferreiraimoveis from "./aferreiraimoveis";
@@ -150,6 +151,7 @@ export const sites: Site[] = [
   imobiliariazanetti as unknown as Site,
   imobiliariazago as unknown as Site,
   imobiliariamartins as unknown as Site,
+  ...imobiliariaatual,
 
   rrandradeimoveis as unknown as Site,
   imobiliariaindependencia as unknown as Site,
