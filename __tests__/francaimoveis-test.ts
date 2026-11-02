@@ -37,4 +37,17 @@ describe('francaimoveis.net adapter', () => {
         expect(res.imoveis[0].link).toBe('https://www.francaimoveis.net/details/apartamento/123');
         expect(res.imoveis[0].imagens).toEqual(['https://www.francaimoveis.net/img/foto.jpg']);
     });
+
+    it('a ultima pagina e o maior numero dos links (o ultimo link e "Proximo")', async () => {
+        const html = '<ul class="search-pageing pagination"><li><a href="#">Anterior</a></li><li><a href="#">1</a></li><li><a href="#2">2</a></li><li><a href="#3">3</a></li><li><a href="#2">Proximo</a></li></ul>';
+        // Sem cartoes o total cai para 0 de qualquer forma: so o calculo da ultima pagina importa aqui.
+        const res = await francaimoveis.adapter(html);
+        expect(res.qtd).toBe(60);
+    });
+
+    it('pagina por POST de formulario: o numero da pagina vai no payload, nao na URL', () => {
+        expect(francaimoveis.driver).toBe('axios_rest');
+        expect(francaimoveis.method).toBe('POST');
+        expect(francaimoveis.getPaginateParams(3)).toEqual({ url: 'https://www.francaimoveis.net/imoveis/a-venda/franca', payload: { page: 3, order: 'destaque' } });
+    });
 });

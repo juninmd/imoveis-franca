@@ -2,12 +2,15 @@ import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName } from '../utils';
 
+const MAX_PAGES = 25;
+
 export const adapter = async (html: string): Promise<{ imoveis: Imoveis[], qtd: number, html: string }> => {
   const $ = cheerio.load(html);
   const imoveis: Imoveis[] = [];
 
   const cards = $('.imovelcard');
-  const qtd = cards.length;
+  // A listagem nao traz o total (so "1 2 3 ..."): estimativa acima das 21 paginas medidas; paginas alem do fim voltam vazias.
+  const qtd = cards.length > 0 ? cards.length * MAX_PAGES : 0;
 
   cards.each((_, el) => {
     try {
@@ -61,14 +64,15 @@ const unicafrancaimoveis: Site = {
   tipo: 'venda',
   name: 'unicafrancaimoveis.com.br',
   url: 'https://www.unicafrancaimoveis.com.br/imovel/?finalidade=venda',
-  itemsPerPage: 12,
+  itemsPerPage: 15,
   adapter,
   translateParams: {
     currentPage: 'pag',
     maxPrice: undefined,
     minPrice: undefined,
   },
-  getPaginateParams: (page: number) => { return { params: { pag: page } }; }
+  // A URL base ja tem "?finalidade=venda": anexar "?pag=N" como query a deixava malformada e repetia a pagina 1.
+  getPaginateParams: (page: number) => ({ url: `https://www.unicafrancaimoveis.com.br/imovel/?finalidade=venda&pag=${page}` })
 };
 
 export default unicafrancaimoveis;
