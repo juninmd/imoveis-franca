@@ -148,7 +148,7 @@ export const sites: Site[] = [
 
   acropoleimoveis,
   jardiniimoveis as unknown as Site,
-  jedisonimoveis as unknown as Site,
+  ...jedisonimoveis,
 
   liderimobiliaria as unknown as Site,
   imobiliariazanetti as unknown as Site,
