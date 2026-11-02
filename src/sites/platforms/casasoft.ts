@@ -42,7 +42,7 @@ export async function parseCasasoft(payload: any, siteName: string, _clientId: s
   if (typeof payload === 'string') {
     try {
       body = JSON.parse(payload);
-    } catch(e) {}
+    } catch(e) { /* ignore */ }
   }
 
   const imoveis: Imoveis[] = [];
