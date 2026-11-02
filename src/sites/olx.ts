@@ -15,8 +15,8 @@ const buildSite = (tipo: 'venda' | 'aluguel'): Site => {
     // axios leva 403 (fingerprint de TLS do Node); o Chromium do projeto passa.
     driver: 'puppet',
     itemsPerPage: PAGE_SIZE,
-    // Milhares de anuncios; as paginas seguintes so repetem o padrao das primeiras.
-    maxPages: 20,
+    // ~100 paginas de 50 anuncios; todas respondem.
+    maxPages: 100,
     params: [],
     getPaginateParams: (page: number) => ({ url: page > 1 ? `${base}?o=${page}` : base }),
     adapter: (html: string) => adapter(html, name),

@@ -16,8 +16,8 @@ const buildSite = (tipo: 'venda' | 'aluguel'): Site => {
     name,
     driver: 'axios',
     itemsPerPage: PAGE_SIZE,
-    // Milhares de anuncios, 15 por pagina: o teto mantem o scraping em ~600 anuncios.
-    maxPages: 40,
+    // Milhares de anuncios, 15 por pagina; a partir da pagina 100 o site devolve 403.
+    maxPages: 99,
     axiosConfig: { headers: { 'User-Agent': UA } },
     params: [],
     getPaginateParams: (page: number) => ({ url: page > 1 ? `${base}?pg=${page}` : base }),

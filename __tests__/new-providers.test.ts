@@ -190,7 +190,7 @@ describe('zapimoveis', () => {
     expect(zap.map(s => s.tipo)).toEqual(['venda', 'aluguel']);
     expect(zap[0].getPaginateParams(1).url).toBe('https://www.zapimoveis.com.br/venda/imoveis/sp+franca/');
     expect(zap[1].getPaginateParams(2).url).toBe('https://www.zapimoveis.com.br/aluguel/imoveis/sp+franca/?pagina=2');
-    expect(zap[0].maxPages).toBeLessThanOrEqual(30);
+    expect(zap[0].maxPages).toBeLessThanOrEqual(55);
   });
 
   it('o adapter do site grava o nome do site no anuncio', async () => {
@@ -257,7 +257,7 @@ describe('olx', () => {
     expect(olx.map(s => s.tipo)).toEqual(['venda', 'aluguel']);
     expect(olx[0].getPaginateParams(1).url).toContain('/imoveis/venda/estado-sp/regiao-de-ribeirao-preto/franca');
     expect(olx[1].getPaginateParams(3).url).toBe('https://www.olx.com.br/imoveis/aluguel/estado-sp/regiao-de-ribeirao-preto/franca?o=3');
-    expect(olx[0].maxPages).toBeLessThanOrEqual(20);
+    expect(olx[0].maxPages).toBeLessThanOrEqual(100);
   });
 
   it('o adapter do site grava o nome do site no anuncio', async () => {
@@ -317,7 +317,7 @@ describe('chavesnamao', () => {
     expect(chaves.map(s => s.tipo)).toEqual(['venda', 'aluguel']);
     expect(chaves[0].getPaginateParams(1).url).toBe('https://www.chavesnamao.com.br/imoveis-a-venda/sp-franca/');
     expect(chaves[1].getPaginateParams(3).url).toBe('https://www.chavesnamao.com.br/imoveis-para-alugar/sp-franca/?pg=3');
-    expect(chaves[0].maxPages).toBeLessThanOrEqual(40);
+    expect(chaves[0].maxPages).toBeLessThanOrEqual(99);
     const { imoveis } = await chaves[1].adapter(chavesPage([offer()]));
     expect(imoveis[0].site).toBe('chavesnamao.com.br - Alugar');
   });

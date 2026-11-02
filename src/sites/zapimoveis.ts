@@ -11,7 +11,8 @@ export default buildPortalSites({
   host: HOST,
   label: 'zapimoveis.com.br',
   pageSize: 30,
-  maxPages: 30,
+  // O portal so serve ~50 paginas por busca (a 60 volta vazio), mesmo com milhares de anuncios.
+  maxPages: 55,
   driver: 'puppet',
   parser: parseZapGroupListings,
   firstPageUrl: base,
