@@ -129,6 +129,7 @@ import ednaimoveis from "./ednaimoveis";
 import vencerimoveis from "./vencerimoveis";
 import imoveismorar from "./imoveismorar";
 import aluvend from "./aluvend";
+import loft from "./loft";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -229,5 +230,6 @@ novaaliancaimoveis,
   vencerimoveis,
   ...imoveismorar,
   ...aluvend,
+  ...loft,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];
