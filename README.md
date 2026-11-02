@@ -84,6 +84,8 @@ Avaliados e **não adicionados**: Olá Franca (1 imóvel e nenhum aluguel, mesmo
 
 Mais três correções de providers que estavam em 0 ou só liam a página 1: o Jedison (Tokko, template `resultado_lista`, renderizado no servidor em `/comprar` e `/alugar` com `/pagina-N/`) foi reescrito e passou de 0 para 16 de venda e 35 de aluguel; o Mazza (Next.js/imobiu) perdeu a listagem porque o id das linhas do payload RSC passou a ser hexadecimal (`3a:{"items":[...`) e o regex só aceitava dígitos, e voltou com 60 anúncios; e o pipeline descartava o `params` de paginação de sites sem `params` próprios (`requestParams` indefinido), então Mazza, VLICIT, Parra e Imperador só buscavam a página 1 — agora a página entra na URL. Como a query já vai no `link`, ela também deixou de ser repassada ao axios.
 
+Matriz Imobiliária: o provider apontava para `matriz.site`, domínio expirado (a página diz "Your domain is expired"), e estava registrado duas vezes. O site vivo é `matrizimobiliaria.com.br` (Vista com template `card-imovel`, 24 por página, `?pagina=N`, 34 páginas); o `llms.txt` dele é só um índice editorial, não o catálogo, então o provider lê o HTML. Os cartões de Franca vêm sem cidade no título e só os das outras cidades trazem ", Cidade". Smoke: 687 anúncios de venda e 157 de aluguel (antes: 0), todos com imagem e área. Outros provedores em 0 sem causa corrigível: `cidadenovaimoveis.com.br` mostra "95 imóveis encontrados" mas não renderiza nenhum cartão (nem com JavaScript), `nbimobiliaria.com.br` não tem imóveis à venda no momento, e `imobiliariapimentafranca.com.br` não renderiza preços e ignora a paginação.
+
 ### Cache
 
 Cada site tem a sua entrada no Redis (`src/infra/site-cache.ts`):

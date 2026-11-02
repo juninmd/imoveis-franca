@@ -2,7 +2,6 @@ import novaesimoveis from "./novaesimoveis";
 import colinaimoveis from "./colinaimoveis";
 import pauloborgesimoveis from "./pauloborgesimoveis";
 import imobiliariapereira from "./imobiliariapereira";
-import matrizimobiliaria from "./matriz";
 import munhozconsultorimobiliario from "./munhozconsultorimobiliario";
 import imoveisemfranca from "./imoveisemfranca";
 import liderimobiliaria from "./liderimobiliaria";
@@ -175,7 +174,7 @@ export const sites: Site[] = [
   rochacoimbraimoveis,
   aferreiraimoveis,
   oasisimobiliaria,
-  matriz as unknown as Site,
+  ...matriz,
   imobiliarialemos,
   ...c15imob, ...aacosta as unknown as Site[], agnelloimoveis, imoveisfranca, espaconobreimoveis,
   imobiliariapimentafranca, mazzaimoveis, parraimobiliaria, vtiimoveis,
@@ -193,7 +192,6 @@ export const sites: Site[] = [
   imoveisemfranca,
   luanaimoveis as unknown as Site, wi7imobiliaria as unknown as Site, fortscunha as unknown as Site,
   munhozconsultorimobiliario as unknown as Site,
-  matrizimobiliaria as unknown as Site,
   francaempreendimentos as unknown as Site,
   imobiliariaestillo,
   imobiliariafabioliporoni,
