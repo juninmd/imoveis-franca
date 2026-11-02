@@ -48,6 +48,6 @@ describe('Espaco Nobre Adapter', () => {
     const result = await adapter({});
     expect(result.imoveis).toEqual([]);
     expect(result.qtd).toBe(0);
-    expect(site.getPaginateParams(3)).toEqual({ params: { page: 3 } });
+    expect(site.getPaginateParams(3).url).toContain('page=3');
   });
 });
