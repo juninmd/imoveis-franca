@@ -133,6 +133,8 @@ import loft from "./loft";
 import chavecertafranca from "./chavecertafranca";
 import vitalizeimoveisfrancasp from "./vitalizeimoveisfrancasp";
 import lcastroimoveis from "./lcastroimoveis";
+import bamboonegociosimobiliarios from "./bamboonegociosimobiliarios";
+import deztop from "./deztop";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -159,14 +161,14 @@ export const sites: Site[] = [
   luanaimoveis,
   wi7imobiliaria,
   fortscunha,
-  casabellafranca as unknown as Site,
+  ...casabellafranca,
   seculo21imoveis as unknown as Site,
   casafacilimobiliaria as unknown as Site,
   vlicitimoveis,
   comerianimoveis as unknown as Site,
   andrecaetano,
-  neoka,
-  projetoimoveisfranca as unknown as Site,
+  ...neoka,
+  ...projetoimoveisfranca,
   imoveisremap as unknown as Site,
   cidadenovaimoveis as unknown as Site,
   realizacca as unknown as Site,
@@ -189,7 +191,7 @@ export const sites: Site[] = [
   cintraimoveis as unknown as Site, tratoimoveis as unknown as Site, faleirosimoveis as unknown as Site, moradiaimoveis as unknown as Site, andresaborgesimoveis as unknown as Site,
   iegimoveisfrancaeregiao as unknown as Site, salimimobiliaria as unknown as Site, boscoimoveis as unknown as Site,
   famaimoveisfranca as unknown as Site, carlosimoveisfranca as unknown as Site,
-  dinizmartins as unknown as Site, grupohabitat as unknown as Site, habitesefranca as unknown as Site, altagalleria as unknown as Site, magnaimoveis as unknown as Site, locallizegoldimob as unknown as Site,
+  ...dinizmartins, grupohabitat as unknown as Site, habitesefranca as unknown as Site, altagalleria as unknown as Site, magnaimoveis as unknown as Site, locallizegoldimob as unknown as Site,
   ...imoveismpb as unknown as Site[],
   imoveisemfranca,
   luanaimoveis as unknown as Site, wi7imobiliaria as unknown as Site, fortscunha as unknown as Site,
@@ -237,5 +239,7 @@ novaaliancaimoveis,
   ...chavecertafranca,
   vitalizeimoveisfrancasp,
   ...lcastroimoveis,
+  bamboonegociosimobiliarios,
+  ...deztop,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];

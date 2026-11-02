@@ -59,3 +59,13 @@ export async function parseZapGroupListings(html: string, siteName: string, host
 
   return { imoveis, qtd, html };
 }
+
+/**
+ * Faixas de preco da venda: o ZAP/VivaReal so entregam ~50 paginas por busca, e Franca tem ~5.350
+ * anuncios. Cada faixa cabe nesse limite; as bordas repetem anuncios, que o dedupe por link remove.
+ */
+export const ZAP_GROUP_SALE_BANDS = [
+  { precoMaximo: 150000 }, { precoMinimo: 150000, precoMaximo: 250000 }, { precoMinimo: 250000, precoMaximo: 400000 },
+  { precoMinimo: 400000, precoMaximo: 550000 }, { precoMinimo: 550000, precoMaximo: 700000 }, { precoMinimo: 700000, precoMaximo: 900000 },
+  { precoMinimo: 900000, precoMaximo: 1200000 }, { precoMinimo: 1200000, precoMaximo: 1800000 }, { precoMinimo: 1800000 },
+];

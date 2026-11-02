@@ -13,6 +13,11 @@ interface PortalConfig {
   parser: PortalParser;
   firstPageUrl: (tipo: Finalidade) => string;
   pageUrl: (tipo: Finalidade, page: number) => string;
+  /** Faixas de preco por finalidade: quebra uma busca maior que o teto de paginas do portal em varias buscas menores. */
+  bands?: (tipo: Finalidade) => Array<Record<string, number>> | undefined;
+  /** Listagens por tipo de imovel (casas, apartamentos...) quando a busca geral passa do teto de paginas. */
+  variants?: (tipo: Finalidade) => Array<Record<string, string>> | undefined;
+  variantPageUrl?: (tipo: Finalidade, page: number, variant: Record<string, string>) => string;
 }
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -31,8 +36,11 @@ export const buildPortalSites = (config: PortalConfig): Site[] =>
       // Portais agregadores tem milhares de anuncios: o teto limita o custo de cada scraping.
       maxPages: config.maxPages,
       ...(config.driver === 'axios' ? { axiosConfig: { headers: { 'User-Agent': UA } } } : {}),
-      params: [],
-      getPaginateParams: (page: number) => ({ url: page > 1 ? config.pageUrl(tipo, page) : config.firstPageUrl(tipo) }),
+      params: config.bands?.(tipo) ?? config.variants?.(tipo) ?? [],
+      appendParams: !!config.bands?.(tipo),
+      getPaginateParams: (page: number, variant?: Record<string, string>) => ({
+        url: variant && config.variantPageUrl ? config.variantPageUrl(tipo, page, variant) : page > 1 ? config.pageUrl(tipo, page) : config.firstPageUrl(tipo),
+      }),
       adapter: (html: string) => config.parser(html, name, config.host),
     } as unknown as Site;
   });

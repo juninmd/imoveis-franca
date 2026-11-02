@@ -55,6 +55,8 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
 // NaN em comparador de sort faz o Array.prototype.sort devolver uma ordem arbitrária e
 // contamina toda a lista, não só o item inválido — por isso normalizamos antes de ordenar.
 const MAX_PAGES = 200;
+const EMPTY_FIRST_PAGE_RETRIES = 2;
+const EMPTY_RETRY_DELAY_MS = 3000;
 
 const finiteOrZero = (value: number): number => (Number.isFinite(value) ? value : 0);
 
@@ -197,6 +199,10 @@ export const generateList = async (query) => {
   return lista;
 };
 
+// Faixas de preco (params) precisam ir na mesma URL de paginacao do portal, que ja pode ter `?pagina=N`.
+const withQuery = (url: string, query?: Record<string, unknown>): string =>
+  query && Object.keys(query).length > 0 ? `${url}${url.includes('?') ? '&' : '?'}${stringifyQuery(query)}` : url;
+
 export async function getImoveis(site: Site, params = undefined, baseQueryParams: BaseQueryParams, page: number, retry = 0) {
   try {
     // `params` e `site.payload` são objetos do módulo, compartilhados por TODAS as requisições
@@ -212,7 +218,7 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
       }
     }
 
-    const paginateParams = site.getPaginateParams(page);
+    const paginateParams = site.getPaginateParams(page, requestParams);
     let requestPayload = site.payload;
     if (site.payload) {
       requestPayload = { ...site.payload, ...paginateParams.payload };
@@ -221,7 +227,7 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     }
 
     // getPaginateParams pode devolver uma `url` completa (sites com paginação no path).
-    const link = paginateParams.url ?? `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
+    const link = paginateParams.url ? withQuery(paginateParams.url, site.appendParams ? requestParams : undefined) : `${site.url}?${requestParams ? stringifyQuery(requestParams) : ''}`;
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
@@ -296,10 +302,11 @@ export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryPa
   let lista: any[] = [];
   try {
 
-    if (Array.isArray(site.params) && site.params.length === 0 && !site.payload) {
+    if ((!site.params || site.params.length === 0) && !site.payload) {
       // `params: []` (array vazio) é truthy em JS, então `if (site.params)` sozinho pulava a
       // busca inteira em silêncio (nenhum fetch, nenhum log, nenhum erro) para sites que não
-      // precisam de query params — tratamos como "busca única, sem params".
+      // precisam de query params — tratamos como "busca única, sem params". Idem para `params` ausente:
+      // o tipo o declara opcional e 9 sites registrados nunca eram consultados.
       const imoveis = await retrieImoveisSiteByParams(site, undefined, baseQueryParams)
       lista = lista.concat(imoveis);
     } else if (site.params) {
@@ -322,7 +329,15 @@ export const retrieImoveisSiteByParams = async (site: Site, params = undefined, 
   try {
     const lista: Imoveis[] = [];
     const page = 1;
-    const { imoveis, qtd } = await getImoveis(site, params, baseQueryParams, page);
+    let first = await getImoveis(site, params, baseQueryParams, page);
+    // Portais com antibot respondem vazio apos muitas requisicoes seguidas; as faixas de preco repetem
+    // a primeira pagina varias vezes, entao uma resposta vazia ali ganha novas tentativas com pausa.
+    for (let attempt = 1; site.appendParams && !first.imoveis?.length && attempt <= EMPTY_FIRST_PAGE_RETRIES; attempt++) {
+      if (site.driver === 'puppet') browser.recycle();
+      await new Promise(resolve => setTimeout(resolve, EMPTY_RETRY_DELAY_MS * attempt));
+      first = await getImoveis(site, params, baseQueryParams, page);
+    }
+    const { imoveis, qtd } = first;
 
     if (imoveis && imoveis.length > 0) {
         lista.push(...imoveis);

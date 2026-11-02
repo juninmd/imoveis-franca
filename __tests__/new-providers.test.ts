@@ -318,6 +318,11 @@ describe('chavesnamao', () => {
     expect(chaves[0].getPaginateParams(1).url).toBe('https://www.chavesnamao.com.br/imoveis-a-venda/sp-franca/');
     expect(chaves[1].getPaginateParams(3).url).toBe('https://www.chavesnamao.com.br/imoveis-para-alugar/sp-franca/?pg=3');
     expect(chaves[0].maxPages).toBeLessThanOrEqual(99);
+    // a venda varre uma listagem por tipo (passa do teto de 99 paginas); o aluguel cabe numa so
+    expect((chaves[0].params as Array<{ slug: string }>).map(p => p.slug)).toEqual(['casas', 'apartamentos', 'terrenos', 'chacaras', 'imoveis-comerciais', 'coberturas', 'fazendas']);
+    expect(chaves[0].getPaginateParams(1, { slug: 'casas' }).url).toBe('https://www.chavesnamao.com.br/casas-a-venda/sp-franca/');
+    expect(chaves[0].getPaginateParams(4, { slug: 'terrenos' }).url).toBe('https://www.chavesnamao.com.br/terrenos-a-venda/sp-franca/?pg=4');
+    expect(chaves[1].params).toEqual([]);
     const { imoveis } = await chaves[1].adapter(chavesPage([offer()]));
     expect(imoveis[0].site).toBe('chavesnamao.com.br - Alugar');
   });

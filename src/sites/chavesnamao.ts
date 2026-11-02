@@ -6,6 +6,10 @@ const HOST = 'https://www.chavesnamao.com.br';
 const PAGE_SIZE = 15;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 
+// A venda tem ~3.600 anuncios e o site para na pagina 99 (1.485). Cada tipo tem sua propria listagem
+// (casas 1.693, apartamentos 1.096...), entao varrer por tipo cobre ~92% em vez de ~41%.
+const SALE_TYPES = ['casas', 'apartamentos', 'terrenos', 'chacaras', 'imoveis-comerciais', 'coberturas', 'fazendas'];
+
 const buildSite = (tipo: 'venda' | 'aluguel'): Site => {
   const base = `${HOST}/${tipo === 'venda' ? 'imoveis-a-venda' : 'imoveis-para-alugar'}/sp-franca/`;
   const name = `chavesnamao.com.br - ${tipo === 'venda' ? 'Comprar' : 'Alugar'}`;
@@ -19,8 +23,11 @@ const buildSite = (tipo: 'venda' | 'aluguel'): Site => {
     // Milhares de anuncios, 15 por pagina; a partir da pagina 100 o site devolve 403.
     maxPages: 99,
     axiosConfig: { headers: { 'User-Agent': UA } },
-    params: [],
-    getPaginateParams: (page: number) => ({ url: page > 1 ? `${base}?pg=${page}` : base }),
+    params: tipo === 'venda' ? SALE_TYPES.map(slug => ({ slug })) : [],
+    getPaginateParams: (page: number, params?: { slug?: string }) => {
+      const root = params?.slug ? `${HOST}/${params.slug}-a-venda/sp-franca/` : base;
+      return { url: page > 1 ? `${root}?pg=${page}` : root };
+    },
     adapter: (html: string) => adapter(html, name),
   } as unknown as Site;
 };

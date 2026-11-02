@@ -1,5 +1,5 @@
 import { buildPortalSites } from './platforms/portal';
-import { parseZapGroupListings } from './platforms/zapgroup';
+import { parseZapGroupListings, ZAP_GROUP_SALE_BANDS } from './platforms/zapgroup';
 
 const HOST = 'https://www.zapimoveis.com.br';
 const base = (tipo: string) => `${HOST}/${tipo}/imoveis/sp+franca/`;
@@ -17,4 +17,5 @@ export default buildPortalSites({
   parser: parseZapGroupListings,
   firstPageUrl: base,
   pageUrl: (tipo, page) => `${base(tipo)}?pagina=${page}`,
+  bands: tipo => (tipo === 'venda' ? ZAP_GROUP_SALE_BANDS : undefined),
 });
