@@ -134,6 +134,7 @@ import chavecertafranca from "./chavecertafranca";
 import vitalizeimoveisfrancasp from "./vitalizeimoveisfrancasp";
 import lcastroimoveis from "./lcastroimoveis";
 import bamboonegociosimobiliarios from "./bamboonegociosimobiliarios";
+import deztop from "./deztop";
 import jlbarcellosimoveis from "./jlbarcellosimoveis";
 
 export const sites: Site[] = [
@@ -239,5 +240,6 @@ novaaliancaimoveis,
   vitalizeimoveisfrancasp,
   ...lcastroimoveis,
   bamboonegociosimobiliarios,
+  ...deztop,
   ...jlbarcellosimoveis,
 ] as unknown as Site[];
