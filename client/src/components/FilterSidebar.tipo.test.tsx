@@ -38,7 +38,8 @@ describe('FilterSidebar: tipo de imóvel e palavra-chave', () => {
 
   it('Limpar da seção zera tipo e palavra-chave', () => {
     const { current } = setup({ tipoImovel: ['casa'], q: 'piscina' });
-    fireEvent.click(screen.getAllByRole('button', { name: 'Limpar' })[0]);
+    // o primeiro "Limpar" é o do cabeçalho (zera tudo); o da seção é o seguinte
+    fireEvent.click(screen.getAllByRole('button', { name: 'Limpar' })[1]);
     expect(current().tipoImovel).toEqual([]);
     expect(current().q).toBe('');
   });
