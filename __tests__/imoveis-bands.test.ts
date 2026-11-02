@@ -117,3 +117,14 @@ describe('listagens por variante (tipo de imovel)', () => {
     expect((axios.get as jest.Mock).mock.calls.map(c => c[0])).toEqual(['https://p.example.com/casas.html', 'https://p.example.com/terrenos.html']);
   });
 });
+
+describe('site sem "params" declarado', () => {
+  // `params` e opcional no tipo; antes, ausente significava "nao buscar" e o site nunca era consultado.
+  it('faz a busca unica em vez de pular o site em silencio', async () => {
+    (axios.get as jest.Mock).mockReset().mockResolvedValue({ data: 'html' });
+    const site = { ...bandSite(async () => ({ imoveis: [{ titulo: 'x', link: 'l' } as never], qtd: 1 })), params: undefined, appendParams: false } as unknown as Site;
+    const result = await retrieImoveisSite(site, {} as never);
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(result).toHaveLength(1);
+  });
+});

@@ -302,10 +302,11 @@ export const retrieImoveisSite = async (site: Site, baseQueryParams: BaseQueryPa
   let lista: any[] = [];
   try {
 
-    if (Array.isArray(site.params) && site.params.length === 0 && !site.payload) {
+    if ((!site.params || site.params.length === 0) && !site.payload) {
       // `params: []` (array vazio) é truthy em JS, então `if (site.params)` sozinho pulava a
       // busca inteira em silêncio (nenhum fetch, nenhum log, nenhum erro) para sites que não
-      // precisam de query params — tratamos como "busca única, sem params".
+      // precisam de query params — tratamos como "busca única, sem params". Idem para `params` ausente:
+      // o tipo o declara opcional e 9 sites registrados nunca eram consultados.
       const imoveis = await retrieImoveisSiteByParams(site, undefined, baseQueryParams)
       lista = lista.concat(imoveis);
     } else if (site.params) {
