@@ -27,7 +27,8 @@ function extractListing(html: string): { items: any[], total: number } | null {
     }
   }
   const flight = chunks.join('');
-  const start = flight.search(/\d+:\{"items":\[/);
+  // O id da linha do payload RSC e hexadecimal ("3a:{...}"): exigir so digitos perdia a listagem.
+  const start = flight.search(/[0-9a-f]+:\{"items":\[/);
   if (start < 0) return null;
   const jsonStart = flight.indexOf('{', start);
 

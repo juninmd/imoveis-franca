@@ -222,7 +222,9 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     let requestPayload = site.payload;
     if (site.payload) {
       requestPayload = { ...site.payload, ...paginateParams.payload };
-    } else if (requestParams) {
+    } else if (requestParams || paginateParams.params) {
+      // Sem `params` no site (busca unica) a paginacao so existe em paginateParams.params: descarta-la
+      // fazia o site buscar sempre a pagina 1.
       requestParams = { ...requestParams, ...paginateParams.params };
     }
 
@@ -231,8 +233,8 @@ export async function getImoveis(site: Site, params = undefined, baseQueryParams
     // console.info(`Fetching ${link} using ${site.driver}`);
 
     // We do not cache raw content by link anymore because we want to ensure fresh data or controlled cache via generateList
-    // Com URL completa a query ja esta em `link`; repassar `params` ao axios a repetia (duplicada, o servidor responde 500).
-    const content = await retrieveContent(link, site, paginateParams.url ? undefined : requestParams, requestPayload);
+    // A query ja esta em `link` (URL completa ou `site.url?query`); repassar `params` ao axios a repetia (duplicada, o servidor responde 500).
+    const content = await retrieveContent(link, site, undefined, requestPayload);
 
     const { imoveis, qtd } = (await site.adapter(content));
 

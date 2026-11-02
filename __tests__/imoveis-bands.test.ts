@@ -5,6 +5,8 @@ import axios from 'axios';
 import browser from '../src/infra/browser';
 
 jest.mock('axios');
+// p-limit e ESM: sem este mock o import default nao e funcao no ts-jest e o fluxo com mais de uma pagina lanca.
+jest.mock('p-limit', () => ({ __esModule: true, default: () => (fn: () => unknown) => fn() }));
 jest.mock('../src/infra/browser', () => ({ __esModule: true, default: { recycle: jest.fn(), getNewPage: jest.fn() } }));
 
 beforeAll(() => {
@@ -142,5 +144,20 @@ describe('URL completa vinda do getPaginateParams', () => {
     const call = (axios.request as jest.Mock).mock.calls[0][0];
     expect(call.url).toBe('http://bands.example.com/api?sort=recent');
     expect(call.params).toBeUndefined();
+  });
+});
+
+describe('paginacao so por paginateParams.params (site sem "params")', () => {
+  // Com params vazio, requestParams era undefined e o params de paginacao era descartado: so a pagina 1 era lida.
+  it('anexa a pagina na URL de cada requisicao', async () => {
+    (axios.get as jest.Mock).mockReset().mockResolvedValue({ data: 'html' });
+    const site = {
+      ...bandSite(async () => ({ imoveis: [{ titulo: 'x', link: 'l' } as never], qtd: 20 })),
+      url: 'http://bands.example.com/lista', params: [], appendParams: false, itemsPerPage: 10,
+      getPaginateParams: (page: number) => ({ params: { pagina: page } }),
+    } as unknown as Site;
+    await retrieImoveisSite(site, {} as never);
+    const urls = (axios.get as jest.Mock).mock.calls.map(c => c[0]);
+    expect(urls).toEqual(['http://bands.example.com/lista?pagina=1', 'http://bands.example.com/lista?pagina=2']);
   });
 });
