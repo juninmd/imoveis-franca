@@ -2,7 +2,7 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName } from '../utils';
 
 export default {
-  enabled: true,
+  enabled: false, // dominio morto (DNS/TLS) - reativar se voltar
   tipo: 'venda',
   url: 'https://magnaimoveisfranca.com.br/comprar/todos',
   name: 'magnaimoveisfranca.com.br',

@@ -3,7 +3,7 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName, getFixValue } from '../utils';
 
 export default {
-  enabled: true,
+  enabled: false, // dominio morto (DNS/TLS) - reativar se voltar
   tipo: 'venda',
   url: 'https://www.moraremfranca.com.br/imoveis?pretensao=venda',
   name: 'moraremfranca.com.br',

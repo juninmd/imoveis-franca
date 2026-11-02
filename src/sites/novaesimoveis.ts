@@ -4,7 +4,7 @@ import { Imoveis, Site } from '../types';
 import { normalizeNeighborhoodName, getFixValue } from '../utils';
 
 export default {
-  enabled: true,
+  enabled: false, // dominio morto (DNS/TLS) - reativar se voltar
   tipo: 'venda',
   url: 'https://www.novaesimoveis.com.br/imoveis/a-venda',
   name: 'novaesimoveis.com.br',
