@@ -121,3 +121,27 @@ describe('BrowserSingleton.close', () => {
     expect(puppeteerExtra.launch).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('BrowserSingleton.recycle', () => {
+  it('troca o browser para novos usos e fecha o antigo so depois do prazo', async () => {
+    jest.useFakeTimers();
+    jest.resetModules();
+    const puppeteerExtra = require('puppeteer-extra').default;
+    const BrowserSingleton = require('../src/infra/browser').default;
+
+    const close = jest.fn().mockRejectedValue(new Error('ja fechado'));
+    (puppeteerExtra.launch as jest.Mock).mockResolvedValue({ newPage: jest.fn(), close });
+
+    BrowserSingleton.recycle(); // sem browser aberto nao faz nada
+    await BrowserSingleton.getBrowser();
+    BrowserSingleton.recycle(1000);
+    expect(close).not.toHaveBeenCalled();
+
+    await BrowserSingleton.getBrowser();
+    expect(puppeteerExtra.launch).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(1000);
+    expect(close).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+});

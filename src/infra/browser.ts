@@ -47,6 +47,16 @@ class BrowserSingleton {
     return page;
   }
 
+  // Chromium compartilhado degrada depois de centenas de paginas (respostas vazias, 'Session with
+  // given id not found'). O proximo getNewPage abre um browser novo; o antigo fecha depois de um
+  // prazo para as paginas que ainda estao em voo (outros sites rodam em paralelo) terminarem.
+  public recycle(graceMs = 90000): void {
+    const old = this.browser;
+    if (!old) return;
+    this.browser = null;
+    setTimeout(() => { old.close().catch(() => undefined); }, graceMs).unref();
+  }
+
   // Sem isto, um SIGTERM (deploy, `docker compose down`, reciclagem do pod) deixava o
   // processo do Chromium órfão segurando memória.
   public async close(): Promise<void> {
