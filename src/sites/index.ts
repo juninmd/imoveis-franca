@@ -78,6 +78,8 @@ import imobfranca from "./imobfranca";
 import quintareimoveis from "./quintareimoveis";
 
 import casafacilimobiliaria from "./casafacilimobiliaria";
+import larrazimoveis from "./larrazimoveis";
+import patraoimoveis from "./patraoimoveis";
 import vlicitimoveis from "./vlicitimoveis";
 import comerianimoveis from "./comerianimoveis";
 import agessani from "./agessani";
@@ -162,6 +164,8 @@ export const sites: Site[] = [
   ...casabellafranca,
   seculo21imoveis as unknown as Site,
   casafacilimobiliaria as unknown as Site,
+  larrazimoveis,
+  ...patraoimoveis,
   vlicitimoveis,
   comerianimoveis as unknown as Site,
   andrecaetano,

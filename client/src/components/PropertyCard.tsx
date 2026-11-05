@@ -185,6 +185,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                   Aluguel
                </div>
              )}
+             {imovel.tipoImovel && (
+               <div className="bg-blue-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-blue-400/50">
+                  {imovel.tipoImovel}
+               </div>
+             )}
              {imovel.site && (
                <div className="bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
                   {imovel.site.replace('www.', '')}
