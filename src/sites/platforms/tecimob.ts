@@ -1,7 +1,6 @@
 import axios from 'axios';
-import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../../types';
-import { cleanTitle, getFixValue, inferTipoImovel, normalizeNeighborhoodName } from '../../utils';
+import { cleanTitle, extractDescriptionFromHtml, getFixValue, inferTipoImovel, normalizeNeighborhoodName } from '../../utils';
 
 const API = 'https://api-sites.tecimob.com.br/api/properties';
 const DETAIL_CONCURRENCY = 8;
@@ -52,19 +51,21 @@ export async function parseTecimob(payload: unknown, domain: string, siteName: s
   }
   const imoveis: Imoveis[] = [];
 
-  items.forEach((item, index) => {
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
     const valor = getFixValue((item.price ?? '').replace(/[^\d.,]/g, ''));
-    if (valor <= 0) return;
+    if (valor <= 0) continue;
 
     const titulo = cleanTitle(item.title_formatted ?? '');
     const area = getFixValue(item.areas?.built_area?.value ?? '0');
     const areaTotal = getFixValue(item.areas?.total_area?.value ?? '0') || area;
     const areaPreco = area || areaTotal;
     const bairro = (item.address?.formatted ?? '').replace(/\s*[-–,]\s*Franca\/SP\s*$/i, '');
+    const descricao = extractDescriptionFromHtml(item.description ?? '');
 
     imoveis.push({
       titulo,
-      descricao: cleanTitle(cheerio.load(item.description ?? '').root().text()),
+      descricao,
       imagens: galleries[index],
       endereco: normalizeNeighborhoodName(bairro),
       valor,
@@ -80,7 +81,7 @@ export async function parseTecimob(payload: unknown, domain: string, siteName: s
       codigo: item.reference,
       tipoImovel: inferTipoImovel(titulo) || undefined,
     });
-  });
+  }
 
   return { imoveis, qtd: imoveis.length, json: body };
 }

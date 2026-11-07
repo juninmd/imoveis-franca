@@ -2,7 +2,7 @@ import type { Config } from 'jest';
 
 const config: Config = {
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.[tj]sx?$': 'ts-jest',
   },
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.ts'],
@@ -26,6 +26,7 @@ const config: Config = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@juninmd/digest-kit/core$': '<rootDir>/__mocks__/@juninmd/digest-kit/core.ts',
   },
 };
 
