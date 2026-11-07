@@ -19,6 +19,7 @@
       "dom"
     ],
     "moduleResolution": "node16",
+    "isolatedModules": true,
     "rootDir": "./",
     "outDir": "dist",
     "allowSyntheticDefaultImports": true,

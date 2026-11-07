@@ -1,6 +1,5 @@
-import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../../types';
-import { cleanTitle, getFixValue, inferTipoImovel, normalizeNeighborhoodName, normalizeText } from '../../utils';
+import { cleanTitle, extractDescriptionFromHtml, getFixValue, inferTipoImovel, normalizeNeighborhoodName, normalizeText } from '../../utils';
 
 // Colibex: sites de assessoria de imoveis da Caixa/leiloes. O front chama POST /api (formulario)
 // e recebe {meta:{total}, items}; os campos *_txt e *_plain vem prontos, os demais sao HTML.
@@ -28,10 +27,11 @@ export async function parseColibex(payload: unknown, host: string, siteName: str
     const fotos = (Array.isArray(item.fotos) ? item.fotos : [item.fotos ?? '']).filter(Boolean);
     const tipoTexto = item.categoria_nome ?? '';
     const titulo = cleanTitle(`${tipoTexto} - ${item.bairro ?? ''}`.replace(/^ - | - $/g, ''));
+    const descricao = extractDescriptionFromHtml(item.descricao_html ?? '') || cleanTitle(item.titulo_plain ?? '');
 
     imoveis.push({
       titulo,
-      descricao: cleanTitle(cheerio.load(item.descricao_html ?? '').root().text()) || cleanTitle(item.titulo_plain ?? ''),
+      descricao,
       imagens: fotos.length > 0 ? fotos : (item.foto ? [item.foto] : []),
       endereco: normalizeNeighborhoodName(item.bairro ?? ''),
       valor,

@@ -76,3 +76,48 @@ export function safeUrl(href: string, base: string): URL | null {
     return null;
   }
 }
+
+type ExtractArticleResult = {
+  contentMarkdown?: string | null;
+  excerpt?: string | null;
+};
+type ExtractArticleFn = (html: string, options?: unknown) => ExtractArticleResult | null;
+
+let extractorFn: ExtractArticleFn | null = null;
+
+function getExtractor(): ExtractArticleFn {
+  if (!extractorFn) {
+    const core = require('@juninmd/digest-kit/core');
+    extractorFn = core.extractArticleFromHtml;
+  }
+  return extractorFn;
+}
+
+export function _setExtractorForTest(fn: ExtractArticleFn | null): void {
+  extractorFn = fn;
+}
+
+export function extractDescriptionFromHtml(html: string = ''): string {
+  if (!html || !html.trim()) {
+    return '';
+  }
+  try {
+    const extractArticle = getExtractor();
+    const article = extractArticle(html, { fallbackToBody: true, charThreshold: 0 });
+    if (article?.contentMarkdown) {
+      return cleanTitle(
+        article.contentMarkdown
+          .replace(/[*_#`~>]/g, '')
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+          .replace(/\s+([.,;:!?])/g, '$1')
+      );
+    }
+  } catch {
+    // fallback below
+  }
+  return cleanTitle(
+    html
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+([.,;:!?])/g, '$1')
+  );
+}

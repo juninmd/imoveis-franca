@@ -1,7 +1,6 @@
 import axios from 'axios';
-import * as cheerio from 'cheerio';
 import { Imoveis, Site } from '../../types';
-import { cleanTitle, getFixValue, inferTipoImovel, normalizeNeighborhoodName, normalizeText } from '../../utils';
+import { cleanTitle, extractDescriptionFromHtml, getFixValue, inferTipoImovel, normalizeNeighborhoodName, normalizeText } from '../../utils';
 
 // Simob (Flexpro): SPA Angular cujo site descobre o proprio tenant em simob.com.br/.../params?host=
 // e depois fala com uma API JSON autenticada por um Bearer publico daquele tenant.
@@ -61,19 +60,21 @@ export async function parseSimob(payload: unknown, host: string, siteName: strin
   }
 
   const imoveis: Imoveis[] = [];
-  listed.forEach((item, index) => {
+  for (let index = 0; index < listed.length; index++) {
+    const item = listed[index];
     const valor = getFixValue(String(item.valor ?? '').replace(/[^\d.,]/g, ''));
-    if (valor <= 0) return;
+    if (valor <= 0) continue;
     const detail = details[index];
     const traits = [...(item.caracteristicas ?? []), ...(detail.caracteristicas ?? [])];
     const area = numberOf(traits, /^Área (da unidade|constru|útil|privativa)/i);
     const areaTotal = numberOf(traits, /^Área (total|do terreno|terreno)/i) || area;
     const areaPreco = area || areaTotal;
     const titulo = cleanTitle(`${item.descricaoCategoria ?? ''} - ${item.bairro ?? ''}`.replace(/^ - | - $/g, ''));
+    const descricao = extractDescriptionFromHtml(item.descricaoImovel ?? '');
 
     imoveis.push({
       titulo,
-      descricao: cleanTitle(cheerio.load(item.descricaoImovel ?? '').root().text()),
+      descricao,
       imagens: (detail.imagens ?? []).map(img => img.url ? `${CDN}${img.url}` : '').filter(Boolean),
       endereco: normalizeNeighborhoodName(item.bairro ?? ''),
       valor,
@@ -89,7 +90,7 @@ export async function parseSimob(payload: unknown, host: string, siteName: strin
       codigo: item.codigo,
       tipoImovel: inferTipoImovel(titulo) || undefined,
     });
-  });
+  }
 
   return { imoveis, qtd: imoveis.length, json: body };
 }
