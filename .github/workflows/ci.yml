@@ -17,14 +17,12 @@ jobs:
           node-version: 22
       - name: Install pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 8
       - name: Install dependencies
         run: pnpm install
       - name: Run lint
         run: pnpm run lint
       - name: Run frontend tests
-        run: cd client && npm ci && npm run test:coverage
+        run: cd client && pnpm install --frozen-lockfile && pnpm run test:coverage
       - name: Run build
         run: pnpm run build
       - name: Run backend test coverage

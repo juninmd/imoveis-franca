@@ -87,6 +87,8 @@ let extractorFn: ExtractArticleFn | null = null;
 
 function getExtractor(): ExtractArticleFn {
   if (!extractorFn) {
+    // Carregamento lazy: o digest-kit só é exigido quando o extrator é usado.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const core = require('@juninmd/digest-kit/core');
     extractorFn = core.extractArticleFromHtml;
   }
