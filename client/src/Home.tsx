@@ -14,6 +14,7 @@ import { useToast } from './components/ToastContext';
 import { VirtuosoGrid } from 'react-virtuoso';
 import { useSearchState } from './hooks/useSearchState';
 import { useFavorites } from './hooks/useFavorites';
+import { sortImoveis } from './sortImoveis';
 
 const FilterSidebar = React.lazy(() => import('./components/FilterSidebar').then(module => ({ default: module.FilterSidebar })));
 
@@ -145,24 +146,7 @@ export const Home = () => {
     // contador continuava mostrando o total salvo.
     const source = showFavoritesOnly ? favoriteItems : imoveis;
     if (!source) return [];
-    const list = [...source];
-
-    switch (sortOrder) {
-      case 'price_asc':
-        return list.sort((a, b) => a.valor - b.valor);
-      case 'price_desc':
-        return list.sort((a, b) => b.valor - a.valor);
-      case 'area_asc':
-        return list.sort((a, b) => a.area - b.area);
-      case 'area_desc':
-        return list.sort((a, b) => b.area - a.area);
-      case 'price_per_m_asc':
-        return list.sort((a, b) => a.precoPorMetro - b.precoPorMetro);
-      case 'price_per_m_desc':
-        return list.sort((a, b) => b.precoPorMetro - a.precoPorMetro);
-      default:
-        return list;
-    }
+    return sortImoveis(source, sortOrder);
   }, [imoveis, sortOrder, showFavoritesOnly, favoriteItems]);
 
   // Scroll to top when filters or sort change
