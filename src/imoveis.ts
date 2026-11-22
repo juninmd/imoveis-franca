@@ -41,13 +41,16 @@ export const filterImoveis = (imoveis: Imoveis[], queryParams: {
     const passTipo = !tipo || imovel.tipo === tipo || imovel.tipo === 'ambos';
     // Anuncio sem tipoImovel conhecido nao some do filtro: o adapter pode nao ter como inferi-lo.
     const passTipoImovel = !tipoImovel || tipoImovel.length === 0 || !imovel.tipoImovel || tipoImovel.includes(imovel.tipoImovel);
-    const passText = !needle || normalizeText(`${imovel.titulo} ${imovel.descricao} ${imovel.endereco} ${imovel.codigo ?? ''}`).includes(needle);
 
     const endereco = !address || !!address.find(x => x === imovel.endereco);
     /* istanbul ignore next */
     const passSite = !sites || sites.length === 0 || sites.includes(imovel.site);
     // Verificar se todos os filtros foram satisfeitos
-    return passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && passTipoImovel && passText && endereco && passSite;
+    if (!(passMaxPrice && passMinPrice && passMinArea && passMaxArea && passBedRooom && passMinBathroom && passMinVacancies && passMinAreaTotal && passMaxAreaTotal && passTipo && passTipoImovel && endereco && passSite)) {
+      return false;
+    }
+    // Busca textual por ultimo: normalizar titulo+descricao e o passo caro, so vale para quem passou nos filtros baratos.
+    return !needle || normalizeText(`${imovel.titulo} ${imovel.descricao} ${imovel.endereco} ${imovel.codigo ?? ''}`).includes(needle);
   });
 };
 
