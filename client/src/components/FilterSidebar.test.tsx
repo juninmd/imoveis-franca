@@ -57,8 +57,7 @@ describe('FilterSidebar', () => {
        fireEvent.change(searchInput, { target: { value: 'Centro' } });
        expect((searchInput as HTMLInputElement).value).toBe('Centro');
 
-       const xButton = screen.getAllByRole('button').find(b => b.innerHTML.includes('lucide-x') && !b.getAttribute('aria-label'));
-       if(xButton) fireEvent.click(xButton);
+       fireEvent.click(screen.getByRole('button', { name: 'Limpar busca de bairros' }));
        expect((searchInput as HTMLInputElement).value).toBe('');
      }
   });
