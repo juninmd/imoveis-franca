@@ -1,36 +1,49 @@
-# AGENTS.md - imoveis-franca
+# AGENTS.md
 
-## Tech Stack
-- **Language:** TypeScript 5.3
-- **Runtime:** Node.js 20.x
-- **Framework:** Express 4.x
-- **Scraping:** Puppeteer, Cheerio, Axios
-- **Cache:** Redis (ioredis)
-- **Testing:** Jest + ts-jest
-- **Lint:** ESLint + Prettier
-- **CI:** GitHub Actions
+Imoveis Franca: scraper and REST API for real-estate listings in Franca/SP, with a React frontend in `client/`. Results are cached in Redis.
 
-## Project Structure
-```
-imoveis-franca/
-  src/              # TypeScript source
-  client/           # Frontend app
-  __tests__/        # Test files
-  scripts/          # Utility scripts
-  Dockerfile        # Container config
-  tsconfig.json
-```
+## Stack
+
+- TypeScript 5.3, Node >= 20.9 (CI: 22), Express 4
+- Scraping: Puppeteer, Cheerio, Axios
+- Cache: Redis (ioredis), optional
+- Tests: Jest + ts-jest (backend), Vitest + Testing Library (`client/`)
+- Lint: ESLint (`.eslintrc.json`), Prettier
+- Package manager: pnpm (`pnpm-lock.yaml`, `client/pnpm-lock.yaml`)
 
 ## Commands
-- `pnpm build` — Compile TypeScript
-- `pnpm test` — Run Jest tests
-- `pnpm lint` — ESLint check
-- `pnpm start` — Run compiled app
-- `pnpm test:coverage` — Coverage report
 
-## Environment Variables
-- `REDIS_URL` — Redis connection string
-- `PORT` — Server port
+- Install: `pnpm install`
+- Build: `pnpm build` (installs and builds `client/`, then `tsc -p tsconfig.json`)
+- Start: `pnpm start` (`node dist/src/index.js`)
+- Lint: `pnpm lint`
+- Test: `pnpm test` (Jest); `pnpm test:coverage` for coverage
+- Frontend: `cd client && pnpm run test`, `pnpm run test:coverage`, `pnpm run lint`
+- Clean: `pnpm clean`
+- CI (`.github/workflows/ci.yml`): lint, client coverage, build, backend coverage
+
+## Structure
+
+- `src/index.ts`, `src/server.ts`: entry point and Express app
+- `src/imoveis.ts`, `src/query.ts`: listing pipeline and query filters
+- `src/sites/`: one scraper per site or agency, registered in `src/sites/index.ts`
+- `src/infra/`: browser, cache and infrastructure helpers. `src/utils/`, `src/types/`
+- `__tests__/`: one test file per provider plus shared suites. `__mocks__/`: module mocks
+- `client/`: Vite/React frontend (`src/components/`, `src/hooks/`)
+- `scripts/`: utility scripts (listing advertisers, preview screenshots)
+
+## Conventions
+
+- Add a provider as `src/sites/<name>.ts` plus a test in `__tests__/`, and register it in `src/sites/index.ts`.
+- Tests and lint must pass before merge; CI runs both.
+
+## Gotchas
+
+- Env vars: `PORT` (3000), `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `TRUST_PROXY`. Redis is optional: the API answers without cache when it is down.
+- `GET /api/imoveis` is rate-limited to 60 requests/min per IP. Each cache miss runs a full scrape, so keep the limit.
+- `GET /healthz` must stay free of Redis dependencies (orchestrator health check).
+- The shared Chromium recycles (`browser.recycle`, `src/infra/browser.ts`) after an empty first page.
+- Do not commit `.env` or secrets. `.gitleaksignore` and `.trivyignore` hold scanner exceptions.
 
 <!-- base-actions-main-policy -->
 ## GitHub Actions — padrão obrigatório (@main)

@@ -11,3 +11,6 @@ coverage
 tmp/
 build/
 client/dist
+
+# Generated preview screenshots
+preview*.png
