@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useId } from 'react';
 import { Home, DollarSign, Maximize, MapPin, X, Check, Grid, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,12 +40,16 @@ const CollapsibleSection = ({
     onReset?: () => void
 }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const panelId = useId();
 
     return (
         <div className="border-b border-gray-100 dark:border-gray-700/50 py-4 last:border-0">
             <div className="flex items-center justify-between mb-2">
                 <button
+                    type="button"
                     onClick={() => setIsOpen(!isOpen)}
+                    aria-expanded={isOpen}
+                    aria-controls={isOpen ? panelId : undefined}
                     className="flex-1 flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm group"
                 >
                     <motion.div
@@ -53,6 +57,7 @@ const CollapsibleSection = ({
                         animate={{ rotate: isOpen ? 90 : 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="text-gray-400 group-hover:text-blue-500"
+                        aria-hidden="true"
                     >
                         ▶
                     </motion.div>
@@ -76,6 +81,7 @@ const CollapsibleSection = ({
             <AnimatePresence initial={false}>
                 {isOpen && (
                     <motion.div
+                        id={panelId}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -308,13 +314,16 @@ const toggleTipoImovel = (tipoImovel: string) => {
                 <input
                     type="text"
                     placeholder="Filtrar bairros..."
+                    aria-label="Filtrar bairros"
                     value={addressSearch}
                     onChange={(e) => setAddressSearch(e.target.value)}
                     className={clsx(inputClass, "pl-9 pr-8 py-2")}
                 />
                 {addressSearch && (
                   <button
+                    type="button"
                     onClick={() => setAddressSearch('')}
+                    aria-label="Limpar busca de bairros"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X size={14} />
