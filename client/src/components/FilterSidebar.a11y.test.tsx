@@ -21,7 +21,7 @@ describe('FilterSidebar a11y', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const panelId = toggle.getAttribute('aria-controls');
     expect(panelId).toBeTruthy();
-    expect(document.getElementById(panelId!)).toContainElement(screen.getByRole('textbox', { name: 'Filtrar bairros' }));
+    expect(document.getElementById(panelId!)).toContainElement(screen.getByRole('searchbox', { name: 'Filtrar bairros' }));
 
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -29,8 +29,8 @@ describe('FilterSidebar a11y', () => {
 
   it('icon-only clear button for the neighborhood search has an accessible name', () => {
     renderSidebar();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Filtrar bairros' }), { target: { value: 'cen' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar bairros' }), { target: { value: 'cen' } });
     fireEvent.click(screen.getByRole('button', { name: 'Limpar busca de bairros' }));
-    expect(screen.getByRole('textbox', { name: 'Filtrar bairros' })).toHaveValue('');
+    expect(screen.getByRole('searchbox', { name: 'Filtrar bairros' })).toHaveValue('');
   });
 });

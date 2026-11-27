@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR" class="dark" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>imoveis-franca · antes e depois do Sonido</title>
+    <script>
+      // Mantém o primeiro paint no tema pedido pela URL (?theme=light).
+      try {
+        var t = new URLSearchParams(location.search).get('theme') === 'light' ? 'light' : 'dark';
+        document.documentElement.classList.toggle('dark', t === 'dark');
+        document.documentElement.dataset.theme = t;
+      } catch (e) { /* sem URLSearchParams: segue o tema escuro */ }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./preview.tsx"></script>
+  </body>
+</html>

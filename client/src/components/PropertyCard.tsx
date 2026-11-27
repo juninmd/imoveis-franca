@@ -4,6 +4,7 @@ import { MapPin, Bed, Bath, Car, Ruler, ExternalLink, Image as ImageIcon, Heart,
 import { useToast } from './ToastContext';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Badge, Button } from '@juninmd/sonido';
 
 const ImageGallery = React.lazy(() => import('./ImageGallery'));
 
@@ -181,29 +182,35 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
 
           <div className="absolute top-3 left-3 flex flex-col gap-2 items-start pointer-events-none z-10">
              {imovel.tipo === 'aluguel' && (
-               <div className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-emerald-400/50">
+               <Badge tone="success" appearance="solid" className="uppercase tracking-wider">
                   Aluguel
-               </div>
+               </Badge>
              )}
              {imovel.tipoImovel && (
-               <div className="bg-blue-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-blue-400/50">
+               <Badge tone="accent" appearance="solid" className="uppercase tracking-wider">
                   {imovel.tipoImovel}
-               </div>
+               </Badge>
              )}
              {imovel.site && (
-               <div className="bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm border border-white/20">
+               <Badge
+                 tone="neutral"
+                 appearance="solid"
+                 className="uppercase tracking-wider"
+                 style={{ background: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }}
+               >
                   {imovel.site.replace('www.', '')}
-               </div>
+               </Badge>
              )}
              <AnimatePresence>
                {isBelowAverage && (
                  <motion.div
                    initial={{ opacity: 0, scale: 0.9 }}
                    animate={{ opacity: 1, scale: 1 }}
-                   className="bg-gradient-to-r from-green-600 to-emerald-600 backdrop-blur-sm text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-1.5 border border-green-400/50"
                  >
-                   <TrendingDown size={14} strokeWidth={3} className="animate-pulse" />
-                   Abaixo da Média
+                   <Badge tone="success" appearance="solid" dot className="uppercase tracking-wider">
+                     <TrendingDown size={14} strokeWidth={3} aria-hidden="true" />
+                     Abaixo da Média
+                   </Badge>
                  </motion.div>
                )}
              </AnimatePresence>
@@ -227,10 +234,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
                 )}
              </div>
              {imovel.imagens && imovel.imagens.length > 0 && (
-                <div className="bg-black/50 backdrop-blur-md text-white text-xs px-2.5 py-1.5 rounded-md flex items-center gap-1.5 font-medium border border-white/20 shadow-sm">
-                  <ImageIcon size={14} />
-                  {imovel.imagens.length}
-                </div>
+                <Badge
+                  appearance="count"
+                  aria-label={`${imovel.imagens.length} fotos`}
+                  className="text-white"
+                  style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <ImageIcon size={14} aria-hidden="true" />
+                    {imovel.imagens.length}
+                  </span>
+                </Badge>
              )}
           </div>
         </div>
@@ -255,19 +269,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = memo(({ imovel, isFavor
              </div>
           </div>
 
-          <a
+          <Button
              href={linkIsSafe ? imovel.link : undefined}
              target="_blank"
              rel="noopener noreferrer"
-             aria-disabled={!linkIsSafe}
-             className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 backdrop-blur-md text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.25)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.98] mt-2 group/btn relative overflow-hidden border border-blue-500/50"
+             disabled={!linkIsSafe}
+             variant="primary"
+             size="md"
+             className="w-full mt-2"
+             iconEnd={<ExternalLink size={16} />}
            >
-             <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
-               {linkIsSafe ? 'Ver Detalhes' : 'Link indisponível'}
-               <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-             </span>
-             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-out" />
-           </a>
+             {linkIsSafe ? 'Ver Detalhes' : 'Link indisponível'}
+           </Button>
         </div>
       </motion.div>
 

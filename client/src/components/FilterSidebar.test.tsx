@@ -50,7 +50,7 @@ describe('FilterSidebar', () => {
   it('clears address search input on clicking X', () => {
      render(<FilterSidebar availableSites={[]} filters={mockFilters} setFilters={mockSetFilters as unknown as any} addresses={['Centro', 'Vila Nova']} />);
 
-     const inputs = screen.getAllByRole('textbox');
+     const inputs = screen.getAllByRole('searchbox');
      const searchInput = inputs.find(input => (input as HTMLInputElement).placeholder?.includes('bairro'));
 
      if (searchInput) {

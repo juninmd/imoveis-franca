@@ -2,6 +2,7 @@ import React, { useState, useMemo, useId } from 'react';
 import { Home, DollarSign, Maximize, MapPin, X, Check, Grid, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button, SearchField, TextField } from '@juninmd/sonido';
 import { TIPOS_IMOVEL } from '../hooks/useSearchState';
 
 interface FilterSidebarProps {
@@ -67,15 +68,16 @@ const CollapsibleSection = ({
                     )}
                 </button>
                 {hasValue && onReset && (
-                     <button
+                     <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={(e) => {
                             e.stopPropagation();
                             onReset();
                         }}
-                        className="text-[10px] uppercase font-bold text-gray-400 hover:text-red-500 transition-colors px-2 py-1"
                      >
                         Limpar
-                     </button>
+                     </Button>
                 )}
             </div>
             <AnimatePresence initial={false}>
@@ -157,11 +159,8 @@ const toggleTipoImovel = (tipoImovel: string) => {
     );
   }, [availableSites, siteSearch]);
 
-  const inputClass = "w-full p-2.5 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all hover:border-gray-300 dark:hover:border-gray-500 focus:bg-white dark:focus:bg-gray-700 shadow-inner";
-  const labelClass = "text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-1.5 block cursor-pointer";
-
   return (
-    <div className="flex flex-col h-full"><div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-4 font-bold text-gray-800 dark:text-gray-200 shadow-sm flex justify-between items-center"><span>Filtros</span>{filters.minPrice || filters.maxPrice || filters.minBedrooms || filters.minBathrooms || filters.minVacancies || filters.minArea || filters.maxArea || filters.minAreaTotal || filters.maxAreaTotal || filters.address.length > 0 || (filters.tipoImovel || []).length > 0 || filters.q ? <button onClick={() => setFilters({tipo: "venda", minPrice: "", maxPrice: "", minBedrooms: "", minBathrooms: "", minVacancies: "", minArea: "", maxArea: "", minAreaTotal: "", maxAreaTotal: "", address: [], sites: [], tipoImovel: [], q: ""})} className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider hover:underline">Limpar</button> : null}</div><div className="p-5 space-y-2 flex-1 overflow-y-auto">
+    <div className="flex flex-col h-full"><div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-4 font-bold text-gray-800 dark:text-gray-200 shadow-sm flex justify-between items-center"><span>Filtros</span>{filters.minPrice || filters.maxPrice || filters.minBedrooms || filters.minBathrooms || filters.minVacancies || filters.minArea || filters.maxArea || filters.minAreaTotal || filters.maxAreaTotal || filters.address.length > 0 || (filters.tipoImovel || []).length > 0 || filters.q ? <Button variant="link" size="xs" onClick={() => setFilters({tipo: "venda", minPrice: "", maxPrice: "", minBedrooms: "", minBathrooms: "", minVacancies: "", minArea: "", maxArea: "", minAreaTotal: "", maxAreaTotal: "", address: [], sites: [], tipoImovel: [], q: ""})}>Limpar</Button> : null}</div><div className="p-5 space-y-2 flex-1 overflow-y-auto">
 
       {/* Price */}
       <CollapsibleSection
@@ -170,28 +169,26 @@ const toggleTipoImovel = (tipoImovel: string) => {
         onReset={() => setFilters(prev => ({ ...prev, minPrice: '', maxPrice: '' }))}
       >
         <div className="grid grid-cols-2 gap-3">
-          <div>
-             <label className={labelClass}>Mínimo</label>
-             <input
-                type="number"
-                name="minPrice"
-                placeholder="0"
-                value={filters.minPrice}
-                onChange={handleChange}
-                className={inputClass}
-             />
-          </div>
-          <div>
-             <label className={labelClass}>Máximo</label>
-             <input
-                type="number"
-                name="maxPrice"
-                placeholder="Ilimitado"
-                value={filters.maxPrice}
-                onChange={handleChange}
-                className={inputClass}
-             />
-          </div>
+          <TextField
+            compact
+            className="filter-field"
+            label="Mínimo"
+            type="number"
+            name="minPrice"
+            placeholder="0"
+            value={filters.minPrice}
+            onChange={handleChange}
+          />
+          <TextField
+            compact
+            className="filter-field"
+            label="Máximo"
+            type="number"
+            name="maxPrice"
+            placeholder="Ilimitado"
+            value={filters.maxPrice}
+            onChange={handleChange}
+          />
         </div>
       </CollapsibleSection>
 
@@ -202,39 +199,36 @@ const toggleTipoImovel = (tipoImovel: string) => {
          onReset={() => setFilters(prev => ({ ...prev, minBedrooms: '', minBathrooms: '', minVacancies: '' }))}
       >
          <div className="grid grid-cols-3 gap-3">
-             <div>
-               <label className={labelClass}>Quartos</label>
-               <input
-                  type="number"
-                  name="minBedrooms"
-                  placeholder="2+"
-                  value={filters.minBedrooms}
-                  onChange={handleChange}
-                  className={inputClass}
-               />
-             </div>
-             <div>
-               <label className={labelClass}>Banhos</label>
-               <input
-                  type="number"
-                  name="minBathrooms"
-                  placeholder="1+"
-                  value={filters.minBathrooms}
-                  onChange={handleChange}
-                  className={inputClass}
-               />
-             </div>
-             <div>
-               <label className={labelClass}>Vagas</label>
-               <input
-                  type="number"
-                  name="minVacancies"
-                  placeholder="1+"
-                  value={filters.minVacancies}
-                  onChange={handleChange}
-                  className={inputClass}
-               />
-             </div>
+             <TextField
+                compact
+                className="filter-field"
+                label="Quartos"
+                type="number"
+                name="minBedrooms"
+                placeholder="2+"
+                value={filters.minBedrooms}
+                onChange={handleChange}
+             />
+             <TextField
+                compact
+                className="filter-field"
+                label="Banhos"
+                type="number"
+                name="minBathrooms"
+                placeholder="1+"
+                value={filters.minBathrooms}
+                onChange={handleChange}
+             />
+             <TextField
+                compact
+                className="filter-field"
+                label="Vagas"
+                type="number"
+                name="minVacancies"
+                placeholder="1+"
+                value={filters.minVacancies}
+                onChange={handleChange}
+             />
          </div>
       </CollapsibleSection>
 
@@ -245,28 +239,26 @@ const toggleTipoImovel = (tipoImovel: string) => {
         onReset={() => setFilters(prev => ({ ...prev, minArea: '', maxArea: '' }))}
       >
         <div className="grid grid-cols-2 gap-3">
-          <div>
-             <label className={labelClass}>Mínima</label>
-             <input
-                type="number"
-                name="minArea"
-                placeholder="0"
-                value={filters.minArea}
-                onChange={handleChange}
-                className={inputClass}
-             />
-          </div>
-          <div>
-             <label className={labelClass}>Máxima</label>
-             <input
-                type="number"
-                name="maxArea"
-                placeholder="Max"
-                value={filters.maxArea}
-                onChange={handleChange}
-                className={inputClass}
-             />
-          </div>
+          <TextField
+            compact
+            className="filter-field"
+            label="Mínima"
+            type="number"
+            name="minArea"
+            placeholder="0"
+            value={filters.minArea}
+            onChange={handleChange}
+          />
+          <TextField
+            compact
+            className="filter-field"
+            label="Máxima"
+            type="number"
+            name="maxArea"
+            placeholder="Max"
+            value={filters.maxArea}
+            onChange={handleChange}
+          />
         </div>
       </CollapsibleSection>
 
@@ -277,28 +269,26 @@ const toggleTipoImovel = (tipoImovel: string) => {
         onReset={() => setFilters(prev => ({ ...prev, minAreaTotal: '', maxAreaTotal: '' }))}
       >
         <div className="grid grid-cols-2 gap-3">
-          <div>
-             <label className={labelClass}>Mínima</label>
-             <input
-                type="number"
-                name="minAreaTotal"
-                placeholder="0"
-                value={filters.minAreaTotal}
-                onChange={handleChange}
-                className={inputClass}
-             />
-          </div>
-          <div>
-             <label className={labelClass}>Máxima</label>
-             <input
-                type="number"
-                name="maxAreaTotal"
-                placeholder="Max"
-                value={filters.maxAreaTotal}
-                onChange={handleChange}
-                className={inputClass}
-             />
-          </div>
+          <TextField
+            compact
+            className="filter-field"
+            label="Mínima"
+            type="number"
+            name="minAreaTotal"
+            placeholder="0"
+            value={filters.minAreaTotal}
+            onChange={handleChange}
+          />
+          <TextField
+            compact
+            className="filter-field"
+            label="Máxima"
+            type="number"
+            name="maxAreaTotal"
+            placeholder="Max"
+            value={filters.maxAreaTotal}
+            onChange={handleChange}
+          />
         </div>
       </CollapsibleSection>
 
@@ -309,27 +299,14 @@ const toggleTipoImovel = (tipoImovel: string) => {
         onReset={() => setFilters(prev => ({ ...prev, address: [] }))}
       >
         <div className="space-y-2">
-            <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Filtrar bairros..."
-                    aria-label="Filtrar bairros"
-                    value={addressSearch}
-                    onChange={(e) => setAddressSearch(e.target.value)}
-                    className={clsx(inputClass, "pl-9 pr-8 py-2")}
-                />
-                {addressSearch && (
-                  <button
-                    type="button"
-                    onClick={() => setAddressSearch('')}
-                    aria-label="Limpar busca de bairros"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-            </div>
+            <SearchField
+                className="filter-search"
+                label="Filtrar bairros"
+                clearLabel="Limpar busca de bairros"
+                placeholder="Filtrar bairros..."
+                value={addressSearch}
+                onChange={setAddressSearch}
+            />
 
             <div className="border border-gray-200 dark:border-gray-600 rounded-lg max-h-52 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800/40">
                 {filteredAddresses.length > 0 ? (
@@ -370,12 +347,9 @@ const toggleTipoImovel = (tipoImovel: string) => {
             <div className="flex justify-between items-center text-[10px] text-gray-400 dark:text-gray-500 px-1">
                 <span>{filters.address.length} selecionados</span>
                 {filters.address.length > 0 && (
-                     <button
-                        onClick={() => setFilters(prev => ({ ...prev, address: [] }))}
-                        className="text-blue-500 hover:underline cursor-pointer"
-                    >
+                     <Button variant="link" size="xs" onClick={() => setFilters(prev => ({ ...prev, address: [] }))}>
                         Limpar seleção
-                     </button>
+                     </Button>
                 )}
             </div>
         </div>
@@ -392,31 +366,28 @@ const toggleTipoImovel = (tipoImovel: string) => {
             {TIPOS_IMOVEL.map(tipo => {
               const selected = (filters.tipoImovel || []).includes(tipo);
               return (
-                <button
+                <Button
                   key={tipo}
                   type="button"
                   aria-pressed={selected}
                   onClick={() => toggleTipoImovel(tipo)}
-                  className={clsx(
-                    'px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-colors',
-                    selected
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-400',
-                  )}
+                  variant={selected ? 'primary' : 'secondary'}
+                  appearance={selected ? 'solid' : 'outline'}
+                  size="xs"
+                  className="capitalize"
                 >
                   {tipo}
-                </button>
+                </Button>
               );
             })}
           </div>
-          <input
-            type="search"
-            aria-label="Buscar por palavra-chave"
+          <SearchField
+            className="filter-search"
+            label="Buscar por palavra-chave"
             placeholder="Ex.: piscina, edícula, código"
             maxLength={100}
             value={filters.q || ''}
-            onChange={e => setFilters(prev => ({ ...prev, q: e.target.value }))}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={value => setFilters(prev => ({ ...prev, q: value }))}
           />
         </div>
       </CollapsibleSection>
@@ -429,24 +400,14 @@ const toggleTipoImovel = (tipoImovel: string) => {
         onReset={() => setFilters(prev => ({ ...prev, sites: [] }))}
       >
         <div className="space-y-2">
-            <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Filtrar imobiliárias..."
-                    value={siteSearch}
-                    onChange={(e) => setSiteSearch(e.target.value)}
-                    className={clsx(inputClass, "pl-9 pr-8 py-2")}
-                />
-                {siteSearch && (
-                  <button
-                    onClick={() => setSiteSearch('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-            </div>
+            <SearchField
+                className="filter-search"
+                label="Filtrar imobiliárias"
+                clearLabel="Limpar busca de imobiliárias"
+                placeholder="Filtrar imobiliárias..."
+                value={siteSearch}
+                onChange={setSiteSearch}
+            />
 
             <div className="border border-gray-200 dark:border-gray-600 rounded-lg max-h-52 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800/40">
                 {filteredSites.length > 0 ? (
@@ -487,19 +448,20 @@ const toggleTipoImovel = (tipoImovel: string) => {
             <div className="flex justify-between items-center text-[10px] text-gray-400 dark:text-gray-500 px-1">
                 <span>{(filters.sites || []).length} selecionadas</span>
                 {(filters.sites || []).length > 0 && (
-                     <button
-                        onClick={() => setFilters(prev => ({ ...prev, sites: [] }))}
-                        className="text-blue-500 hover:underline cursor-pointer"
-                    >
+                     <Button variant="link" size="xs" onClick={() => setFilters(prev => ({ ...prev, sites: [] }))}>
                         Limpar seleção
-                     </button>
+                     </Button>
                 )}
             </div>
         </div>
       </CollapsibleSection>
 
       </div><div className="sticky bottom-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-4 border-t border-gray-200 dark:border-gray-700/50">
-        <button
+        <Button
+          variant="danger"
+          appearance="outline"
+          size="md"
+          className="w-full"
           onClick={() => setFilters({
             tipo: 'venda',
             minPrice: '', maxPrice: '',
@@ -507,11 +469,10 @@ const toggleTipoImovel = (tipoImovel: string) => {
             minArea: '', maxArea: '', minAreaTotal: '', maxAreaTotal: '',
             address: [], sites: [], tipoImovel: [], q: ''
           })}
-          className="w-full py-3 px-4 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white font-bold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.98] border border-red-100 dark:border-red-900/30 group"
+          iconStart={<X size={16} strokeWidth={2.5} />}
         >
-          <X size={16} strokeWidth={2.5} className="group-hover:rotate-90 transition-transform duration-300 text-red-500" />
-          <span className="text-red-600 dark:text-red-400 dark:group-hover:text-white font-medium">Limpar Todos os Filtros</span>
-        </button>
+          Limpar Todos os Filtros
+        </Button>
       </div>
     </div>
   );

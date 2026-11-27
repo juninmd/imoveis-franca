@@ -6,7 +6,8 @@ import { PropertyCard } from './components/PropertyCard';
 import { PropertyCardSkeleton } from './components/PropertyCardSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ScrollToTop } from './components/ScrollToTop';
-import {  Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List , ArrowUp, Loader2 } from 'lucide-react';
+import {  Menu, X, Moon, Sun, Heart, FilterX, Search, Home as HomeIcon, ArrowUpDown, AlertCircle, LayoutGrid, List , ArrowUp } from 'lucide-react';
+import { Badge, Button, Skeleton, Spinner, SubTabs } from '@juninmd/sonido';
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Imovel } from './types';
@@ -98,6 +99,7 @@ export const Home = () => {
   });
 
   useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
     if (darkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -236,14 +238,17 @@ export const Home = () => {
         </div>
 
         <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
-            <button
+            <Button
+               variant="danger"
+               appearance="outline"
+               size="sm"
+               className="w-full"
                onClick={clearFilters}
                disabled={activeFiltersCount === 0}
-               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm active:scale-[0.98]"
+               iconStart={<FilterX size={16} />}
             >
-               <FilterX size={16} />
                Limpar Filtros ({activeFiltersCount})
-            </button>
+            </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -252,17 +257,9 @@ export const Home = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="p-5 space-y-6"
+              className="p-5"
             >
-               {[...Array(5)].map((_, i) => (
-                 <div key={i} className="space-y-3 pb-6 border-b border-gray-100/50 dark:border-gray-700/50">
-                    <div className="h-4 bg-gray-200/70 dark:bg-gray-700/70 rounded w-1/3 animate-pulse" />
-                    <div className="grid grid-cols-2 gap-3">
-                       <div className="h-10 bg-gray-200/70 dark:bg-gray-700/70 rounded-lg animate-pulse" />
-                       <div className="h-10 bg-gray-200/70 dark:bg-gray-700/70 rounded-lg animate-pulse" />
-                    </div>
-                 </div>
-               ))}
+               <Skeleton label="Carregando filtros" rows={6} />
             </motion.div>
           }>
             <FilterSidebar
@@ -286,13 +283,17 @@ export const Home = () => {
 
         {/* Floating Dark Mode Toggle for Hero */}
         <div className="absolute top-4 right-4 z-20 hidden lg:block">
-            <button
+            <Button
+               variant="ghost"
+               size="icon"
                onClick={() => setDarkMode(!darkMode)}
                title={darkMode ? "Modo Claro" : "Modo Escuro"}
-               className="p-2.5 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/20 transition-all shadow-lg hover:scale-105 active:scale-95"
+               aria-label={darkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+               className="backdrop-blur-md shadow-lg"
+               style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', borderColor: 'rgba(255, 255, 255, 0.2)', color: '#fff' }}
             >
                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+            </Button>
         </div>
 
         <HeroSearch
@@ -319,7 +320,7 @@ export const Home = () => {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2" aria-live="polite">
                {isLoading ? (
                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-medium">
-                   <Loader2 size={20} className="animate-spin" />
+                   <Spinner size={20} />
                    Buscando imóveis...
                  </motion.span>
                ) : (
@@ -337,56 +338,41 @@ export const Home = () => {
           </div>
 
           <div className="flex items-center gap-3">
-             <button
+             <Button
                 onClick={() => setShowFavoritesOnly(prev => !prev)}
                 aria-pressed={showFavoritesOnly}
-                className={clsx(
-                  "p-2.5 rounded-lg transition-all flex items-center gap-2 text-sm font-medium border shadow-sm",
-                  showFavoritesOnly
-                    ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
-                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
-                )}
+                variant={showFavoritesOnly ? 'danger' : 'secondary'}
+                appearance="outline"
+                size="sm"
+                iconStart={<Heart size={16} className={showFavoritesOnly ? "fill-current" : ""} />}
                 title="Mostrar apenas favoritos"
               >
-                <Heart size={18} className={showFavoritesOnly ? "fill-current" : ""} />
-                <span className="hidden sm:inline">Favoritos ({favoritesCount})</span>
-              </button>
+                <span className="hidden sm:inline">Favoritos</span>
+                <Badge appearance="count" aria-label={`${favoritesCount} favoritos`}>{favoritesCount}</Badge>
+              </Button>
 
-             <button
+             <Button
+                variant="secondary"
+                appearance="outline"
+                size="icon"
                 onClick={() => setDarkMode(!darkMode)}
 
                 title={darkMode ? "Modo Claro" : "Modo Escuro"}
-                className="p-2.5 rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm hover:scale-105 active:scale-95"
+                aria-label={darkMode ? "Ativar modo claro" : "Ativar modo escuro"}
              >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-             </button>
+             </Button>
 
-             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={clsx(
-                    "p-1.5 rounded-md transition-all hover:-translate-y-1 hover:scale-105 active:scale-95",
-                    viewMode === 'grid'
-                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                  )}
-                  title="Visualização em Grade"
-                >
-                  <LayoutGrid size={18} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={clsx(
-                    "p-1.5 rounded-md transition-all hover:-translate-y-1 hover:scale-105 active:scale-95",
-                    viewMode === 'list'
-                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                  )}
-                  title="Visualização em Lista"
-                >
-                  <List size={18} />
-                </button>
-             </div>
+             <SubTabs
+                label="Modo de visualização"
+                items={[
+                  { key: 'grid', label: 'Visualização em grade', icon: <LayoutGrid size={18} /> },
+                  { key: 'list', label: 'Visualização em lista', icon: <List size={18} /> },
+                ]}
+                value={viewMode}
+                onChange={setViewMode}
+                iconsOnly
+             />
 
             {/* Ordenação também no mobile: estava atrás de `hidden sm:flex`, ou seja, a maior
                 parte do tráfego não conseguia ordenar a lista. */}

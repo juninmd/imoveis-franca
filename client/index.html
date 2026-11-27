@@ -20,6 +20,8 @@
         var stored = localStorage.getItem('theme');
         var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (dark) document.documentElement.classList.add('dark');
+        // O Sonido lê o tema por data-theme; o app continua usando a classe .dark.
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       } catch (e) { /* storage bloqueado: segue no tema claro */ }
     </script>
     <div id="root"></div>
