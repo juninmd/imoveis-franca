@@ -1,0 +1,4 @@
+/* CSS real do app + os utilitários usados só nesta página de comparação. */
+@import "../../client/src/index.css";
+@source "./**/*.tsx";
+@source "./preview.html";

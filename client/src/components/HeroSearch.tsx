@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Tag, Key, MapPin, DollarSign, BedDouble } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
+import { Button } from '@juninmd/sonido';
 
 export interface HeroFilters {
   tipo: 'venda' | 'aluguel';
@@ -168,13 +169,17 @@ export function HeroSearch<T extends HeroFilters>({ filters, setFilters, address
             />
           </div>
 
-          <motion.button whileTap={{ scale: 0.95 }}
+          <Button
             type="button"
+            variant="primary"
+            size="lg"
+            press
             onClick={() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex-1 sm:flex-none min-w-[130px] flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-[0.97] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+            className="flex-1 sm:flex-none min-w-[130px]"
+            iconStart={<Search size={18} className="animate-pulse-slow" />}
           >
-            <Search size={18} className="animate-pulse-slow" /> Buscar
-          </motion.button>
+            Buscar
+          </Button>
         </motion.div>
       </motion.div>
     </div>

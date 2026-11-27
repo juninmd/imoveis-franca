@@ -60,3 +60,62 @@
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* --- Ponte visual com o @juninmd/sonido -------------------------------- */
+/* O Sonido nasce coral; o imoveis-franca é azul. Mapeamos apenas o accent,
+   o accent secundário e o gradiente suave para a identidade do app, sem
+   sobrescrever superfícies, texto ou estados do design system. */
+:root[data-theme='light'] {
+  --sn-color-accent: #2563eb;
+  --sn-color-accent-2: #4f46e5;
+  --sn-gradient: linear-gradient(135deg, #2563eb, #4f46e5);
+  --sn-gradient-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--sn-color-accent) 14%, transparent),
+    color-mix(in srgb, var(--sn-color-accent) 4%, transparent)
+  );
+}
+
+:root[data-theme='dark'] {
+  --sn-color-accent: #3b82f6;
+  --sn-color-accent-2: #818cf8;
+  --sn-gradient: linear-gradient(135deg, #3b82f6, #6366f1);
+  --sn-gradient-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--sn-color-accent) 14%, transparent),
+    color-mix(in srgb, var(--sn-color-accent) 4%, transparent)
+  );
+}
+
+/* Chrome denso: a busca do painel de filtros cabe em 36px, não nos 44px padrão. */
+.filter-search .sn-search {
+  min-height: 36px;
+  border-radius: 10px;
+}
+
+.filter-search .sn-search__input {
+  height: 34px;
+  font-size: var(--sn-text-sm);
+}
+
+/* O rótulo compacto acompanha a tipografia do painel. */
+.filter-field .sn-field__label {
+  color: var(--sn-color-text-dim);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* O card externo do imoveis-franca mantém a moldura; o EmptyState do Sonido
+   entra sem a borda tracejada para não desenhar uma caixa dentro da outra. */
+.empty-state-sonido.sn-empty {
+  gap: 0;
+  border: 0;
+  padding: 0;
+}
+
+.empty-state__tips {
+  color: var(--sn-color-text-dim);
+  font-size: var(--sn-text-sm);
+  line-height: 1.5;
+}
